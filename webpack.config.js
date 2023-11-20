@@ -1,5 +1,6 @@
 const path = require("path");
 const CopyPlugin = require('copy-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
 module.exports = function (_env, argv) {
     const isProduction = argv.mode === "production";
@@ -7,7 +8,7 @@ module.exports = function (_env, argv) {
 
     return {
         devtool: isDevelopment && "cheap-module-source-map",
-        entry: "./src/main.jsx",
+        entry: "./src/main.tsx",
         output: {
             path: path.resolve(__dirname, "dist"),
             filename: "[name].bundle.js",
@@ -17,7 +18,7 @@ module.exports = function (_env, argv) {
         module: {
             rules: [
                 {
-                    test: /\.(?:js|jsx|ts)$/,
+                    test: /\.(js|jsx|ts|tsx)$/,
                     exclude: /node_modules/,
                     use: {
                         loader: "babel-loader",
@@ -31,9 +32,12 @@ module.exports = function (_env, argv) {
             ]
         },
         resolve: {
-            extensions: [".js", ".jsx", ".ts"]
+            extensions: [".js", ".jsx", ".ts", ".tsx"]
         },
         plugins: [
+            new ForkTsCheckerWebpackPlugin({
+                async: false
+            }),
             new CopyPlugin({
                 patterns: [
                     { from: "public", to: "./" }
