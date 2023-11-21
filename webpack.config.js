@@ -7,11 +7,14 @@ module.exports = function (_env, argv) {
     const isDevelopment = !isProduction;
 
     return {
-        devtool: isDevelopment && "cheap-module-source-map",
-        entry: "./src/main.tsx",
+        devtool: isDevelopment && "inline-source-map",
+        entry: {
+            popup: "./src/popup/popup.tsx",
+            content: "./src/scripts/content.tsx",
+        },
         output: {
             path: path.resolve(__dirname, "dist"),
-            filename: "[name].bundle.js",
+            filename: "src/[name].bundle.js",
             publicPath: "/",
             clean: true
         },
