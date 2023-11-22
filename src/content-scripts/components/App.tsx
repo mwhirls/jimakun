@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import Video from './Video'
 
 import { WEBVTT_FORMAT, TRACK_ELEM_ID } from "../util/util"
 import { SubtitleTrack, SubtitleData } from "../util/netflix-types";
@@ -38,43 +39,6 @@ async function downloadSubtitles(data: SubtitleData) {
         return await fetchSubtitlesBlob(bestUrl);
     }
     throw new Error("[JIMAKUN] No Japanese subtitles found");
-}
-
-async function onCueChange(e: Event) {
-    const track = e.target as TextTrack;
-    if (!track || !track.activeCues) {
-        return;
-    }
-    for (let i = 0; i < track.activeCues.length; i++) {
-        const cue = track.activeCues[i] as any; // cue.text is not documented
-        const tagsRegex = '(<([^>]+>)|&lrm;|&rlm;)';
-        const regex = new RegExp(tagsRegex, 'ig');
-        const match = regex.exec(cue.text);
-        let cueText = cue.text;
-        if (match) {
-            cueText = cue.text.replace(regex, '');
-        }
-        console.log(cueText);
-    }
-}
-
-// Add a ghost subtitle track to the Netflix video player so we can listen
-// for subtitle queue changes
-function addSubtitleTrack(subtitlesURL: string) {
-    let videoElem = document.querySelector("video");
-    if (!videoElem || document.getElementById(TRACK_ELEM_ID)) {
-        return;
-    }
-    const trackElem = document.createElement('track');
-    trackElem.id = TRACK_ELEM_ID;
-    trackElem.label = 'Japanese';
-    trackElem.src = subtitlesURL;
-    trackElem.kind = 'subtitles';
-    trackElem.default = true;
-    trackElem.srclang = 'ja';
-    videoElem.appendChild(trackElem);
-    videoElem.textTracks[0].mode = 'hidden';
-    videoElem.textTracks[0].addEventListener('cuechange', onCueChange, false);
 }
 
 function App() {
@@ -122,20 +86,17 @@ function App() {
         };
     }, []);
 
-    useEffect(() => {
-        if (!currMovie.length || !videoLoaded) {
-            return;
-        }
-        const subtitles = moviesToSubtitles.get(currMovie);
-        if (subtitles) {
-            addSubtitleTrack(subtitles);
-        }
-    }, [moviesToSubtitles, currMovie, videoLoaded]);
-
-    return (
-        <>
-        </>
-    )
+    const subtitles = moviesToSubtitles.get(currMovie);
+    const showVideo = videoLoaded && currMovie && subtitles;
+    if (showVideo) {
+        return (
+            <>
+                <Video subtitlesURL={subtitles}></Video>
+            </>
+        )
+    } else {
+        return (<></>);
+    }
 }
 
 export default App
