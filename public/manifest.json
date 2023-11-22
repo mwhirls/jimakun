@@ -19,6 +19,16 @@
             "matches": [
                 "https://www.google.com/*"
             ]
+        },
+        {
+            "js": [
+                "interceptor.bundle.js"
+            ],
+            "matches": [
+                "https://www.google.com/*"
+            ],
+            "run_at": "document_start",
+            "world": "MAIN"
         }
     ]
 }

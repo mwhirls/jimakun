@@ -11,7 +11,8 @@ module.exports = function (_env, argv) {
         devtool: isDevelopment && "inline-source-map",
         entry: {
             popup: "./src/popup/popup.tsx",
-            content: "./src/scripts/content.tsx",
+            content: "./src/content-scripts/content.tsx",
+            interceptor: "./src/content-scripts/interceptor.ts",
         },
         output: {
             path: path.resolve(__dirname, "dist"),
