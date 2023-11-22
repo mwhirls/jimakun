@@ -3,7 +3,7 @@
     "name": "Jimakun",
     "version": "1.0.0",
     "action": {
-        "default_popup": "src/popup/popup.html"
+        "default_popup": "popup.html"
     },
     "icons": {
         "16": "icons/icon16.png",
@@ -14,7 +14,7 @@
     "content_scripts": [
         {
             "js": [
-                "src/content.bundle.js"
+                "content.bundle.js"
             ],
             "matches": [
                 "https://www.google.com/*"

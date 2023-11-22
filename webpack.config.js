@@ -1,6 +1,7 @@
 const path = require("path");
 const CopyPlugin = require('copy-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = function (_env, argv) {
     const isProduction = argv.mode === "production";
@@ -14,7 +15,7 @@ module.exports = function (_env, argv) {
         },
         output: {
             path: path.resolve(__dirname, "dist"),
-            filename: "src/[name].bundle.js",
+            filename: "[name].bundle.js",
             publicPath: "/",
             clean: true
         },
@@ -40,6 +41,11 @@ module.exports = function (_env, argv) {
         plugins: [
             new ForkTsCheckerWebpackPlugin({
                 async: false
+            }),
+            new HtmlWebpackPlugin({
+                template: path.resolve(__dirname, "src/popup/popup.html"),
+                inject: true,
+                filename: "popup.html"
             }),
             new CopyPlugin({
                 patterns: [
