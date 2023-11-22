@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-import { WEBVTT_FORMAT } from "../util/util"
+import { WEBVTT_FORMAT, TRACK_ELEM_ID } from "../util/util"
 import { SubtitleTrack, SubtitleData } from "../util/netflix-types";
 import { RuntimeEvent, MovieChangedMessage } from '../../util/events';
 
@@ -40,16 +40,54 @@ async function downloadSubtitles(data: SubtitleData) {
     throw new Error("[JIMAKUN] No Japanese subtitles found");
 }
 
+async function onCueChange(e: Event) {
+    const track = e.target as TextTrack;
+    if (!track || !track.activeCues) {
+        return;
+    }
+    for (let i = 0; i < track.activeCues.length; i++) {
+        const cue = track.activeCues[i] as any; // cue.text is not documented
+        const tagsRegex = '(<([^>]+>)|&lrm;|&rlm;)';
+        const regex = new RegExp(tagsRegex, 'ig');
+        const match = regex.exec(cue.text);
+        let cueText = cue.text;
+        if (match) {
+            cueText = cue.text.replace(regex, '');
+        }
+        console.log(cueText);
+    }
+}
+
+// Add a ghost subtitle track to the Netflix video player so we can listen
+// for subtitle queue changes
+function addSubtitleTrack(subtitlesURL: string) {
+    let videoElem = document.querySelector("video");
+    if (!videoElem || document.getElementById(TRACK_ELEM_ID)) {
+        return;
+    }
+    const trackElem = document.createElement('track');
+    trackElem.id = TRACK_ELEM_ID;
+    trackElem.label = 'Japanese';
+    trackElem.src = subtitlesURL;
+    trackElem.kind = 'subtitles';
+    trackElem.default = true;
+    trackElem.srclang = 'ja';
+    videoElem.appendChild(trackElem);
+    videoElem.textTracks[0].mode = 'hidden';
+    videoElem.textTracks[0].addEventListener('cuechange', onCueChange, false);
+}
+
 function App() {
     const [moviesToSubtitles, setMoviesToSubtitles] = useState(new Map<string, string>);
     const [currMovie, setCurrMovie] = useState("");
+    const [videoLoaded, setVideoLoaded] = useState(false);
 
     useEffect(() => {
         const subtitleListener = async (event: Event) => {
             const data = (event as CustomEvent).detail as SubtitleData;
             try {
                 const subtitlesURL = await downloadSubtitles(data);
-                setMoviesToSubtitles(prev => new Map([...prev, [data.movieId, subtitlesURL]]));
+                setMoviesToSubtitles(prev => new Map([...prev, [data.movieId.toString(), subtitlesURL]]));
             } catch (error) {
                 console.error('[JIMAKUN] Failed to fetch WebVTT file', error);
             }
@@ -62,13 +100,37 @@ function App() {
         window.addEventListener(RuntimeEvent.SubtitlesDetected, subtitleListener);
         chrome.runtime.onMessage.addListener(runtimeListener);
 
+        // We insert our components into the Netflix DOM, but they constantly
+        // mutate it.  Watch for changes so we know when to re-render.
+        const netflixObserver = new MutationObserver(mutationCallback);
+        function mutationCallback(mutationsList: MutationRecord[], observer: MutationObserver) {
+            for (let mutation of mutationsList) {
+                if (mutation.type != 'childList' || !mutation.addedNodes) {
+                    continue;
+                }
+                const hasVideo = document.getElementsByTagName("video").length > 0;
+                setVideoLoaded(hasVideo);
+            }
+        }
+        const config = { attributes: false, childList: true, subtree: true };
+        netflixObserver.observe(document.body, config);
+
         return () => {
             window.removeEventListener(RuntimeEvent.SubtitlesDetected, subtitleListener);
             chrome.runtime.onMessage.removeListener(runtimeListener);
+            netflixObserver.disconnect();
         };
     }, []);
 
-
+    useEffect(() => {
+        if (!currMovie.length || !videoLoaded) {
+            return;
+        }
+        const subtitles = moviesToSubtitles.get(currMovie);
+        if (subtitles) {
+            addSubtitleTrack(subtitles);
+        }
+    }, [moviesToSubtitles, currMovie, videoLoaded]);
 
     return (
         <>

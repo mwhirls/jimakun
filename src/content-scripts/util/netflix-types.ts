@@ -14,6 +14,6 @@ export interface SubtitleTrack {
 }
 
 export interface SubtitleData {
-    movieId: string,
+    movieId: number,
     timedtexttracks: Array<SubtitleTrack>
 }
