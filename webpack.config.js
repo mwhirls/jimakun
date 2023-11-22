@@ -33,6 +33,20 @@ module.exports = function (_env, argv) {
                             envName: isProduction ? "production" : "development"
                         }
                     }
+                },
+                {
+                    test: /\.css$/,
+                    use: [
+                        isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+                        "css-loader"
+                    ]
+                },
+                {
+                    test: /\.(svg)$/,
+                    loader: require.resolve("file-loader"),
+                    options: {
+                        name: "web-accessible-resources/[name].[hash:8].[ext]"
+                    }
                 }
             ]
         },

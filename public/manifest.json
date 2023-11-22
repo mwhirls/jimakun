@@ -30,5 +30,15 @@
             "run_at": "document_start",
             "world": "MAIN"
         }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "web-accessible-resources/*"
+            ],
+            "matches": [
+                "https://www.google.com/*"
+            ]
+        }
     ]
 }
