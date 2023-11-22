@@ -13,6 +13,7 @@ module.exports = function (_env, argv) {
             popup: "./src/popup/popup.tsx",
             content: "./src/content-scripts/content.tsx",
             interceptor: "./src/content-scripts/interceptor.ts",
+            "service-worker": "./src/service-worker.ts",
         },
         output: {
             path: path.resolve(__dirname, "dist"),

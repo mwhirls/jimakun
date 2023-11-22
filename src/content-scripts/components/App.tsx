@@ -3,7 +3,7 @@ import './App.css'
 
 import { WEBVTT_FORMAT } from "../util/util"
 import { SubtitleTrack, SubtitleData } from "../util/netflix-types";
-import { RuntimeMessage } from '../../util/events';
+import { RuntimeEvent, MovieChangedMessage } from '../../util/events';
 
 function findBestSubtitleURL(track: SubtitleTrack) {
     const webvttDL = track.ttDownloadables[WEBVTT_FORMAT];
@@ -42,6 +42,7 @@ async function downloadSubtitles(data: SubtitleData) {
 
 function App() {
     const [moviesToSubtitles, setMoviesToSubtitles] = useState(new Map<string, string>);
+    const [currMovie, setCurrMovie] = useState("");
 
     useEffect(() => {
         const subtitleListener = async (event: Event) => {
@@ -53,10 +54,17 @@ function App() {
                 console.error('[JIMAKUN] Failed to fetch WebVTT file', error);
             }
         }
-        window.addEventListener(RuntimeMessage.SubtitlesDetected, subtitleListener);
+        const runtimeListener = (message: MovieChangedMessage) => {
+            if (message.event === RuntimeEvent.MovieUpdated) {
+                setCurrMovie(message.movieId);
+            }
+        };
+        window.addEventListener(RuntimeEvent.SubtitlesDetected, subtitleListener);
+        chrome.runtime.onMessage.addListener(runtimeListener);
 
         return () => {
-            window.removeEventListener(RuntimeMessage.SubtitlesDetected, subtitleListener);
+            window.removeEventListener(RuntimeEvent.SubtitlesDetected, subtitleListener);
+            chrome.runtime.onMessage.removeListener(runtimeListener);
         };
     }, []);
 

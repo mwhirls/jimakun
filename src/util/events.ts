@@ -1,5 +1,9 @@
-import { SubtitleData } from "../content-scripts/util/netflix-types";
-
-export enum RuntimeMessage {
+export enum RuntimeEvent {
     SubtitlesDetected = 'subtitles-detected',
+    MovieUpdated = 'movie-updated',
+}
+
+export interface MovieChangedMessage {
+    event: RuntimeEvent.MovieUpdated,
+    movieId: string
 }
