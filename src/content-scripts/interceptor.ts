@@ -1,5 +1,7 @@
 // must run in the MAIN world since we need to manipulate some global variables
 
+import { RuntimeMessage } from "../util/events";
+
 const WEBVTT_FORMAT = 'webvtt-lssdh-ios8';
 const NETFLIX_PROFILES = [
     'heaac-2-dash',
@@ -57,7 +59,7 @@ const originalParse = JSON.parse;
 JSON.parse = (text) => {
     const parsed = originalParse(text);
     if (parsed && parsed.result && parsed.result.timedtexttracks && parsed.result.movieId) {
-        console.log(parsed);
+        window.dispatchEvent(new CustomEvent(RuntimeMessage.SubtitlesDetected, { detail: parsed.result }));
     }
     return parsed;
 }

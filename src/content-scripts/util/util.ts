@@ -1,0 +1,1 @@
+export const WEBVTT_FORMAT = 'webvtt-lssdh-ios8';
