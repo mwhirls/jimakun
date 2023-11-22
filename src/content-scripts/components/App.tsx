@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import { WebvttSubtitles } from './Video'
 import Video from './Video'
 
 import { WEBVTT_FORMAT } from "../util/util"
@@ -18,11 +19,13 @@ class MovieMetadata implements NetflixMetadata {
     }
 }
 
-class SubtitleData {
+class SubtitleData implements WebvttSubtitles {
     webvttUrl: string;
+    bcp47: string;
 
-    constructor(webvttUrl: string) {
+    constructor(webvttUrl: string, bcp47: string) {
         this.webvttUrl = webvttUrl;
+        this.bcp47 = bcp47;
     }
 }
 
@@ -47,7 +50,7 @@ async function downloadSubtitles(track: TimedTextTrack): Promise<SubtitleData | 
         return null;
     }
     const blobUrl = await fetchSubtitlesBlob(url);
-    return { webvttUrl: blobUrl };
+    return new SubtitleData(blobUrl, track.language);
 }
 
 function App() {
@@ -60,7 +63,7 @@ function App() {
     useEffect(() => {
         const metadataListener = async (event: Event) => {
             const data = (event as CustomEvent).detail as NetflixMetadata;
-            const metadata = new MovieMetadata(data.movieId, data.recommendedMedia, data.timedtexttracks);
+            const metadata = data;
             setMoviesMetadata(prev => new Map([...prev, [metadata.movieId.toString(), metadata]]));
             for (const track of metadata.timedtexttracks) {
                 try {
@@ -110,12 +113,11 @@ function App() {
         };
     }, []);
 
-    const webvttUrl = subtitleData.get(currTrack)?.webvttUrl;
-    const showVideo = videoLoaded && currMovie && webvttUrl;
-    if (showVideo) {
+    const subtitles = subtitleData.get(currTrack);
+    if (videoLoaded) {
         return (
             <>
-                <Video subtitlesURL={webvttUrl}></Video>
+                <Video subtitles={subtitles}></Video>
             </>
         )
     } else {

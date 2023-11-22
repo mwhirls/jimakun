@@ -19,33 +19,43 @@ async function onCueChange(e: Event) {
     }
 }
 
+export interface WebvttSubtitles {
+    webvttUrl: string,
+    bcp47: string,
+}
+
 // Add a ghost subtitle track to the Netflix video player so we can listen
 // for subtitle queue changes
-function addSubtitleTrack(webvttUrl: string) {
+function updateSubtitleTrack(subtitles: WebvttSubtitles | undefined) {
     let videoElem = document.querySelector("video");
-    if (!videoElem || document.getElementById(TRACK_ELEM_ID)) {
+    if (!videoElem) {
+        return;
+    }
+    if (!subtitles) {
+        let elem = document.getElementById(TRACK_ELEM_ID);
+        if (elem) {
+            elem.remove();
+        }
         return;
     }
     const trackElem = document.createElement('track');
     trackElem.id = TRACK_ELEM_ID;
-    trackElem.label = 'Japanese';
-    trackElem.src = webvttUrl;
+    trackElem.label = 'Jimakun';
+    trackElem.src = subtitles.webvttUrl;
     trackElem.kind = 'subtitles';
     trackElem.default = true;
-    trackElem.srclang = 'ja';
+    trackElem.srclang = subtitles.bcp47;
     videoElem.appendChild(trackElem);
     videoElem.textTracks[0].mode = 'hidden';
     videoElem.textTracks[0].addEventListener('cuechange', onCueChange, false);
 }
 
 interface VideoProps {
-    subtitlesURL: string,
+    subtitles: WebvttSubtitles | undefined
 }
 
-function Video({ subtitlesURL }: VideoProps) {
-    useEffect(() => {
-        addSubtitleTrack(subtitlesURL);
-    }, []);
+function Video({ subtitles }: VideoProps) {
+    updateSubtitleTrack(subtitles);
 
     return (
         <>
