@@ -17,7 +17,7 @@
                 "content.bundle.js"
             ],
             "matches": [
-                "https://www.google.com/*"
+                "https://www.netflix.com/*"
             ]
         },
         {
@@ -25,7 +25,7 @@
                 "interceptor.bundle.js"
             ],
             "matches": [
-                "https://www.google.com/*"
+                "https://www.netflix.com/*"
             ],
             "run_at": "document_start",
             "world": "MAIN"
@@ -37,7 +37,7 @@
                 "web-accessible-resources/*"
             ],
             "matches": [
-                "https://www.google.com/*"
+                "https://www.netflix.com/*"
             ]
         }
     ]
