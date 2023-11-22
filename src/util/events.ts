@@ -1,6 +1,7 @@
 export enum RuntimeEvent {
-    SubtitlesDetected = 'subtitles-detected',
+    MetadataDetected = 'metadata-detected',
     MovieUpdated = 'movie-updated',
+    SubtitleTrackSwitched = 'subtitle-track-switched'
 }
 
 export interface MovieChangedMessage {

@@ -21,7 +21,7 @@ async function onCueChange(e: Event) {
 
 // Add a ghost subtitle track to the Netflix video player so we can listen
 // for subtitle queue changes
-function addSubtitleTrack(subtitlesURL: string) {
+function addSubtitleTrack(webvttUrl: string) {
     let videoElem = document.querySelector("video");
     if (!videoElem || document.getElementById(TRACK_ELEM_ID)) {
         return;
@@ -29,7 +29,7 @@ function addSubtitleTrack(subtitlesURL: string) {
     const trackElem = document.createElement('track');
     trackElem.id = TRACK_ELEM_ID;
     trackElem.label = 'Japanese';
-    trackElem.src = subtitlesURL;
+    trackElem.src = webvttUrl;
     trackElem.kind = 'subtitles';
     trackElem.default = true;
     trackElem.srclang = 'ja';

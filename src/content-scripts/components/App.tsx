@@ -2,16 +2,28 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import Video from './Video'
 
-import { WEBVTT_FORMAT, TRACK_ELEM_ID } from "../util/util"
-import { SubtitleTrack, SubtitleData } from "../util/netflix-types";
+import { WEBVTT_FORMAT } from "../util/util"
+import { TimedTextTrack, NetflixMetadata, RecommendedMedia, TimedTextSwitch } from "../../util/netflix-types";
 import { RuntimeEvent, MovieChangedMessage } from '../../util/events';
 
-function findBestSubtitleURL(track: SubtitleTrack) {
-    const webvttDL = track.ttDownloadables[WEBVTT_FORMAT];
-    if (!webvttDL) {
-        return null;
+class MovieMetadata implements NetflixMetadata {
+    movieId: number;
+    recommendedMedia: RecommendedMedia;
+    timedtexttracks: Array<TimedTextTrack>;
+
+    constructor(movieId: number, recommendedMedia: RecommendedMedia, timedtexttracks: Array<TimedTextTrack>) {
+        this.movieId = movieId;
+        this.recommendedMedia = recommendedMedia;
+        this.timedtexttracks = timedtexttracks;
     }
-    return webvttDL.urls.length ? webvttDL.urls[0].url : null;
+}
+
+class SubtitleData {
+    webvttUrl: string;
+
+    constructor(webvttUrl: string) {
+        this.webvttUrl = webvttUrl;
+    }
 }
 
 async function fetchSubtitlesBlob(url: string) {
@@ -24,44 +36,55 @@ async function fetchSubtitlesBlob(url: string) {
     return URL.createObjectURL(await webvttBlob);
 }
 
-async function downloadSubtitles(data: SubtitleData) {
-    const timedtexttracks = data.timedtexttracks;
-
-    for (let track of timedtexttracks) {
-        if (track.language !== 'ja' || track.languageDescription !== 'Japanese') {
-            continue;
-        }
-        const bestUrl = findBestSubtitleURL(track);
-        if (!bestUrl) {
-            console.warn(`[JIMAKUN] Failed to find a suitable subtitle URL for movie ${data.movieId}`);
-            continue;
-        }
-        return await fetchSubtitlesBlob(bestUrl);
+async function downloadSubtitles(track: TimedTextTrack): Promise<SubtitleData | null> {
+    if (track.language !== 'ja' || track.languageDescription !== 'Japanese') {
+        return null;
     }
-    throw new Error("[JIMAKUN] No Japanese subtitles found");
+    const downloadable = track.ttDownloadables[WEBVTT_FORMAT];
+    const url = downloadable?.urls.length ? downloadable.urls[0].url : null;
+    if (!url) {
+        console.warn(`[JIMAKUN] Failed to find a suitable subtitle URL for track ${track.new_track_id}`);
+        return null;
+    }
+    const blobUrl = await fetchSubtitlesBlob(url);
+    return { webvttUrl: blobUrl };
 }
 
 function App() {
-    const [moviesToSubtitles, setMoviesToSubtitles] = useState(new Map<string, string>);
+    const [moviesMetadata, setMoviesMetadata] = useState(new Map<string, MovieMetadata>);
+    const [subtitleData, setSubtitleData] = useState(new Map<string, SubtitleData>);
     const [currMovie, setCurrMovie] = useState("");
+    const [currTrack, setCurrTrack] = useState("");
     const [videoLoaded, setVideoLoaded] = useState(false);
 
     useEffect(() => {
-        const subtitleListener = async (event: Event) => {
-            const data = (event as CustomEvent).detail as SubtitleData;
-            try {
-                const subtitlesURL = await downloadSubtitles(data);
-                setMoviesToSubtitles(prev => new Map([...prev, [data.movieId.toString(), subtitlesURL]]));
-            } catch (error) {
-                console.error('[JIMAKUN] Failed to fetch WebVTT file', error);
+        const metadataListener = async (event: Event) => {
+            const data = (event as CustomEvent).detail as NetflixMetadata;
+            const metadata = new MovieMetadata(data.movieId, data.recommendedMedia, data.timedtexttracks);
+            setMoviesMetadata(prev => new Map([...prev, [metadata.movieId.toString(), metadata]]));
+            for (const track of metadata.timedtexttracks) {
+                try {
+                    const subtitles = await downloadSubtitles(track);
+                    if (subtitles) {
+                        setSubtitleData(prev => new Map([...prev, [track.new_track_id, subtitles]]));
+                    }
+                } catch (error) {
+                    console.error('[JIMAKUN] Failed to fetch WebVTT file', error);
+                }
             }
-        }
+            setCurrTrack(metadata.recommendedMedia.timedTextTrackId);
+        };
+        const trackSwitchedListener = async (event: Event) => {
+            const data = (event as CustomEvent).detail as TimedTextSwitch;
+            setCurrTrack(data.track.trackId);
+        };
         const runtimeListener = (message: MovieChangedMessage) => {
             if (message.event === RuntimeEvent.MovieUpdated) {
                 setCurrMovie(message.movieId);
             }
         };
-        window.addEventListener(RuntimeEvent.SubtitlesDetected, subtitleListener);
+        window.addEventListener(RuntimeEvent.MetadataDetected, metadataListener);
+        window.addEventListener(RuntimeEvent.SubtitleTrackSwitched, trackSwitchedListener);
         chrome.runtime.onMessage.addListener(runtimeListener);
 
         // We insert our components into the Netflix DOM, but they constantly
@@ -80,18 +103,19 @@ function App() {
         netflixObserver.observe(document.body, config);
 
         return () => {
-            window.removeEventListener(RuntimeEvent.SubtitlesDetected, subtitleListener);
+            window.removeEventListener(RuntimeEvent.MetadataDetected, metadataListener);
             chrome.runtime.onMessage.removeListener(runtimeListener);
+            chrome.runtime.onMessage.removeListener(trackSwitchedListener);
             netflixObserver.disconnect();
         };
     }, []);
 
-    const subtitles = moviesToSubtitles.get(currMovie);
-    const showVideo = videoLoaded && currMovie && subtitles;
+    const webvttUrl = subtitleData.get(currTrack)?.webvttUrl;
+    const showVideo = videoLoaded && currMovie && webvttUrl;
     if (showVideo) {
         return (
             <>
-                <Video subtitlesURL={subtitles}></Video>
+                <Video subtitlesURL={webvttUrl}></Video>
             </>
         )
     } else {

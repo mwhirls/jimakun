@@ -1,6 +1,7 @@
 // must run in the MAIN world since we need to manipulate some global variables
 
 import { RuntimeEvent } from "../util/events";
+import { instanceOfNetflixMetadata, instanceOfTimedTextSwitch } from "../util/netflix-types"
 
 const WEBVTT_FORMAT = 'webvtt-lssdh-ios8';
 const NETFLIX_PROFILES = [
@@ -58,8 +59,12 @@ JSON.stringify = (value) => {
 const originalParse = JSON.parse;
 JSON.parse = (text) => {
     const parsed = originalParse(text);
-    if (parsed && parsed.result && parsed.result.timedtexttracks && parsed.result.movieId) {
-        window.dispatchEvent(new CustomEvent(RuntimeEvent.SubtitlesDetected, { detail: parsed.result }));
+    if (parsed) {
+        if (instanceOfNetflixMetadata(parsed.result)) {
+            window.dispatchEvent(new CustomEvent(RuntimeEvent.MetadataDetected, { detail: parsed.result }));
+        } else if (instanceOfTimedTextSwitch(parsed)) {
+            window.dispatchEvent(new CustomEvent(RuntimeEvent.SubtitleTrackSwitched, { detail: parsed }));
+        }
     }
     return parsed;
 }
