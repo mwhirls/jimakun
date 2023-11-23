@@ -29,13 +29,11 @@ export interface WebvttSubtitles {
 function updateSubtitleTrack(subtitles: WebvttSubtitles | undefined) {
     let videoElem = document.querySelector("video");
     if (!videoElem) {
+        console.error("[JIMAKUN] Unable to update subtitle track; could not find <video> on DOM");
         return;
     }
+    document.getElementById(TRACK_ELEM_ID)?.remove();
     if (!subtitles) {
-        let elem = document.getElementById(TRACK_ELEM_ID);
-        if (elem) {
-            elem.remove();
-        }
         return;
     }
     const trackElem = document.createElement('track');
@@ -46,8 +44,9 @@ function updateSubtitleTrack(subtitles: WebvttSubtitles | undefined) {
     trackElem.default = true;
     trackElem.srclang = subtitles.bcp47;
     videoElem.appendChild(trackElem);
-    videoElem.textTracks[0].mode = 'hidden';
-    videoElem.textTracks[0].addEventListener('cuechange', onCueChange, false);
+    const last = videoElem.textTracks.length - 1;
+    videoElem.textTracks[last].mode = 'hidden';
+    videoElem.textTracks[last].addEventListener('cuechange', onCueChange, false);
 }
 
 interface VideoProps {
