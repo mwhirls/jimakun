@@ -107,8 +107,8 @@ function App() {
 
         return () => {
             window.removeEventListener(RuntimeEvent.MetadataDetected, metadataListener);
+            window.removeEventListener(RuntimeEvent.MetadataDetected, trackSwitchedListener);
             chrome.runtime.onMessage.removeListener(runtimeListener);
-            chrome.runtime.onMessage.removeListener(trackSwitchedListener);
             netflixObserver.disconnect();
         };
     }, []);

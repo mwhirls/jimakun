@@ -1,5 +1,5 @@
 import { TRACK_ELEM_ID } from "../util/util"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom';
 import './Video.css'
 
@@ -68,7 +68,15 @@ interface VideoProps {
 }
 
 function Video({ subtitles }: VideoProps) {
+    const video = document.querySelector("video");
+    const netflixPlayer = document.querySelector(NETFLIX_PLAYER_CLASS);
+    if (!video || !netflixPlayer) {
+        console.error("[JIMAKUN] Unable to render subtitles; could not find <video> or Netflix player on DOM");
+        return (<></>);
+    }
+
     const [currCue, setCurrCue] = useState("");
+    const [rect, setRect] = useState(calculateViewRect(video));
 
     const onCueChange = (e: Event) => {
         const track = e.target as TextTrack;
@@ -89,18 +97,21 @@ function Video({ subtitles }: VideoProps) {
     };
     updateSubtitleTrack(subtitles, onCueChange);
 
-    const video = document.querySelector("video");
-    const netflixPlayer = document.querySelector(NETFLIX_PLAYER_CLASS);
-    if (!video || !netflixPlayer) {
-        console.error("[JIMAKUN] Unable to render subtitles; could not find <video> or Netflix player on DOM");
-        return (<></>);
-    }
+    useEffect(() => {
+        const resizeListener = async (_event: Event) => {
+            setRect(calculateViewRect(video));
+        };
+        window.addEventListener("resize", resizeListener);
+        return () => {
+            window.removeEventListener("resize", resizeListener);
+        };
+    }, []);
 
     // Add a dummy <div> container that acts as a proxy for the Netflix video screen
     // to help layout the child components.
     // Appending to the Netflix player element since its layout is fairly stable and consistent,
     // and doesn't typically cause issues with blocking input, etc
-    const rect = calculateViewRect(video);
+    // todo: use tailwind
     const style = {
         left: `${rect.left}px`,
         top: `${rect.top}px`,
