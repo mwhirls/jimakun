@@ -1,5 +1,9 @@
 import { TRACK_ELEM_ID } from "../util/util"
 import { useState } from 'react'
+import { createPortal } from 'react-dom';
+import './Video.css'
+
+const NETFLIX_PLAYER_CLASS = ".watch-video--player-view";
 
 export interface WebvttSubtitles {
     webvttUrl: string,
@@ -31,6 +35,34 @@ function updateSubtitleTrack(subtitles: WebvttSubtitles | undefined, onCueChange
     videoElem.textTracks[last].addEventListener('cuechange', onCueChange, false);
 }
 
+interface Rect {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+}
+
+// https://stackoverflow.com/questions/17056654/getting-the-real-html5-video-width-and-height
+function calculateViewRect(video: HTMLVideoElement): Rect {
+    const videoRatio = video.videoWidth / video.videoHeight;
+    let width = video.offsetWidth;
+    let height = video.offsetHeight;
+    const elementRatio = width / height;
+
+    if (elementRatio > videoRatio) {
+        width = height * videoRatio;
+    } else {
+        height = width / videoRatio;
+    }
+
+    return {
+        left: video.offsetWidth / 2 - width / 2,
+        top: video.offsetHeight / 2 - height / 2,
+        width: width,
+        height: height,
+    };
+}
+
 interface VideoProps {
     subtitles: WebvttSubtitles | undefined
 }
@@ -57,9 +89,32 @@ function Video({ subtitles }: VideoProps) {
     };
     updateSubtitleTrack(subtitles, onCueChange);
 
+    const video = document.querySelector("video");
+    const netflixPlayer = document.querySelector(NETFLIX_PLAYER_CLASS);
+    if (!video || !netflixPlayer) {
+        console.error("[JIMAKUN] Unable to render subtitles; could not find <video> or Netflix player on DOM");
+        return (<></>);
+    }
+
+    // Add a dummy <div> container that acts as a proxy for the Netflix video screen
+    // to help layout the child components.
+    // Appending to the Netflix player element since its layout is fairly stable and consistent,
+    // and doesn't typically cause issues with blocking input, etc
+    const rect = calculateViewRect(video);
+    const style = {
+        left: `${rect.left}px`,
+        top: `${rect.top}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+    };
     return (
         <>
-            <p>{currCue}</p>
+            {createPortal(
+                <div style={style} className="jimakun-video">
+                    <p>{currCue}</p>
+                </div>,
+                netflixPlayer
+            )}
         </>
     )
 }

@@ -1,0 +1,5 @@
+.jimakun-video {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+}
