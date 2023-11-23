@@ -1,23 +1,5 @@
 import { TRACK_ELEM_ID } from "../util/util"
-import { useEffect } from 'react'
-
-async function onCueChange(e: Event) {
-    const track = e.target as TextTrack;
-    if (!track || !track.activeCues) {
-        return;
-    }
-    for (let i = 0; i < track.activeCues.length; i++) {
-        const cue = track.activeCues[i] as any; // cue.text is not documented
-        const tagsRegex = '(<([^>]+>)|&lrm;|&rlm;)';
-        const regex = new RegExp(tagsRegex, 'ig');
-        const match = regex.exec(cue.text);
-        let cueText = cue.text;
-        if (match) {
-            cueText = cue.text.replace(regex, '');
-        }
-        console.log(cueText);
-    }
-}
+import { useState } from 'react'
 
 export interface WebvttSubtitles {
     webvttUrl: string,
@@ -26,7 +8,7 @@ export interface WebvttSubtitles {
 
 // Add a ghost subtitle track to the Netflix video player so we can listen
 // for subtitle cue changes
-function updateSubtitleTrack(subtitles: WebvttSubtitles | undefined) {
+function updateSubtitleTrack(subtitles: WebvttSubtitles | undefined, onCueChange: (this: TextTrack, ev: Event) => any) {
     let videoElem = document.querySelector("video");
     if (!videoElem) {
         console.error("[JIMAKUN] Unable to update subtitle track; could not find <video> on DOM");
@@ -54,10 +36,30 @@ interface VideoProps {
 }
 
 function Video({ subtitles }: VideoProps) {
-    updateSubtitleTrack(subtitles);
+    const [currCue, setCurrCue] = useState("");
+
+    const onCueChange = (e: Event) => {
+        const track = e.target as TextTrack;
+        if (!track || !track.activeCues) {
+            return;
+        }
+        for (let i = 0; i < track.activeCues.length; i++) {
+            const cue = track.activeCues[i] as any; // cue.text is not documented
+            const tagsRegex = '(<([^>]+>)|&lrm;|&rlm;)';
+            const regex = new RegExp(tagsRegex, 'ig');
+            const match = regex.exec(cue.text);
+            let cueText = cue.text;
+            if (match) {
+                cueText = cue.text.replace(regex, '');
+            }
+            setCurrCue(cueText);
+        }
+    };
+    updateSubtitleTrack(subtitles, onCueChange);
 
     return (
         <>
+            <p>{currCue}</p>
         </>
     )
 }
