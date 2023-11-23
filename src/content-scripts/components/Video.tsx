@@ -25,7 +25,7 @@ export interface WebvttSubtitles {
 }
 
 // Add a ghost subtitle track to the Netflix video player so we can listen
-// for subtitle queue changes
+// for subtitle cue changes
 function updateSubtitleTrack(subtitles: WebvttSubtitles | undefined) {
     let videoElem = document.querySelector("video");
     if (!videoElem) {
