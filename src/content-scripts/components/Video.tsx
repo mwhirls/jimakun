@@ -1,5 +1,5 @@
 import { TRACK_ELEM_ID } from "../util/util"
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import './Video.css'
 
@@ -12,7 +12,7 @@ export interface WebvttSubtitles {
 
 // Add a ghost subtitle track to the Netflix video player so we can listen
 // for subtitle cue changes
-function updateSubtitleTrack(subtitles: WebvttSubtitles | undefined, onCueChange: (this: TextTrack, ev: Event) => any) {
+function updateSubtitleTrack(subtitles: WebvttSubtitles | undefined, onCueChange: (ev: Event) => any) {
     let videoElem = document.querySelector("video");
     if (!videoElem) {
         console.error("[JIMAKUN] Unable to update subtitle track; could not find <video> on DOM");
@@ -32,7 +32,7 @@ function updateSubtitleTrack(subtitles: WebvttSubtitles | undefined, onCueChange
     videoElem.appendChild(trackElem);
     const last = videoElem.textTracks.length - 1;
     videoElem.textTracks[last].mode = 'hidden';
-    videoElem.textTracks[last].addEventListener('cuechange', onCueChange, false);
+    videoElem.textTracks[last].addEventListener('cuechange', onCueChange);
 }
 
 interface Rect {
@@ -75,7 +75,7 @@ function Video({ subtitles }: VideoProps) {
         return (<></>);
     }
 
-    const [currCue, setCurrCue] = useState("");
+    const [activeCues, setActiveCues] = useState<string[]>([]);
     const [rect, setRect] = useState(calculateViewRect(video));
 
     const onCueChange = (e: Event) => {
@@ -83,16 +83,18 @@ function Video({ subtitles }: VideoProps) {
         if (!track || !track.activeCues) {
             return;
         }
+        let cueTexts: string[] = [];
         for (let i = 0; i < track.activeCues.length; i++) {
             const cue = track.activeCues[i] as any; // cue.text is not documented
             const tagsRegex = '(<([^>]+>)|&lrm;|&rlm;)';
             const regex = new RegExp(tagsRegex, 'ig');
             const match = regex.exec(cue.text);
-            let cueText = cue.text;
-            if (match) {
-                cueText = cue.text.replace(regex, '');
-            }
-            setCurrCue(cueText);
+            let cueText = match ? cue.text.replace(regex, '') : cue.text;
+            cueTexts.push(cueText);
+        }
+        const changed = cueTexts.length !== activeCues.length || cueTexts.some((value, index) => value !== activeCues[index]);
+        if (changed) {
+            setActiveCues(cueTexts);
         }
     };
     updateSubtitleTrack(subtitles, onCueChange);
@@ -122,7 +124,7 @@ function Video({ subtitles }: VideoProps) {
         <>
             {createPortal(
                 <div style={style} className="jimakun-video">
-                    <p>{currCue}</p>
+                    <p>{activeCues}</p>
                 </div>,
                 netflixPlayer
             )}
