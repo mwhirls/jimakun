@@ -121,7 +121,8 @@ function Video({ webvttSubtitles }: VideoProps) {
         width: `${rect.width}px`,
         height: `${rect.height}px`,
     };
-    const subtitles = activeCues.map((value) => <Subtitle text={value}></Subtitle>);
+    const fontSize = rect.height * 0.045;
+    const subtitles = activeCues.map((value) => <Subtitle text={value} fontSize={fontSize}></Subtitle>);
     return (
         <>
             {createPortal(

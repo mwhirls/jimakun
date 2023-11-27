@@ -1,6 +1,14 @@
 .jimakun-subtitle {
-    display: inline-block;
+    display: block;
     position: relative;
     left: -50%;
-    border-radius: 20px;
+    font-weight: bold;
+    font-family: 'Netflix Sans', 'Helvetica Nueue', 'Helvetica', 'Arial', sans-serif;
+    text-shadow: #000000 0px 0px 7px;
+}
+
+.jimakun-line {
+    display: block;
+    text-align: start;
+    margin: 0;
 }

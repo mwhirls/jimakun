@@ -1,17 +1,21 @@
 import "./Subtitle.css"
 
 interface SubtitleProps {
-    text: string
+    text: string,
+    fontSize: number,
 }
 
-function Subtitle({ text }: SubtitleProps) {
+function Subtitle({ text, fontSize }: SubtitleProps) {
     const linesText = text.split('\n');
-    const lines = linesText.map((text) => <p>{text}</p>);
+    const lines = linesText.map((text) => <div className="jimakun-line">{text}</div>);
+    const style = {
+        fontSize: `${fontSize}px`,
+    };
     return (
         <>
-            <div className="jimakun-subtitle">
+            <div style={style} className="jimakun-subtitle">
                 {lines}
-            </div>,
+            </div>
         </>
     )
 }
