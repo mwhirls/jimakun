@@ -148,7 +148,7 @@ function Video({ webvttSubtitles }: VideoProps) {
     };
     const fontSize = rect.height * 0.045;
     const bottom = showingControls ? 18.2827 : 10;
-    const subtitles = activeCues.map((value) => <Subtitle text={value} fontSize={fontSize}></Subtitle>);
+    const subtitles = activeCues.map((value, index) => <Subtitle key={index} text={value} fontSize={fontSize}></Subtitle>);
     const containerStyle = {
         bottom: `${bottom}%`,
     };
