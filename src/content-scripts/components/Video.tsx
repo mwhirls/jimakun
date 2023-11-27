@@ -5,6 +5,7 @@ import './Video.css'
 import Subtitle from "./Subtitle";
 
 const NETFLIX_PLAYER_CLASS = ".watch-video--player-view";
+const NETFLIX_BOTTOM_CONTROLS_CLASS = '.watch-video--bottom-controls-container';
 
 export interface WebvttSubtitles {
     webvttUrl: string,
@@ -64,6 +65,10 @@ function calculateViewRect(video: HTMLVideoElement): Rect {
     };
 }
 
+function hasControls() {
+    return document.querySelector(NETFLIX_BOTTOM_CONTROLS_CLASS) != null;
+}
+
 interface VideoProps {
     webvttSubtitles: WebvttSubtitles | undefined
 }
@@ -78,6 +83,7 @@ function Video({ webvttSubtitles }: VideoProps) {
 
     const [activeCues, setActiveCues] = useState<string[]>([]);
     const [rect, setRect] = useState(calculateViewRect(video));
+    const [showingControls, setShowingControls] = useState(hasControls());
 
     const onCueChange = (e: Event) => {
         const track = e.target as TextTrack;
@@ -110,6 +116,25 @@ function Video({ webvttSubtitles }: VideoProps) {
         };
     }, []);
 
+    useEffect(() => {
+        // Need to move subtitles if the controls show up on the screen
+        const netflixObserver = new MutationObserver(mutationCallback);
+        function mutationCallback(mutationsList: MutationRecord[], observer: MutationObserver) {
+            for (let mutation of mutationsList) {
+                if (mutation.type != 'childList' || !mutation.addedNodes) {
+                    continue;
+                }
+                setShowingControls(hasControls());
+            }
+        }
+        const config = { attributes: false, childList: true, subtree: true };
+        netflixObserver.observe(document.body, config);
+
+        return () => {
+            netflixObserver.disconnect();
+        };
+    }, []);
+
     // Add a dummy <div> container that acts as a proxy for the Netflix video screen
     // to help layout the child components.
     // Appending to the Netflix player element since its layout is fairly stable and consistent,
@@ -122,12 +147,16 @@ function Video({ webvttSubtitles }: VideoProps) {
         height: `${rect.height}px`,
     };
     const fontSize = rect.height * 0.045;
+    const bottom = showingControls ? 18.2827 : 10;
     const subtitles = activeCues.map((value) => <Subtitle text={value} fontSize={fontSize}></Subtitle>);
+    const containerStyle = {
+        bottom: `${bottom}%`,
+    };
     return (
         <>
             {createPortal(
                 <div style={style} className="jimakun-video">
-                    <div className="jimakun-subtitle-container">{subtitles}</div>
+                    <div style={containerStyle} className="jimakun-subtitle-container">{subtitles}</div>
                 </div>,
                 netflixPlayer
             )}

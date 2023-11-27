@@ -19,5 +19,4 @@ function Subtitle({ text, fontSize }: SubtitleProps) {
         </>
     )
 }
-
 export default Subtitle;
