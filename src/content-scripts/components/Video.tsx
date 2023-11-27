@@ -1,4 +1,3 @@
-import { TRACK_ELEM_ID } from "../util/util"
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import './Video.css'
@@ -10,31 +9,6 @@ const NETFLIX_BOTTOM_CONTROLS_CLASS = '.watch-video--bottom-controls-container';
 export interface WebvttSubtitles {
     webvttUrl: string,
     bcp47: string,
-}
-
-// Add a ghost subtitle track to the Netflix video player so we can listen
-// for subtitle cue changes
-function updateSubtitleTrack(subtitles: WebvttSubtitles | undefined, onCueChange: (ev: Event) => any) {
-    let videoElem = document.querySelector("video");
-    if (!videoElem) {
-        console.error("[JIMAKUN] Unable to update subtitle track; could not find <video> on DOM");
-        return;
-    }
-    document.getElementById(TRACK_ELEM_ID)?.remove();
-    if (!subtitles) {
-        return;
-    }
-    const trackElem = document.createElement('track');
-    trackElem.id = TRACK_ELEM_ID;
-    trackElem.label = 'Jimakun';
-    trackElem.src = subtitles.webvttUrl;
-    trackElem.kind = 'subtitles';
-    trackElem.default = true;
-    trackElem.srclang = subtitles.bcp47;
-    videoElem.appendChild(trackElem);
-    const last = videoElem.textTracks.length - 1;
-    videoElem.textTracks[last].mode = 'hidden';
-    videoElem.textTracks[last].addEventListener('cuechange', onCueChange);
 }
 
 interface Rect {
@@ -84,6 +58,7 @@ function Video({ webvttSubtitles }: VideoProps) {
     const [activeCues, setActiveCues] = useState<string[]>([]);
     const [rect, setRect] = useState(calculateViewRect(video));
     const [showingControls, setShowingControls] = useState(hasControls());
+    const trackRef = useRef<HTMLTrackElement>(null);
 
     const onCueChange = (e: Event) => {
         const track = e.target as TextTrack;
@@ -99,20 +74,23 @@ function Video({ webvttSubtitles }: VideoProps) {
             let cueText = match ? cue.text.replace(regex, '') : cue.text;
             cueTexts.push(cueText);
         }
-        const changed = cueTexts.length !== activeCues.length || cueTexts.some((value, index) => value !== activeCues[index]);
-        if (changed) {
-            setActiveCues(cueTexts);
-        }
+        setActiveCues(cueTexts);
     };
-    updateSubtitleTrack(webvttSubtitles, onCueChange);
 
     useEffect(() => {
         const resizeListener = async (_event: Event) => {
             setRect(calculateViewRect(video));
         };
         window.addEventListener("resize", resizeListener);
+        if (trackRef.current) {
+            trackRef.current.track.mode = 'hidden';
+            trackRef.current.track.addEventListener('cuechange', onCueChange);
+        }
         return () => {
             window.removeEventListener("resize", resizeListener);
+            if (trackRef.current) {
+                trackRef.current.track.removeEventListener('cuechange', onCueChange);
+            }
         };
     }, []);
 
@@ -152,6 +130,9 @@ function Video({ webvttSubtitles }: VideoProps) {
     const containerStyle = {
         bottom: `${bottom}%`,
     };
+
+    // Add a hidden subtitle <track> to the Netflix video player so we can listen
+    // for subtitle cue changes
     return (
         <>
             {createPortal(
@@ -159,6 +140,10 @@ function Video({ webvttSubtitles }: VideoProps) {
                     <div style={containerStyle} className="jimakun-subtitle-container">{subtitles}</div>
                 </div>,
                 netflixPlayer
+            )}
+            {createPortal(
+                <track ref={trackRef} label="Jimakun" kind="subtitles" default={true} src={webvttSubtitles?.webvttUrl} srcLang={webvttSubtitles?.bcp47}></track>,
+                video
             )}
         </>
     )
