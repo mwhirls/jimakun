@@ -2,6 +2,7 @@ import { TRACK_ELEM_ID } from "../util/util"
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import './Video.css'
+import Subtitle from "./Subtitle";
 
 const NETFLIX_PLAYER_CLASS = ".watch-video--player-view";
 
@@ -64,10 +65,10 @@ function calculateViewRect(video: HTMLVideoElement): Rect {
 }
 
 interface VideoProps {
-    subtitles: WebvttSubtitles | undefined
+    webvttSubtitles: WebvttSubtitles | undefined
 }
 
-function Video({ subtitles }: VideoProps) {
+function Video({ webvttSubtitles }: VideoProps) {
     const video = document.querySelector("video");
     const netflixPlayer = document.querySelector(NETFLIX_PLAYER_CLASS);
     if (!video || !netflixPlayer) {
@@ -97,7 +98,7 @@ function Video({ subtitles }: VideoProps) {
             setActiveCues(cueTexts);
         }
     };
-    updateSubtitleTrack(subtitles, onCueChange);
+    updateSubtitleTrack(webvttSubtitles, onCueChange);
 
     useEffect(() => {
         const resizeListener = async (_event: Event) => {
@@ -120,11 +121,12 @@ function Video({ subtitles }: VideoProps) {
         width: `${rect.width}px`,
         height: `${rect.height}px`,
     };
+    const subtitles = activeCues.map((value) => <Subtitle text={value}></Subtitle>);
     return (
         <>
             {createPortal(
                 <div style={style} className="jimakun-video">
-                    <p>{activeCues}</p>
+                    <div className="jimakun-subtitle-container">{subtitles}</div>
                 </div>,
                 netflixPlayer
             )}

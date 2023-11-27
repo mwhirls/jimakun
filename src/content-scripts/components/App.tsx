@@ -117,7 +117,7 @@ function App() {
     if (videoLoaded) {
         return (
             <>
-                <Video subtitles={subtitles}></Video>
+                <Video webvttSubtitles={subtitles}></Video>
             </>
         )
     } else {
