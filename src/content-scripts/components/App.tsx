@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom';
 import './App.css'
 import { WebvttSubtitles } from './Video'
 import Video from './Video'
@@ -6,6 +7,8 @@ import Video from './Video'
 import { WEBVTT_FORMAT } from "../util/util"
 import { TimedTextTrack, NetflixMetadata, RecommendedMedia, TimedTextSwitch } from "../../util/netflix-types";
 import { RuntimeEvent, MovieChangedMessage } from '../../util/events';
+
+const NETFLIX_PLAYER_CLASS = ".watch-video--player-view";
 
 class MovieMetadata implements NetflixMetadata {
     movieId: number;
@@ -58,7 +61,8 @@ function App() {
     const [subtitleData, setSubtitleData] = useState(new Map<string, SubtitleData>);
     const [currMovie, setCurrMovie] = useState("");
     const [currTrack, setCurrTrack] = useState("");
-    const [videoLoaded, setVideoLoaded] = useState(false);
+    const [netflixPlayer, setNetflixPlayer] = useState<Element | null>(null);
+    const [videoElem, setVideoElem] = useState<HTMLVideoElement | null>(null);
 
     useEffect(() => {
         const metadataListener = async (event: Event) => {
@@ -98,8 +102,10 @@ function App() {
                 if (mutation.type != 'childList' || !mutation.addedNodes) {
                     continue;
                 }
-                const hasVideo = document.getElementsByTagName("video").length > 0;
-                setVideoLoaded(hasVideo);
+                const player = document.querySelector(`${NETFLIX_PLAYER_CLASS}`);
+                const video = document.querySelector(`${NETFLIX_PLAYER_CLASS} video`);
+                setNetflixPlayer(player);
+                setVideoElem(video as HTMLVideoElement);
             }
         }
         const config = { attributes: false, childList: true, subtree: true };
@@ -113,11 +119,15 @@ function App() {
         };
     }, []);
 
-    const subtitles = subtitleData.get(currTrack);
-    if (videoLoaded) {
+    if (netflixPlayer && videoElem) {
+        const subtitles = subtitleData.get(currTrack);
         return (
             <>
-                <Video webvttSubtitles={subtitles}></Video>
+                {createPortal(
+                    <Video webvttSubtitles={subtitles} videoElem={videoElem}></Video>,
+                    netflixPlayer
+                )}
+
             </>
         )
     } else {

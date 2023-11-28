@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import './Video.css'
 import Subtitle from "./Subtitle";
 
-const NETFLIX_PLAYER_CLASS = ".watch-video--player-view";
 const NETFLIX_BOTTOM_CONTROLS_CLASS = '.watch-video--bottom-controls-container';
 
 export interface WebvttSubtitles {
@@ -44,19 +43,13 @@ function hasControls() {
 }
 
 interface VideoProps {
-    webvttSubtitles: WebvttSubtitles | undefined
+    webvttSubtitles: WebvttSubtitles | undefined;
+    videoElem: HTMLVideoElement;
 }
 
-function Video({ webvttSubtitles }: VideoProps) {
-    const video = document.querySelector("video");
-    const netflixPlayer = document.querySelector(NETFLIX_PLAYER_CLASS);
-    if (!video || !netflixPlayer) {
-        console.error("[JIMAKUN] Unable to render subtitles; could not find <video> or Netflix player on DOM");
-        return (<></>);
-    }
-
+function Video({ webvttSubtitles, videoElem }: VideoProps) {
     const [activeCues, setActiveCues] = useState<string[]>([]);
-    const [rect, setRect] = useState(calculateViewRect(video));
+    const [rect, setRect] = useState(calculateViewRect(videoElem));
     const [showingControls, setShowingControls] = useState(hasControls());
     const trackRef = useRef<HTMLTrackElement>(null);
 
@@ -79,7 +72,7 @@ function Video({ webvttSubtitles }: VideoProps) {
 
     useEffect(() => {
         const resizeListener = async (_event: Event) => {
-            setRect(calculateViewRect(video));
+            setRect(calculateViewRect(videoElem));
         };
         window.addEventListener("resize", resizeListener);
         if (trackRef.current) {
@@ -135,15 +128,12 @@ function Video({ webvttSubtitles }: VideoProps) {
     // for subtitle cue changes
     return (
         <>
-            {createPortal(
-                <div style={style} className="jimakun-video">
-                    <div style={containerStyle} className="jimakun-subtitle-container">{subtitles}</div>
-                </div>,
-                netflixPlayer
-            )}
+            <div style={style} className="jimakun-video">
+                <div style={containerStyle} className="jimakun-subtitle-container">{subtitles}</div>
+            </div>
             {createPortal(
                 <track ref={trackRef} label="Jimakun" kind="subtitles" default={true} src={webvttSubtitles?.webvttUrl} srcLang={webvttSubtitles?.bcp47}></track>,
-                video
+                videoElem
             )}
         </>
     )
