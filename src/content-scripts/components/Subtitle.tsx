@@ -6,7 +6,7 @@ interface SubtitleProps {
 // font-family: 'Netflix Sans', 'Helvetica Nueue', 'Helvetica', 'Arial', sans-serif;
 function Subtitle({ text, fontSize }: SubtitleProps) {
     const linesText = text.split('\n');
-    const lines = linesText.map((text) => <div className="block text-start m-0">{text}</div>);
+    const lines = linesText.map((text, index) => <div key={index} className="block text-start m-0">{text}</div>);
     const style = {
         fontSize: `${fontSize}px`,
     };
