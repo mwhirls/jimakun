@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom';
-import './Video.css'
 import Subtitle from "./Subtitle";
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = '.watch-video--bottom-controls-container';
@@ -113,30 +112,27 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
         };
     }, []);
 
-    // Add a dummy <div> container that acts as a proxy for the Netflix video screen
-    // to help layout the child components.
-    // Appending to the Netflix player element since its layout is fairly stable and consistent,
-    // and doesn't typically cause issues with blocking input, etc
-    // todo: use tailwind
-    const style = {
+    const videoStyle = {
         left: `${rect.left}px`,
         top: `${rect.top}px`,
         width: `${rect.width}px`,
         height: `${rect.height}px`,
     };
-    const fontSize = rect.height * 0.045;
-    const bottom = showingControls ? 18.2827 : 10;
+    const fontSize = rect.height * 0.035;
+    const bottomPct = showingControls ? 18.2827 : 10; // todo: better values
     const subtitles = activeCues.map((value, index) => <Subtitle key={index} text={value} fontSize={fontSize}></Subtitle>);
     const containerStyle = {
-        bottom: `${bottom}%`,
+        bottom: `${bottomPct}%`,
     };
 
+    // Add a dummy <div> container that acts as a proxy for the Netflix video screen
+    // to help layout the child components.
     // Add a hidden subtitle <track> to the Netflix video player so we can listen
     // for subtitle cue changes
     return (
         <>
-            <div style={style} className="jimakun-video">
-                <div style={containerStyle} className="jimakun-subtitle-container">{subtitles}</div>
+            <div id="jimakun-video" className="absolute pointer-events-none z-10" style={videoStyle}>
+                <div id="jimakun-subtitle-container" className="absolute text-center left-1/2" style={containerStyle}>{subtitles}</div>
             </div>
             {createPortal(
                 <track ref={trackRef} label="Jimakun" kind="subtitles" default={true} src={webvttSubtitles?.webvttUrl} srcLang={webvttSubtitles?.bcp47}></track>,

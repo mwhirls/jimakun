@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom';
-import './App.css'
 import { WebvttSubtitles } from './Video'
 import Video from './Video'
 
@@ -121,6 +120,8 @@ function App() {
 
     if (netflixPlayer && videoElem) {
         const subtitles = subtitleData.get(currTrack);
+        // Appending to the Netflix player element since its layout is fairly stable and consistent,
+        // and doesn't typically cause issues with blocking input, etc
         return (
             <>
                 {createPortal(
