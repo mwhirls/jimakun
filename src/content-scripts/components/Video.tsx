@@ -71,16 +71,23 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
     };
 
     useEffect(() => {
-        const resizeListener = async (_event: Event) => {
-            setRect(calculateViewRect(videoElem));
-        };
-        window.addEventListener("resize", resizeListener);
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                if (entry.target.tagName === 'VIDEO') {
+                    const newRect = calculateViewRect(entry.target as HTMLVideoElement);
+                    setRect(newRect);
+                } else {
+                    console.warn(`[JIMAKUN] resize event handled for unknown element ${entry}`);
+                }
+            }
+        });
+        resizeObserver.observe(videoElem);
         if (trackRef.current) {
             trackRef.current.track.mode = 'hidden';
             trackRef.current.track.addEventListener('cuechange', onCueChange);
         }
         return () => {
-            window.removeEventListener("resize", resizeListener);
+            resizeObserver.disconnect();
             if (trackRef.current) {
                 trackRef.current.track.removeEventListener('cuechange', onCueChange);
             }
