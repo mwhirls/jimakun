@@ -9,15 +9,8 @@ export interface WebvttSubtitles {
     bcp47: string,
 }
 
-interface Rect {
-    left: number;
-    top: number;
-    width: number;
-    height: number;
-}
-
 // https://stackoverflow.com/questions/17056654/getting-the-real-html5-video-width-and-height
-function calculateViewRect(video: HTMLVideoElement): Rect {
+function calculateViewRect(video: HTMLVideoElement): DOMRect {
     const videoRatio = video.videoWidth / video.videoHeight;
     let width = video.offsetWidth;
     let height = video.offsetHeight;
@@ -29,16 +22,26 @@ function calculateViewRect(video: HTMLVideoElement): Rect {
         height = width / videoRatio;
     }
 
-    return {
-        left: video.offsetWidth / 2 - width / 2,
-        top: video.offsetHeight / 2 - height / 2,
-        width: width,
-        height: height,
-    };
+    return new DOMRect(
+        video.offsetWidth / 2 - width / 2,
+        video.offsetHeight / 2 - height / 2,
+        width,
+        height,
+    );
 }
 
-function hasControls() {
-    return document.querySelector(NETFLIX_BOTTOM_CONTROLS_CLASS) != null;
+function calculateSubtitleOffset(videoRect: DOMRect, controlsElem: Element | null): number {
+    const defaultOffset = 0.1 * videoRect.height;
+    if (!controlsElem) {
+        return defaultOffset;
+    }
+    const subtitleBottom = videoRect.bottom - defaultOffset;
+    const controlsRect = controlsElem.getBoundingClientRect();
+    if (controlsRect.top > subtitleBottom) {
+        return defaultOffset;
+    }
+    // subtitles intersecting controls, push subtitles up
+    return defaultOffset + (subtitleBottom - controlsRect.top);
 }
 
 interface VideoProps {
@@ -49,7 +52,7 @@ interface VideoProps {
 function Video({ webvttSubtitles, videoElem }: VideoProps) {
     const [activeCues, setActiveCues] = useState<string[]>([]);
     const [rect, setRect] = useState(calculateViewRect(videoElem));
-    const [showingControls, setShowingControls] = useState(hasControls());
+    const [controlsElem, setControlsElem] = useState(document.querySelector(NETFLIX_BOTTOM_CONTROLS_CLASS));
     const trackRef = useRef<HTMLTrackElement>(null);
 
     const onCueChange = (e: Event) => {
@@ -101,7 +104,8 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
                 if (mutation.type != 'childList' || !mutation.addedNodes) {
                     continue;
                 }
-                setShowingControls(hasControls());
+                const controls = document.querySelector(NETFLIX_BOTTOM_CONTROLS_CLASS);
+                setControlsElem(controls);
             }
         }
         const config = { attributes: false, childList: true, subtree: true };
@@ -119,10 +123,10 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
         height: `${rect.height}px`,
     };
     const fontSize = rect.height * 0.035;
-    const bottomPct = showingControls ? 18.2827 : 10; // todo: better values
+    const bottomOffset = calculateSubtitleOffset(rect, controlsElem);
     const subtitles = activeCues.map((value, index) => <Subtitle key={index} text={value} fontSize={fontSize}></Subtitle>);
     const containerStyle = {
-        bottom: `${bottomPct}%`,
+        bottom: `${bottomOffset}px`,
     };
 
     // Add a dummy <div> container that acts as a proxy for the Netflix video screen
