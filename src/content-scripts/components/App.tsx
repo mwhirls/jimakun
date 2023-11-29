@@ -5,7 +5,7 @@ import Video from './Video'
 
 import { WEBVTT_FORMAT } from "../util/util"
 import { TimedTextTrack, NetflixMetadata, RecommendedMedia, TimedTextSwitch } from "../../util/netflix-types";
-import { RuntimeEvent, MovieChangedMessage } from '../../util/events';
+import { RuntimeEvent, MovieChangedMessage, RuntimeMessage } from '../../util/events';
 import { IpadicFeatures, Tokenizer, builder } from "kuromoji";
 
 const NETFLIX_PLAYER_CLASS = ".watch-video--player-view";
@@ -86,9 +86,10 @@ function App() {
             const data = (event as CustomEvent).detail as TimedTextSwitch;
             setCurrTrack(data.track.trackId);
         };
-        const runtimeListener = (message: MovieChangedMessage) => {
+        const runtimeListener = (message: RuntimeMessage) => {
             if (message.event === RuntimeEvent.MovieUpdated) {
-                setCurrMovie(message.movieId);
+                const data = message.data as MovieChangedMessage;
+                setCurrMovie(data.movieId);
             }
         };
         window.addEventListener(RuntimeEvent.MetadataDetected, metadataListener);

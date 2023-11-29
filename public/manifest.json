@@ -48,5 +48,28 @@
     ],
     "permissions": [
         "tabs"
-    ]
+    ],
+    "commands": {
+        "prev-cue": {
+            "suggested_key": {
+                "default": "Ctrl+Left",
+                "mac": "Command+Left"
+            },
+            "description": "Jump to the previous subtitle"
+        },
+        "repeat-cue": {
+            "suggested_key": {
+                "default": "Ctrl+Up",
+                "mac": "Command+Up"
+            },
+            "description": "Replay the current subtitle"
+        },
+        "next-cue": {
+            "suggested_key": {
+                "default": "Ctrl+Right",
+                "mac": "Command+Right"
+            },
+            "description": "Jump to the next subtitle"
+        }
+    }
 }

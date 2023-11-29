@@ -1,7 +1,9 @@
 // must run in the MAIN world since we need to manipulate some global variables
 
-import { RuntimeEvent } from "../util/events";
+import { RuntimeEvent, SeekTimeMessage } from "../util/events";
 import { instanceOfNetflixMetadata, instanceOfTimedTextSwitch } from "../util/netflix-types"
+
+declare var netflix: any; // Netflix API object should exist on the page
 
 const WEBVTT_FORMAT = 'webvtt-lssdh-ios8';
 const NETFLIX_PROFILES = [
@@ -69,4 +71,18 @@ JSON.parse = (text) => {
     return parsed;
 }
 
-export { }
+window.addEventListener(RuntimeEvent.SeekTime, (event) => {
+    const data = (event as CustomEvent).detail as SeekTimeMessage;
+    const time = data.startTime;
+
+    // Get the Netflix video player using their native API
+    // https://stackoverflow.com/questions/42105028/netflix-video-player-in-chrome-how-to-seek
+    try {
+        const videoPlayer = netflix.appContext.state.playerApp.getAPI().videoPlayer;
+        const playerSessionId = videoPlayer.getAllPlayerSessionIds()[0]
+        const player = videoPlayer.getVideoPlayerBySessionId(playerSessionId)
+        player.seek(time * 1000);
+    } catch (error) {
+        console.error(`Unable to seek to time ${time}`, error);
+    }
+});

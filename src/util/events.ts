@@ -1,10 +1,30 @@
 export enum RuntimeEvent {
     MetadataDetected = 'metadata-detected',
     MovieUpdated = 'movie-updated',
-    SubtitleTrackSwitched = 'subtitle-track-switched'
+    SubtitleTrackSwitched = 'subtitle-track-switched',
+    SeekCue = 'seek-cue',
+    SeekTime = 'seek-time',
+}
+
+export interface RuntimeMessage {
+    event: RuntimeEvent,
+    data: any
 }
 
 export interface MovieChangedMessage {
-    event: RuntimeEvent.MovieUpdated,
     movieId: string
+}
+
+export enum SeekDirection {
+    Next,
+    Repeat,
+    Previous,
+}
+
+export interface SeekCueMessage {
+    direction: SeekDirection
+}
+
+export interface SeekTimeMessage {
+    startTime: number
 }
