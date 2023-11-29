@@ -25,7 +25,7 @@ interface TokenProps {
 function Token({ token }: TokenProps) {
     let furigana = toHiragana(token.reading); // kuromoji gives us readings in katakana
     return (
-        <span>
+        <span className="pointer-events-auto select-text">
             <ruby>
                 {token.surface_form}<rp>(</rp><rt>{furigana}</rt><rp>)</rp>
             </ruby>
