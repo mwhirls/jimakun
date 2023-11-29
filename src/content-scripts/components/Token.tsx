@@ -1,34 +1,39 @@
 import { IpadicFeatures } from "kuromoji";
 import './Token.css'
 
-function toHiragana(text: string | undefined) {
+function toHiragana(text: string | undefined): string {
     if (!text) {
         return "";
     }
-    let katakana = "";
-    for (let ii = 0; ii < [...text].length; ii++) {
-        const code = text.codePointAt(ii);
-        if (!code) {
-            continue;
-        }
-        if (code >= 0x30A1 && code <= 0x30F6) {
-            const hiragana = String.fromCodePoint(code - 0x60);
-            katakana = katakana.concat(hiragana);
+    const result = [];
+    for (let i = 0; i < text.length; i++) {
+        const code = text.codePointAt(i);
+        if (code && code >= 0x30A1 && code <= 0x30F6) {
+            result.push(String.fromCodePoint(code - 0x60));
         }
     }
-    return katakana;
+    return result.join('');
 }
+
+function getReading(token: IpadicFeatures) {
+    let furigana = toHiragana(token.reading); // kuromoji gives us readings in katakana
+    if (furigana === token.surface_form || token.reading === token.surface_form) {
+        return <></>;
+    } else {
+        return <><rp>(</rp><rt>{furigana}</rt><rp>)</rp></>
+    }
+};
 
 interface TokenProps {
     token: IpadicFeatures,
 }
 
 function Token({ token }: TokenProps) {
-    let furigana = toHiragana(token.reading); // kuromoji gives us readings in katakana
+    const reading = getReading(token);
     return (
         <span className="jimakun-subtitle-token pointer-events-auto select-text hover:text-red-500">
             <ruby>
-                {token.surface_form}<rp>(</rp><rt>{furigana}</rt><rp>)</rp>
+                {token.surface_form}<rp>(</rp><rt>{reading}</rt><rp>)</rp>
             </ruby>
         </span>);
 }
