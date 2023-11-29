@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import Subtitle from "./Subtitle";
-import { IpadicFeatures, Tokenizer } from 'kuromoji';
 import { RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from '../../util/events';
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = '.watch-video--bottom-controls-container';
@@ -141,12 +140,15 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
     const [timedTextElem, setTimedTextElem] = useState<StyledNode | null>(queryStyledNode(NETFLIX_TEXT_SUBTITLE_CLASS));
     const [imageTimedTextElem, setImageTimedTextElem] = useState<StyledNode | null>(queryStyledNode(NETFLIX_TEXT_SUBTITLE_CLASS));
     const trackRef = useRef<HTMLTrackElement>(null);
+    const [show, setShow] = useState(true);
 
     useEffect(() => {
         const runtimeListener = (message: RuntimeMessage) => {
             if (message.event === RuntimeEvent.SeekCue) {
                 const data = message.data as SeekCueMessage;
                 onSeekCue(data.direction, videoElem.currentTime, cuesRef.current);
+            } else if (message.event === RuntimeEvent.ToggleSubs) {
+                setShow(prev => !prev);
             }
         };
         chrome.runtime.onMessage.addListener(runtimeListener);
@@ -227,7 +229,7 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
     };
     const fontSize = rect.height * 0.035;
     const bottomOffset = calculateSubtitleOffset(rect, controlsElem);
-    const subtitles = activeCues.map((value, index) => <Subtitle key={index} cue={value} fontSize={fontSize}></Subtitle>);
+    const subtitles = show ? activeCues.map((value, index) => <Subtitle key={index} cue={value} fontSize={fontSize}></Subtitle>) : <></>;
     const containerStyle = {
         bottom: `${bottomOffset}px`,
     };

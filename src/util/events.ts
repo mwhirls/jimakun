@@ -4,6 +4,7 @@ export enum RuntimeEvent {
     SubtitleTrackSwitched = 'subtitle-track-switched',
     SeekCue = 'seek-cue',
     SeekTime = 'seek-time',
+    ToggleSubs = 'toggle-subs',
 }
 
 export interface RuntimeMessage {

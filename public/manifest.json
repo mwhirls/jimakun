@@ -70,6 +70,12 @@
                 "mac": "Command+Right"
             },
             "description": "Jump to the next subtitle"
+        },
+        "toggle-subs": {
+            "suggested_key": {
+                "default": "Alt+S"
+            },
+            "description": "Show/hide the subtitles"
         }
     }
 }

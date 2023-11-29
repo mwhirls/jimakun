@@ -3,6 +3,7 @@ import { MovieChangedMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, Seek
 const NEXT_CUE_ID = 'next-cue';
 const PREV_CUE_ID = 'prev-cue';
 const REPEAT_CUE_ID = 'repeat-cue';
+const TOGGLE_SUBS_ID = 'toggle-subs';
 
 function extractMovieId(url: string) {
     const regex = new RegExp('netflix.com/watch/([0-9]+)');
@@ -48,6 +49,10 @@ chrome.commands.onCommand.addListener(function (command) {
         else if (command === PREV_CUE_ID) {
             const data: SeekCueMessage = { direction: SeekDirection.Previous };
             const message: RuntimeMessage = { event: RuntimeEvent.SeekCue, data: data };
+            chrome.tabs.sendMessage(tabId, message);
+        }
+        else if (command === TOGGLE_SUBS_ID) {
+            const message: RuntimeMessage = { event: RuntimeEvent.ToggleSubs, data: null };
             chrome.tabs.sendMessage(tabId, message);
         }
     });
