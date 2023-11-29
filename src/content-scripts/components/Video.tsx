@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import Subtitle from "./Subtitle";
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = '.watch-video--bottom-controls-container';
+const NETFLIX_TEXT_SUBTITLE_CLASS = "player-timedtext";
+const NETFLIX_IMAGE_SUBTITLE_CLASS = "image-based-timed-text";
 
 export interface WebvttSubtitles {
     webvttUrl: string,
@@ -44,6 +46,32 @@ function calculateSubtitleOffset(videoRect: DOMRect, controlsElem: Element | nul
     return defaultOffset + (subtitleBottom - controlsRect.top);
 }
 
+interface HTMLNode {
+    element: HTMLElement;
+    style: CSSStyleDeclaration;
+}
+
+class StyledNode implements HTMLNode {
+    element: HTMLElement;
+    style: CSSStyleDeclaration;
+
+    constructor(element: HTMLElement) {
+        this.element = element;
+        this.style = element.style;
+    }
+
+    show(show: boolean) {
+        if (this.element) {
+            this.element.style.visibility = show ? this.element.style.visibility : 'hidden';
+        }
+    }
+}
+
+function queryStyledNode(selector: string) {
+    const elem = document.querySelector(selector);
+    return elem ? new StyledNode(elem as HTMLElement) : null;
+}
+
 interface VideoProps {
     webvttSubtitles: WebvttSubtitles | undefined;
     videoElem: HTMLVideoElement;
@@ -53,6 +81,8 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
     const [activeCues, setActiveCues] = useState<string[]>([]);
     const [rect, setRect] = useState(calculateViewRect(videoElem));
     const [controlsElem, setControlsElem] = useState(document.querySelector(NETFLIX_BOTTOM_CONTROLS_CLASS));
+    const [timedTextElem, setTimedTextElem] = useState<StyledNode | null>(queryStyledNode(NETFLIX_TEXT_SUBTITLE_CLASS));
+    const [imageTimedTextElem, setImageTimedTextElem] = useState<StyledNode | null>(queryStyledNode(NETFLIX_TEXT_SUBTITLE_CLASS));
     const trackRef = useRef<HTMLTrackElement>(null);
 
     const onCueChange = (e: Event) => {
@@ -84,35 +114,51 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
             }
         });
         resizeObserver.observe(videoElem);
+
+        // Get handles to relevant Netflix DOM elements
+        const netflixObserver = new MutationObserver((mutationsList: MutationRecord[], observer: MutationObserver) => {
+            for (const mutation of mutationsList) {
+                // hide original Netflix subtitles
+                const target = mutation.target ? new StyledNode(mutation.target as HTMLElement) : null;
+                if (target?.element.className === NETFLIX_TEXT_SUBTITLE_CLASS) {
+                    target.show(false);
+                    setTimedTextElem(target);
+                } else if (target?.element.className === NETFLIX_IMAGE_SUBTITLE_CLASS) {
+                    target.show(false);
+                    setImageTimedTextElem(target);
+                }
+            }
+            const controls = document.querySelector(NETFLIX_BOTTOM_CONTROLS_CLASS);
+            setControlsElem(controls);
+        });
+        const config = { attributes: true, attibuteFilter: ['style'], childList: true, subtree: true };
+        netflixObserver.observe(document.body, config);
+
         if (trackRef.current) {
             trackRef.current.track.mode = 'hidden';
             trackRef.current.track.addEventListener('cuechange', onCueChange);
         }
+        const hideNetflixSubtitles = () => {
+            const timedText = queryStyledNode(`.${NETFLIX_TEXT_SUBTITLE_CLASS}`);
+            timedText?.show(false);
+            setTimedTextElem(timedTextElem);
+            const imageTimedText = queryStyledNode(`.${NETFLIX_IMAGE_SUBTITLE_CLASS}`);
+            imageTimedText?.show(false);
+            setImageTimedTextElem(imageTimedText);
+        };
+        hideNetflixSubtitles();
+
         return () => {
             resizeObserver.disconnect();
+            netflixObserver.disconnect();
             if (trackRef.current) {
                 trackRef.current.track.removeEventListener('cuechange', onCueChange);
             }
-        };
-    }, []);
-
-    useEffect(() => {
-        // Need to move subtitles if the controls show up on the screen
-        const netflixObserver = new MutationObserver(mutationCallback);
-        function mutationCallback(mutationsList: MutationRecord[], observer: MutationObserver) {
-            for (let mutation of mutationsList) {
-                if (mutation.type != 'childList' || !mutation.addedNodes) {
-                    continue;
-                }
-                const controls = document.querySelector(NETFLIX_BOTTOM_CONTROLS_CLASS);
-                setControlsElem(controls);
-            }
-        }
-        const config = { attributes: false, childList: true, subtree: true };
-        netflixObserver.observe(document.body, config);
-
-        return () => {
-            netflixObserver.disconnect();
+            const showNetflixSubtitles = () => {
+                timedTextElem?.show(true);
+                imageTimedTextElem?.show(true);
+            };
+            showNetflixSubtitles();
         };
     }, []);
 
