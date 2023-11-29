@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import Subtitle from "./Subtitle";
+import { IpadicFeatures, Tokenizer } from 'kuromoji';
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = '.watch-video--bottom-controls-container';
 const NETFLIX_TEXT_SUBTITLE_CLASS = "player-timedtext";
@@ -75,9 +76,10 @@ function queryStyledNode(selector: string) {
 interface VideoProps {
     webvttSubtitles: WebvttSubtitles;
     videoElem: HTMLVideoElement;
+    tokenizer: Tokenizer<IpadicFeatures> | null;
 }
 
-function Video({ webvttSubtitles, videoElem }: VideoProps) {
+function Video({ webvttSubtitles, videoElem, tokenizer }: VideoProps) {
     const [activeCues, setActiveCues] = useState<string[]>([]);
     const [rect, setRect] = useState(calculateViewRect(videoElem));
     const [controlsElem, setControlsElem] = useState(document.querySelector(NETFLIX_BOTTOM_CONTROLS_CLASS));
@@ -170,7 +172,7 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
     };
     const fontSize = rect.height * 0.035;
     const bottomOffset = calculateSubtitleOffset(rect, controlsElem);
-    const subtitles = activeCues.map((value, index) => <Subtitle key={index} text={value} fontSize={fontSize}></Subtitle>);
+    const subtitles = activeCues.map((value, index) => <Subtitle key={index} text={value} fontSize={fontSize} tokenizer={tokenizer}></Subtitle>);
     const containerStyle = {
         bottom: `${bottomOffset}px`,
     };

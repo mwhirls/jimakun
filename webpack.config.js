@@ -53,7 +53,10 @@ module.exports = function (_env, argv) {
             ]
         },
         resolve: {
-            extensions: [".js", ".jsx", ".ts", ".tsx"]
+            extensions: [".js", ".jsx", ".ts", ".tsx"],
+            fallback: {
+                path: require.resolve("path-browserify")
+            }
         },
         plugins: [
             new ForkTsCheckerWebpackPlugin({
@@ -66,7 +69,8 @@ module.exports = function (_env, argv) {
             }),
             new CopyPlugin({
                 patterns: [
-                    { from: "public", to: "./" }
+                    { from: "public", to: "./" },
+                    { from: 'node_modules/kuromoji/dict', to: './dict' },
                 ]
             })
         ]

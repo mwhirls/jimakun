@@ -38,7 +38,8 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "web-accessible-resources/*"
+                "web-accessible-resources/*",
+                "dict/*"
             ],
             "matches": [
                 "https://www.netflix.com/*"

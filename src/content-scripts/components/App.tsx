@@ -6,6 +6,7 @@ import Video from './Video'
 import { WEBVTT_FORMAT } from "../util/util"
 import { TimedTextTrack, NetflixMetadata, RecommendedMedia, TimedTextSwitch } from "../../util/netflix-types";
 import { RuntimeEvent, MovieChangedMessage } from '../../util/events';
+import { IpadicFeatures, Tokenizer, builder } from "kuromoji";
 
 const NETFLIX_PLAYER_CLASS = ".watch-video--player-view";
 
@@ -62,6 +63,7 @@ function App() {
     const [currTrack, setCurrTrack] = useState("");
     const [netflixPlayer, setNetflixPlayer] = useState<Element | null>(null);
     const [videoElem, setVideoElem] = useState<HTMLVideoElement | null>(null);
+    const [tokenizer, setTokenizer] = useState<Tokenizer<IpadicFeatures> | null>(null); // maybe plumb this down with context?
 
     useEffect(() => {
         const metadataListener = async (event: Event) => {
@@ -110,6 +112,19 @@ function App() {
         const config = { attributes: false, childList: true, subtree: true };
         netflixObserver.observe(document.body, config);
 
+        try {
+            const tokenizerBuilder = builder({ dicPath: chrome.runtime.getURL("dict/") });
+            tokenizerBuilder.build(function (err: Error, tokenizer: Tokenizer<IpadicFeatures>) {
+                if (err) {
+                    console.error('[JIMAKUN] error when building tokenizer');
+                }
+                console.log('[JIMAKUN] Tokenizer built');
+                setTokenizer(tokenizer);
+            });
+        } catch (err) {
+            console.error('[JIMAKUN] error when building tokenizer');
+        }
+
         return () => {
             window.removeEventListener(RuntimeEvent.MetadataDetected, metadataListener);
             window.removeEventListener(RuntimeEvent.MetadataDetected, trackSwitchedListener);
@@ -125,7 +140,7 @@ function App() {
         return (
             <>
                 {createPortal(
-                    <Video webvttSubtitles={subtitles} videoElem={videoElem}></Video>,
+                    <Video webvttSubtitles={subtitles} videoElem={videoElem} tokenizer={tokenizer}></Video>,
                     netflixPlayer
                 )}
 
