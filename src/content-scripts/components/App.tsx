@@ -3,13 +3,14 @@ import { createPortal } from 'react-dom';
 import { WebvttSubtitles } from './Video'
 import Video from './Video'
 
-import { WEBVTT_FORMAT } from "../util/util"
+import { ChildMutationType, WEBVTT_FORMAT, querySelectorMutation } from "../util/util"
 import { TimedTextTrack, NetflixMetadata, RecommendedMedia, TimedTextSwitch } from "../../util/netflix-types";
 import { RuntimeEvent, MovieChangedMessage, RuntimeMessage } from '../../util/events';
 import { IpadicFeatures, Tokenizer, builder } from "kuromoji";
 import { TokenizerContext } from '../contexts/TokenizerContext';
 
-const NETFLIX_PLAYER_CLASS = ".watch-video--player-view";
+const NETFLIX_PLAYER_CLASS = "watch-video--player-view";
+const NETFLIX_VIDEO_CLASS = `${NETFLIX_PLAYER_CLASS} video`
 
 class MovieMetadata implements NetflixMetadata {
     movieId: number;
@@ -62,8 +63,8 @@ function App() {
     const [subtitleData, setSubtitleData] = useState(new Map<string, SubtitleData>);
     const [currMovie, setCurrMovie] = useState("");
     const [currTrack, setCurrTrack] = useState("");
-    const [netflixPlayer, setNetflixPlayer] = useState<Element | null>(null);
-    const [videoElem, setVideoElem] = useState<HTMLVideoElement | null>(null);
+    const [netflixPlayer, setNetflixPlayer] = useState<Element | null>(document.querySelector(`.${NETFLIX_PLAYER_CLASS}`));
+    const [videoElem, setVideoElem] = useState<HTMLVideoElement | null>(document.querySelector(`.${NETFLIX_VIDEO_CLASS}`) as HTMLVideoElement | null);
     const [tokenizer, setTokenizer] = useState<Tokenizer<IpadicFeatures> | null>(null);
 
     useEffect(() => {
@@ -101,14 +102,16 @@ function App() {
         // mutate it.  Watch for changes so we know when to re-render.
         const netflixObserver = new MutationObserver(mutationCallback);
         function mutationCallback(mutationsList: MutationRecord[], observer: MutationObserver) {
-            for (let mutation of mutationsList) {
-                if (mutation.type != 'childList' || !mutation.addedNodes) {
+            for (const mutation of mutationsList) {
+                if (mutation.type !== 'childList') {
                     continue;
                 }
-                const player = document.querySelector(`${NETFLIX_PLAYER_CLASS}`);
-                const video = document.querySelector(`${NETFLIX_PLAYER_CLASS} video`);
-                setNetflixPlayer(player);
-                setVideoElem(video as HTMLVideoElement);
+                const video = querySelectorMutation(mutation, `.${NETFLIX_VIDEO_CLASS}`);
+                if (video) {
+                    setVideoElem(video.type === ChildMutationType.Added ? video.elem as HTMLVideoElement : null);
+                    const player = document.querySelector(`.${NETFLIX_PLAYER_CLASS}`);
+                    setNetflixPlayer(player);
+                }
             }
         }
         const config = { attributes: false, childList: true, subtree: true };

@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import Subtitle from "./Subtitle";
 import { RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from '../../util/events';
+import { ChildMutationType, querySelectorMutation } from '../util/util';
 
-const NETFLIX_BOTTOM_CONTROLS_CLASS = '.watch-video--bottom-controls-container';
+const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';
 const NETFLIX_TEXT_SUBTITLE_CLASS = "player-timedtext";
 const NETFLIX_IMAGE_SUBTITLE_CLASS = "image-based-timed-text";
 
@@ -59,12 +60,12 @@ function calculateSubtitleOffset(videoRect: DOMRect, controlsElem: Element | nul
     return defaultOffset + (subtitleBottom - controlsRect.top);
 }
 
-interface HTMLNode {
+interface StyledNodeI {
     element: HTMLElement;
     style: CSSStyleDeclaration;
 }
 
-class StyledNode implements HTMLNode {
+class StyledNode implements StyledNodeI {
     element: HTMLElement;
     style: CSSStyleDeclaration;
 
@@ -136,7 +137,7 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
     const cuesRef = useRef<TextTrackCue[]>([]);
     const [activeCues, setActiveCues] = useState<TextTrackCue[]>([]);
     const [rect, setRect] = useState(calculateViewRect(videoElem));
-    const [controlsElem, setControlsElem] = useState(document.querySelector(NETFLIX_BOTTOM_CONTROLS_CLASS));
+    const [controlsElem, setControlsElem] = useState(document.querySelector(`.${NETFLIX_BOTTOM_CONTROLS_CLASS}`));
     const [timedTextElem, setTimedTextElem] = useState<StyledNode | null>(queryStyledNode(NETFLIX_TEXT_SUBTITLE_CLASS));
     const [imageTimedTextElem, setImageTimedTextElem] = useState<StyledNode | null>(queryStyledNode(NETFLIX_TEXT_SUBTITLE_CLASS));
     const trackRef = useRef<HTMLTrackElement>(null);
@@ -168,18 +169,26 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
         // Get handles to relevant Netflix DOM elements
         const netflixObserver = new MutationObserver((mutationsList: MutationRecord[], observer: MutationObserver) => {
             for (const mutation of mutationsList) {
-                // hide original Netflix subtitles
-                const target = mutation.target ? new StyledNode(mutation.target as HTMLElement) : null;
-                if (target?.element.className === NETFLIX_TEXT_SUBTITLE_CLASS) {
-                    target.show(false);
-                    setTimedTextElem(target);
-                } else if (target?.element.className === NETFLIX_IMAGE_SUBTITLE_CLASS) {
-                    target.show(false);
-                    setImageTimedTextElem(target);
+                if (mutation.type === 'childList') {
+                    const controls = querySelectorMutation(mutation, `.${NETFLIX_BOTTOM_CONTROLS_CLASS}`);
+                    if (controls) {
+                        setControlsElem(controls.type === ChildMutationType.Added ? controls.elem : null);
+                    }
+                } else if (mutation.type === 'attributes') {
+                    if (!(mutation.target instanceof Element)) {
+                        continue;
+                    }
+                    // hide original Netflix subtitles
+                    const node = new StyledNode(mutation.target as HTMLElement);
+                    if (node.element.className === NETFLIX_TEXT_SUBTITLE_CLASS) {
+                        node.show(false);
+                        setTimedTextElem(node);
+                    } else if (node.element.className === NETFLIX_IMAGE_SUBTITLE_CLASS) {
+                        node.show(false);
+                        setImageTimedTextElem(node);
+                    }
                 }
             }
-            const controls = document.querySelector(NETFLIX_BOTTOM_CONTROLS_CLASS);
-            setControlsElem(controls);
         });
         const config = { attributes: true, attibuteFilter: ['style'], childList: true, subtree: true };
         netflixObserver.observe(document.body, config);
