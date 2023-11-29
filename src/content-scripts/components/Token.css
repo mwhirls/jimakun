@@ -1,0 +1,7 @@
+.jimakun-subtitle-token rt {
+    visibility: hidden;
+}
+
+.jimakun-subtitle-token:hover rt {
+    visibility: visible;
+}

@@ -1,4 +1,5 @@
 import { IpadicFeatures } from "kuromoji";
+import './Token.css'
 
 function toHiragana(text: string | undefined) {
     if (!text) {
@@ -25,7 +26,7 @@ interface TokenProps {
 function Token({ token }: TokenProps) {
     let furigana = toHiragana(token.reading); // kuromoji gives us readings in katakana
     return (
-        <span className="pointer-events-auto select-text">
+        <span className="jimakun-subtitle-token pointer-events-auto select-text hover:text-red-500">
             <ruby>
                 {token.surface_form}<rp>(</rp><rt>{furigana}</rt><rp>)</rp>
             </ruby>
