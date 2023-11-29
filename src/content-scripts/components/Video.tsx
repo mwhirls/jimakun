@@ -73,7 +73,7 @@ function queryStyledNode(selector: string) {
 }
 
 interface VideoProps {
-    webvttSubtitles: WebvttSubtitles | undefined;
+    webvttSubtitles: WebvttSubtitles;
     videoElem: HTMLVideoElement;
 }
 
@@ -185,7 +185,7 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
                 <div id="jimakun-subtitle-container" className="absolute text-center left-1/2" style={containerStyle}>{subtitles}</div>
             </div>
             {createPortal(
-                <track ref={trackRef} label="Jimakun" kind="subtitles" default={true} src={webvttSubtitles?.webvttUrl} srcLang={webvttSubtitles?.bcp47}></track>,
+                <track ref={trackRef} label="Jimakun" kind="subtitles" default={true} src={webvttSubtitles.webvttUrl} srcLang={webvttSubtitles.bcp47}></track>,
                 videoElem
             )}
         </>

@@ -118,8 +118,8 @@ function App() {
         };
     }, []);
 
-    if (netflixPlayer && videoElem) {
-        const subtitles = subtitleData.get(currTrack);
+    const subtitles = subtitleData.get(currTrack);
+    if (netflixPlayer && videoElem && subtitles) {
         // Appending to the Netflix player element since its layout is fairly stable and consistent,
         // and doesn't typically cause issues with blocking input, etc
         return (
