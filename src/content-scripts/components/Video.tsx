@@ -131,10 +131,9 @@ function onSeekCue(direction: SeekDirection, currentTime: number, cues: TextTrac
 interface VideoProps {
     webvttSubtitles: WebvttSubtitles;
     videoElem: HTMLVideoElement;
-    tokenizer: Tokenizer<IpadicFeatures> | null;
 }
 
-function Video({ webvttSubtitles, videoElem, tokenizer }: VideoProps) {
+function Video({ webvttSubtitles, videoElem }: VideoProps) {
     const cuesRef = useRef<TextTrackCue[]>([]);
     const [activeCues, setActiveCues] = useState<TextTrackCue[]>([]);
     const [rect, setRect] = useState(calculateViewRect(videoElem));
@@ -228,7 +227,7 @@ function Video({ webvttSubtitles, videoElem, tokenizer }: VideoProps) {
     };
     const fontSize = rect.height * 0.035;
     const bottomOffset = calculateSubtitleOffset(rect, controlsElem);
-    const subtitles = activeCues.map((value, index) => <Subtitle key={index} cue={value} fontSize={fontSize} tokenizer={tokenizer}></Subtitle>);
+    const subtitles = activeCues.map((value, index) => <Subtitle key={index} cue={value} fontSize={fontSize}></Subtitle>);
     const containerStyle = {
         bottom: `${bottomOffset}px`,
     };

@@ -1,5 +1,7 @@
 import { IpadicFeatures, Tokenizer } from "kuromoji";
 import Token from "./Token";
+import { TokenizerContext } from "../contexts/TokenizerContext";
+import { useContext } from "react";
 
 function extractCueText(cue: TextTrackCue) {
     let cueText = (cue as any).text; // cue.text is not documented
@@ -12,15 +14,16 @@ function extractCueText(cue: TextTrackCue) {
 interface SubtitleProps {
     cue: TextTrackCue,
     fontSize: number,
-    tokenizer: Tokenizer<IpadicFeatures> | null,
 }
 
 // font-family: 'Netflix Sans', 'Helvetica Nueue', 'Helvetica', 'Arial', sans-serif;
-function Subtitle({ cue, fontSize, tokenizer }: SubtitleProps) {
+function Subtitle({ cue, fontSize }: SubtitleProps) {
+    const tokenizerContext = useContext(TokenizerContext);
     let text = extractCueText(cue);
     const lines = text.split('\n');
     const lineElems = lines.map((line: string, index: number) => {
         const parseTokens = (text: string) => {
+            const tokenizer = tokenizerContext.tokenizer
             if (!tokenizer) {
                 return text;
             }

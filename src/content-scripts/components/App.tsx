@@ -7,6 +7,7 @@ import { WEBVTT_FORMAT } from "../util/util"
 import { TimedTextTrack, NetflixMetadata, RecommendedMedia, TimedTextSwitch } from "../../util/netflix-types";
 import { RuntimeEvent, MovieChangedMessage, RuntimeMessage } from '../../util/events';
 import { IpadicFeatures, Tokenizer, builder } from "kuromoji";
+import { TokenizerContext } from '../contexts/TokenizerContext';
 
 const NETFLIX_PLAYER_CLASS = ".watch-video--player-view";
 
@@ -63,7 +64,7 @@ function App() {
     const [currTrack, setCurrTrack] = useState("");
     const [netflixPlayer, setNetflixPlayer] = useState<Element | null>(null);
     const [videoElem, setVideoElem] = useState<HTMLVideoElement | null>(null);
-    const [tokenizer, setTokenizer] = useState<Tokenizer<IpadicFeatures> | null>(null); // maybe plumb this down with context?
+    const [tokenizer, setTokenizer] = useState<Tokenizer<IpadicFeatures> | null>(null);
 
     useEffect(() => {
         const metadataListener = async (event: Event) => {
@@ -140,8 +141,11 @@ function App() {
         // and doesn't typically cause issues with blocking input, etc
         return (
             <>
+
                 {createPortal(
-                    <Video webvttSubtitles={subtitles} videoElem={videoElem} tokenizer={tokenizer}></Video>,
+                    <TokenizerContext.Provider value={{ tokenizer: tokenizer }}>
+                        <Video webvttSubtitles={subtitles} videoElem={videoElem}></Video>
+                    </TokenizerContext.Provider>,
                     netflixPlayer
                 )}
 
