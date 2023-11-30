@@ -1,5 +1,5 @@
 import { IpadicFeatures, Tokenizer } from "kuromoji";
-import Token from "./Token";
+import Word from "./Word";
 import { TokenizerContext } from "../contexts/TokenizerContext";
 import { useContext } from "react";
 
@@ -9,6 +9,52 @@ function extractCueText(cue: TextTrackCue) {
     const regex = new RegExp(tagsRegex, 'ig');
     const match = regex.exec(cueText);
     return match ? cueText.replace(regex, '') : cueText;
+}
+
+function handleConjugatedVerb(tokens: IpadicFeatures[], start: number) {
+    const word: IpadicFeatures[] = [tokens[start]];
+    let index = start + 1;
+    while (index < tokens.length) {
+        const token = tokens[index];
+        if (token.pos_detail_1 === '非自立' ||
+            token.pos === "助詞" && token.pos_detail_1 === '接続助詞' ||
+            token.pos === '助動詞') {
+            index++;
+            word.push(token);
+        } else {
+            break;
+        }
+    }
+    return word;
+}
+
+function handleVerb(tokens: IpadicFeatures[], index: number): IpadicFeatures[] {
+    const token = tokens[index];
+    if (token.conjugated_form === "連用形" ||
+        token.conjugated_form === '連用タ接続') {
+        return handleConjugatedVerb(tokens, index);
+    }
+    return [token];
+}
+
+function handleWord(tokens: IpadicFeatures[], index: number): IpadicFeatures[] {
+    const token = tokens[index];
+    if (token.pos === '動詞') {
+        return handleVerb(tokens, index);
+    } else {
+        return [token];
+    }
+}
+
+function toWords(tokens: IpadicFeatures[]): IpadicFeatures[][] {
+    const result = [];
+    let index = 0;
+    while (index < tokens.length) {
+        const word = handleWord(tokens, index);
+        index += word.length;
+        result.push(word);
+    }
+    return result;
 }
 
 interface SubtitleProps {
@@ -28,7 +74,8 @@ function Subtitle({ cue, fontSize }: SubtitleProps) {
                 return text;
             }
             const tokens = tokenizer.tokenize(text);
-            return tokens.map((token, index) => <Token key={index} token={token}></Token>);
+            const words = toWords(tokens);
+            return words.map((tokens, index) => <Word key={index} tokens={tokens}></Word>);
         };
         const innerHTML = parseTokens(line);
         return (
@@ -43,7 +90,7 @@ function Subtitle({ cue, fontSize }: SubtitleProps) {
     };
 
     return (
-        <div style={style} className="block relative -left-1/2 font-bold drop-shadow-[0_0_7px_#000000]">
+        <div style={style} className="block relative -left-1/2 font-bold drop-shadow-[0_0_7px_#000000] pointer-events-auto select-text">
             {lineElems}
         </div>
     )

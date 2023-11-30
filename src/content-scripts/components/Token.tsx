@@ -31,7 +31,7 @@ interface TokenProps {
 function Token({ token }: TokenProps) {
     const reading = getReading(token);
     return (
-        <span className="jimakun-subtitle-token pointer-events-auto select-text hover:text-red-500">
+        <span className="jimakun-subtitle-token">
             <ruby>
                 {token.surface_form}<rp>(</rp><rt>{reading}</rt><rp>)</rp>
             </ruby>
