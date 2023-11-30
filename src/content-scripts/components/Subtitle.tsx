@@ -11,13 +11,24 @@ function extractCueText(cue: TextTrackCue) {
     return match ? cueText.replace(regex, '') : cueText;
 }
 
-function handleConjugatedVerb(tokens: IpadicFeatures[], start: number) {
-    const word: IpadicFeatures[] = [tokens[start]];
-    let index = start + 1;
+function posDetails(token: IpadicFeatures): string[] {
+    return [token.pos_detail_1, token.pos_detail_2, token.pos_detail_3];
+}
+
+function isSuruVerb(token: IpadicFeatures) {
+    const details = posDetails(token);
+    return token.pos === '名詞' && details.some((value) => value === 'サ変接続');
+}
+
+function handleConjugation(tokens: IpadicFeatures[], start: number) {
+    const word: IpadicFeatures[] = [];
+    let index = start;
     while (index < tokens.length) {
         const token = tokens[index];
-        if (token.pos_detail_1 === '非自立' ||
-            token.pos === "助詞" && token.pos_detail_1 === '接続助詞' ||
+        const details = posDetails(token);
+        if (details.some((value) => value === '接尾') ||
+            token.pos === "助詞" && details.some((value) => value === '接続助詞') ||
+            token.pos === "動詞" && details.some((value) => value === '非自立') ||
             token.pos === '助動詞') {
             index++;
             word.push(token);
@@ -31,16 +42,33 @@ function handleConjugatedVerb(tokens: IpadicFeatures[], start: number) {
 function handleVerb(tokens: IpadicFeatures[], index: number): IpadicFeatures[] {
     const token = tokens[index];
     if (token.conjugated_form === "連用形" ||
-        token.conjugated_form === '連用タ接続') {
-        return handleConjugatedVerb(tokens, index);
+        token.conjugated_form === '連用タ接続' ||
+        token.conjugated_form === '未然形') {
+        const conjugation = handleConjugation(tokens, index + 1);
+        return [token, ...conjugation]
     }
     return [token];
 }
+
+function handleNoun(tokens: IpadicFeatures[], index: number): IpadicFeatures[] {
+    const token = tokens[index];
+    if (isSuruVerb(token)) {
+        const next = index + 1 < tokens.length ? tokens[index + 1] : null;
+        if (next && next.basic_form === 'する') {
+            const verb = handleVerb(tokens, index + 1);
+            return [token, ...verb];
+        }
+    }
+    return [token];
+}
+
 
 function handleWord(tokens: IpadicFeatures[], index: number): IpadicFeatures[] {
     const token = tokens[index];
     if (token.pos === '動詞') {
         return handleVerb(tokens, index);
+    } else if (token.pos === '名詞') {
+        return handleNoun(tokens, index);
     } else {
         return [token];
     }
