@@ -1,4 +1,5 @@
 const path = require("path");
+const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 const CopyPlugin = require('copy-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
@@ -6,6 +7,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 module.exports = function (_env, argv) {
     const isProduction = argv.mode === "production";
     const isDevelopment = !isProduction;
+    const outputDir = path.resolve(__dirname, "dist");
 
     return {
         devtool: isDevelopment && "inline-source-map",
@@ -16,7 +18,7 @@ module.exports = function (_env, argv) {
             "service-worker": "./src/service-worker.ts",
         },
         output: {
-            path: path.resolve(__dirname, "dist"),
+            path: outputDir,
             filename: "[name].bundle.js",
             publicPath: "/",
             clean: true
@@ -59,6 +61,13 @@ module.exports = function (_env, argv) {
             }
         },
         plugins: [
+            new WebpackShellPluginNext({
+                onBuildStart: {
+                    scripts: [`python fetch_dictionary.py`],
+                    blocking: true,
+                    parallel: false
+                }
+            }),
             new ForkTsCheckerWebpackPlugin({
                 async: false
             }),
