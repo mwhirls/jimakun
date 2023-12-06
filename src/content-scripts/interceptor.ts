@@ -3,7 +3,7 @@
 import { RuntimeEvent, SeekTimeMessage } from "../util/events";
 import { instanceOfNetflixMetadata, instanceOfTimedTextSwitch } from "../util/netflix-types"
 
-declare var netflix: any; // Netflix API object should exist on the page
+declare const netflix: any; // Netflix API object should exist on the page
 
 const WEBVTT_FORMAT = 'webvtt-lssdh-ios8';
 const NETFLIX_PROFILES = [
@@ -30,8 +30,8 @@ function isSubtitlesProperty(key: string, value: any): boolean {
 }
 
 function findSubtitlesProperty(obj: object): Array<string> | null {
-    for (let key in obj) {
-        let value = obj[key as keyof typeof obj];
+    for (const key in obj) {
+        const value = obj[key as keyof typeof obj];
         if (Array.isArray(value)) {
             if (isSubtitlesProperty(key, value)) {
                 return value;
@@ -51,7 +51,7 @@ function findSubtitlesProperty(obj: object): Array<string> | null {
 // Force a request for WebVTT to make Netflix return plain text subtitles
 const originalStringify = JSON.stringify;
 JSON.stringify = (value) => {
-    let prop = findSubtitlesProperty(value);
+    const prop = findSubtitlesProperty(value);
     if (prop) {
         prop.unshift(WEBVTT_FORMAT);
     }

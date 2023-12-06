@@ -1,5 +1,6 @@
 import { IpadicFeatures } from "kuromoji";
 import Token from "./Token";
+import React from 'react';
 
 interface WordProps {
     tokens: IpadicFeatures[],

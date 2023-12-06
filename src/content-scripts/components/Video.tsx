@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import Subtitle from "./Subtitle";
 import { RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from '../../util/events';
@@ -94,8 +94,8 @@ function findNearestCue(t: number, cues: TextTrackCue[]) {
     let l = 0;
     let r = cues.length - 1;
     while (l < r) {
-        let mid = Math.floor(l + (r - l) / 2);
-        let cue = cues[mid];
+        const mid = Math.floor(l + (r - l) / 2);
+        const cue = cues[mid];
         if (cue.startTime <= t && t <= cue.endTime) {
             return mid;
         }
@@ -107,7 +107,7 @@ function findNearestCue(t: number, cues: TextTrackCue[]) {
         }
     }
     return l;
-};
+}
 
 // Seeks the video to the closest subtitle in the direction given
 function onSeekCue(direction: SeekDirection, currentTime: number, cues: TextTrackCue[]) {

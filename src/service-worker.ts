@@ -67,10 +67,10 @@ function forms(word: JMdictWord) {
     return [...kanaForms, ...kanjiForms];
 }
 
-chrome.runtime.onInstalled.addListener((details) => {
+chrome.runtime.onInstalled.addListener((_details) => {
     // initialize the dictionary
     const request = self.indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = (event: any) => {
+    request.onupgradeneeded = (_event: any) => {
         console.log(`Successfully opened database ${DB_NAME}`);
     };
     request.onerror = (event: any) => {
@@ -84,7 +84,7 @@ chrome.runtime.onInstalled.addListener((details) => {
         const db = event.target.result as IDBDatabase;
         const wordsStore = db.createObjectStore("words", { keyPath: "id" });
         wordsStore.createIndex("forms", "forms", { unique: false, multiEntry: true });
-        wordsStore.transaction.oncomplete = async (event) => {
+        wordsStore.transaction.oncomplete = async () => {
             try {
                 // def not efficient but let's just get it working for now
                 const dictUrl = chrome.runtime.getURL('jmdict-simplified/jmdict-eng.json');

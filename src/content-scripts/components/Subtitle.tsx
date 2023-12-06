@@ -1,10 +1,10 @@
-import { IpadicFeatures, Tokenizer } from "kuromoji";
+import { IpadicFeatures } from "kuromoji";
 import Word from "./Word";
 import { TokenizerContext } from "../contexts/TokenizerContext";
-import { useContext } from "react";
+import React, { useContext } from "react";
 
 function extractCueText(cue: TextTrackCue) {
-    let cueText = (cue as any).text; // cue.text is not documented
+    const cueText = (cue as any).text; // cue.text is not documented
     const tagsRegex = '(<([^>]+>)|&lrm;|&rlm;)';
     const regex = new RegExp(tagsRegex, 'ig');
     const match = regex.exec(cueText);
@@ -93,7 +93,7 @@ interface SubtitleProps {
 // font-family: 'Netflix Sans', 'Helvetica Nueue', 'Helvetica', 'Arial', sans-serif;
 function Subtitle({ cue, fontSize }: SubtitleProps) {
     const tokenizerContext = useContext(TokenizerContext);
-    let text = extractCueText(cue);
+    const text = extractCueText(cue);
     const lines = text.split('\n');
     const lineElems = lines.map((line: string, index: number) => {
         const parseTokens = (text: string) => {

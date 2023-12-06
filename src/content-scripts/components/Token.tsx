@@ -1,3 +1,4 @@
+import React from 'react';
 import { IpadicFeatures } from "kuromoji";
 import './Token.css'
 
@@ -16,13 +17,13 @@ function toHiragana(text: string | undefined): string {
 }
 
 function getReading(token: IpadicFeatures) {
-    let furigana = toHiragana(token.reading); // kuromoji gives us readings in katakana
+    const furigana = toHiragana(token.reading); // kuromoji gives us readings in katakana
     if (furigana === token.surface_form || token.reading === token.surface_form) {
         return <></>;
     } else {
         return <><rp>(</rp><rt>{furigana}</rt><rp>)</rp></>
     }
-};
+}
 
 interface TokenProps {
     token: IpadicFeatures,

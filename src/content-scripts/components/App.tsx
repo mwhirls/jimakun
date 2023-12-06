@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom';
 import { WebvttSubtitles } from './Video'
 import Video from './Video'
@@ -101,7 +101,7 @@ function App() {
         // We insert our components into the Netflix DOM, but they constantly
         // mutate it.  Watch for changes so we know when to re-render.
         const netflixObserver = new MutationObserver(mutationCallback);
-        function mutationCallback(mutationsList: MutationRecord[], observer: MutationObserver) {
+        function mutationCallback(mutationsList: MutationRecord[], _observer: MutationObserver) {
             for (const mutation of mutationsList) {
                 if (mutation.type !== 'childList') {
                     continue;
