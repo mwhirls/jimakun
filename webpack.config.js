@@ -57,7 +57,9 @@ module.exports = function (_env, argv) {
         resolve: {
             extensions: [".js", ".jsx", ".ts", ".tsx"],
             fallback: {
-                path: require.resolve("path-browserify")
+                path: require.resolve("path-browserify"),
+                fs: false,
+                zlib: false,
             }
         },
         plugins: [

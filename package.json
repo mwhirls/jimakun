@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A Chrome Extension that enhances Japanese subtitles on Netflix for language learning",
   "main": "index.js",
+  "browser": {
+    "fs": false
+  },
   "dependencies": {
     "@types/kuromoji": "^0.1.3",
     "@types/react": "^18.2.37",
@@ -829,11 +832,11 @@
     "webpack-cli": "^5.1.4"
   },
   "scripts": {
-    "prebuild": "cd third-party/tokun && npm run prepublish && npm link && cd ../../ && npm link tokun",
+    "postinstall": "cd third-party/tokun && npm install && npm link && cd ../../ && npm link tokun",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint \"./src/**/*.{js,jsx,ts,tsx}\"",
-    "dev": "npm run prebuild && npm run lint && webpack --mode development",
-    "build": "npm run prebuild && npm run lint && webpack --mode production"
+    "dev": "npm run lint && webpack --mode development",
+    "build": "npm run lint && webpack --mode production"
   },
   "author": "",
   "license": "MIT"

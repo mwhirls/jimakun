@@ -6,8 +6,8 @@ import Video from './Video'
 import { ChildMutationType, WEBVTT_FORMAT, querySelectorMutation } from "../util/util"
 import { TimedTextTrack, NetflixMetadata, RecommendedMedia, TimedTextSwitch } from "../../util/netflix-types";
 import { RuntimeEvent, MovieChangedMessage, RuntimeMessage } from '../../util/events';
-import { IpadicFeatures, Tokenizer, builder } from "kuromoji";
-import { TokenizerContext } from '../contexts/TokenizerContext';
+import { SegmenterContext } from '../contexts/SegmenterContext';
+import { Segmenter, build } from 'tokun';
 
 const NETFLIX_PLAYER_CLASS = "watch-video--player-view";
 const NETFLIX_VIDEO_CLASS = `${NETFLIX_PLAYER_CLASS} video`
@@ -65,7 +65,7 @@ function App() {
     const [currTrack, setCurrTrack] = useState("");
     const [netflixPlayer, setNetflixPlayer] = useState<Element | null>(document.querySelector(`.${NETFLIX_PLAYER_CLASS}`));
     const [videoElem, setVideoElem] = useState<HTMLVideoElement | null>(document.querySelector(`.${NETFLIX_VIDEO_CLASS}`) as HTMLVideoElement | null);
-    const [tokenizer, setTokenizer] = useState<Tokenizer<IpadicFeatures> | null>(null);
+    const [segmenter, setSegmenter] = useState<Segmenter | null>(null);
 
     useEffect(() => {
         const metadataListener = async (event: Event) => {
@@ -116,19 +116,9 @@ function App() {
         }
         const config = { attributes: false, childList: true, subtree: true };
         netflixObserver.observe(document.body, config);
-
-        try {
-            const tokenizerBuilder = builder({ dicPath: chrome.runtime.getURL("dict/") });
-            tokenizerBuilder.build(function (err: Error, tokenizer: Tokenizer<IpadicFeatures>) {
-                if (err) {
-                    console.error('[JIMAKUN] error when building tokenizer');
-                }
-                console.log('[JIMAKUN] Tokenizer built');
-                setTokenizer(tokenizer);
-            });
-        } catch (err) {
-            console.error('[JIMAKUN] error when building tokenizer');
-        }
+        build(chrome.runtime.getURL("dict/"))
+            .then((segmenter) => setSegmenter(segmenter))
+            .catch((err) => console.error('[JIMAKUN] error when building tokenizer'));
 
         return () => {
             window.removeEventListener(RuntimeEvent.MetadataDetected, metadataListener);
@@ -146,9 +136,9 @@ function App() {
             <>
 
                 {createPortal(
-                    <TokenizerContext.Provider value={{ tokenizer: tokenizer }}>
+                    <SegmenterContext.Provider value={{ segmenter }}>
                         <Video webvttSubtitles={subtitles} videoElem={videoElem}></Video>
-                    </TokenizerContext.Provider>,
+                    </SegmenterContext.Provider>,
                     netflixPlayer
                 )}
 
