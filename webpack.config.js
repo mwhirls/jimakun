@@ -51,7 +51,12 @@ module.exports = function (_env, argv) {
                     options: {
                         name: "web-accessible-resources/[name].[hash:8].[ext]"
                     }
-                }
+                },
+                {
+                    test: /index.bundle\.js$/,
+                    enforce: "pre",
+                    use: ["source-map-loader"],
+                },
             ]
         },
         resolve: {
