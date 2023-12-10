@@ -1,6 +1,6 @@
 
 import { createContext } from 'react';
-import { Segmenter } from 'tokun';
+import { Segmenter } from 'bunsetsu';
 
 interface SegmenterContextI {
     segmenter: Segmenter | null

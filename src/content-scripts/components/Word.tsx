@@ -1,9 +1,9 @@
 import Token from "./Token";
 import React from 'react';
-import * as tokun from "tokun";
+import * as bunsetsu from "bunsetsu";
 
 interface WordProps {
-    word: tokun.Word,
+    word: bunsetsu.Word,
 }
 
 function Word({ word }: WordProps) {

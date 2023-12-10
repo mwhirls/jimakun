@@ -7,7 +7,7 @@ import { ChildMutationType, WEBVTT_FORMAT, querySelectorMutation } from "../util
 import { TimedTextTrack, NetflixMetadata, RecommendedMedia, TimedTextSwitch } from "../../util/netflix-types";
 import { RuntimeEvent, MovieChangedMessage, RuntimeMessage } from '../../util/events';
 import { SegmenterContext } from '../contexts/SegmenterContext';
-import { Segmenter, build } from 'tokun';
+import { Segmenter, build } from 'bunsetsu';
 
 const NETFLIX_PLAYER_CLASS = "watch-video--player-view";
 const NETFLIX_VIDEO_CLASS = `${NETFLIX_PLAYER_CLASS} video`
