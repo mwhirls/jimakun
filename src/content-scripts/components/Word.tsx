@@ -16,7 +16,7 @@ function Word({ word }: WordProps) {
     */
     return (
         <span className="hover:text-red-500">
-            { }
+            {word.surfaceForm()}
         </span>
     );
 }
