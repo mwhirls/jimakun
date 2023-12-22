@@ -1,0 +1,7 @@
+.subtitle-word rt {
+    visibility: hidden;
+}
+
+.subtitle-word:hover rt {
+    visibility: visible;
+}
