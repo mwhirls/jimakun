@@ -1,6 +1,7 @@
 import Token, { TokenProps } from "./Token";
 import React from 'react';
 import * as bunsetsu from "bunsetsu";
+import * as Diff from "diff";
 import './Word.css'
 
 function toHiragana(text: string | undefined): string {
@@ -19,47 +20,34 @@ function toHiragana(text: string | undefined): string {
     return result.join('');
 }
 
-// http://www.rikai.com/library/kanjitables/kanji_codes.unicode.shtml 
-function isKanjiAt(str: string, index: number) {
-    const code = str.codePointAt(index);
-    if (!code) {
-        return false;
-    }
-    return (code >= 0x4e00 && code <= 0x9faf) || // CJK unified ideographs (common/uncommon kanji)
-        (code >= 0x3400 && code <= 0x4dbf);   // CJK unified ideographs (rare kanji)
-}
-
-function getTokenReading(surfaceForm: string, hiragana: string, tokenStart: number, tokenEnd: number) {
-    // Example: 見る and みる both share a common tail (る).  Chop the る off and return the remainder.
-    const tail = surfaceForm.substring(tokenEnd);
-    const tailReading = toHiragana(tail);
-    const readingEnd = tailReading.length ? hiragana.search(tailReading) : hiragana.length;
-    return hiragana.substring(tokenStart, readingEnd);
-}
-
 function toTokens(word: bunsetsu.Word): TokenProps[] {
-    const surfaceForm = word.surfaceForm();
-    if (!surfaceForm.length) {
+    const wordSurfaceForm = word.surfaceForm();
+    if (!wordSurfaceForm.length) {
         return [];
     }
     const katakana = word.reading(); // kuromoji gives us readings in katakana
     const hiragana = toHiragana(katakana);
     const tokens: TokenProps[] = [];
-    let start = 0;
-    let readingStart = 0;
-    for (let end = 1; end <= surfaceForm.length; end++) {
-        if (end != surfaceForm.length && // include the last chunk
-            isKanjiAt(surfaceForm, start) === isKanjiAt(surfaceForm, end)) {
-            continue;
+    const diff = Diff.diffChars(wordSurfaceForm, hiragana);
+    for (let i = 0; i < diff.length; i++) {
+        const part = diff[i];
+        if (part.removed) {
+            const j = i + 1;
+            const next = diff[j];
+            if (next?.added) {
+                const surfaceForm = part.value;
+                const furigana = next.value;
+                const props = { surfaceForm, furigana };
+                tokens.push(props);
+                i = j;
+            } else {
+                const props = { surfaceForm: part.value, furigana: undefined };
+                tokens.push(props);
+            }
+        } else {
+            const props = { surfaceForm: part.value, furigana: undefined };
+            tokens.push(props);
         }
-        const tokenReading = getTokenReading(surfaceForm, hiragana, readingStart, end);
-        const tokenSurfaceForm = surfaceForm.substring(start, end);
-        const showFurigana = tokenSurfaceForm !== tokenReading && surfaceForm !== katakana && tokenReading !== hiragana;
-        const furigana = showFurigana ? tokenReading : undefined;
-        const props = { surfaceForm: tokenSurfaceForm, furigana };
-        tokens.push(props);
-        start = end;
-        readingStart += tokenReading.length;
     }
     return tokens;
 }
