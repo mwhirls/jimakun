@@ -1,5 +1,5 @@
 import Token, { TokenProps } from "./Token";
-import React from 'react';
+import React, { MouseEventHandler, useState } from 'react';
 import * as bunsetsu from "bunsetsu";
 import * as Diff from "diff";
 import './Word.css'
@@ -53,13 +53,20 @@ function toTokens(word: bunsetsu.Word): TokenProps[] {
 }
 
 interface WordProps {
-    word: bunsetsu.Word,
+    word: bunsetsu.Word;
+    onWordClicked: (word: bunsetsu.Word, element: HTMLElement) => void;
 }
 
-function Word({ word }: WordProps) {
+function Word({ word, onWordClicked }: WordProps) {
     const tokensProps = toTokens(word);
+
+    const onClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        const element = e.target as HTMLElement;
+        onWordClicked(word, element);
+    }
+
     return (
-        <span className="hover:text-red-500 subtitle-word">
+        <span className="hover:text-red-500 subtitle-word" onClick={onClick}>
             {tokensProps.map((props, index) => {
                 return (
                     <Token key={index} {...props} />

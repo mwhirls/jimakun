@@ -38,7 +38,7 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "web-accessible-resources/*",
+                "assets/*",
                 "dict/*"
             ],
             "matches": [

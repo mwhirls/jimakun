@@ -1,6 +1,8 @@
 import { SegmenterContext } from "../contexts/SegmenterContext";
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useRef, useState } from "react";
 import Word from "./Word";
+import Card from "./card/Card";
+import * as bunsetsu from "bunsetsu";
 
 function extractCueText(cue: TextTrackCue) {
     const cueText = (cue as any).text; // cue.text is not documented
@@ -8,6 +10,12 @@ function extractCueText(cue: TextTrackCue) {
     const regex = new RegExp(tagsRegex, 'ig');
     const match = regex.exec(cueText);
     return match ? cueText.replace(regex, '') : cueText;
+}
+
+interface ActiveWord {
+    word: bunsetsu.Word;
+    offsetLeft: number;
+    offsetTop: number;
 }
 
 interface SubtitleProps {
@@ -18,6 +26,19 @@ interface SubtitleProps {
 // font-family: 'Netflix Sans', 'Helvetica Nueue', 'Helvetica', 'Arial', sans-serif;
 function Subtitle({ cue, fontSize }: SubtitleProps) {
     const context = useContext(SegmenterContext);
+    const [activeWord, setActiveWord] = useState<ActiveWord | null>(null);
+    const subtitleRef = useRef<HTMLDivElement>(null);
+
+    const onWordClicked = (word: bunsetsu.Word, element: HTMLElement) => {
+        if (!subtitleRef.current) {
+            console.warn('failed to get subtitle position');
+            return;
+        }
+        const offsetLeft = element.offsetLeft;
+        const offsetTop = element.offsetTop;
+        setActiveWord({ word, offsetLeft, offsetTop });
+    };
+
     const text = extractCueText(cue);
     const lines = text.split('\n');
     const lineElems = lines.map((line: string, index: number) => {
@@ -27,7 +48,7 @@ function Subtitle({ cue, fontSize }: SubtitleProps) {
                 return text;
             }
             const words = segmenter.segmentAsWords(text);
-            return words.map((word, index) => <Word key={index} word={word}></Word>);
+            return words.map((word, index) => <Word key={index} word={word} onWordClicked={onWordClicked}></Word>);
         };
         const innerHTML = parseTokens(line);
         return (
@@ -37,12 +58,28 @@ function Subtitle({ cue, fontSize }: SubtitleProps) {
         );
 
     });
+    const vocabularyCard = (() => {
+        if (!activeWord) {
+            return <></>;
+        }
+        const cardStyle = {
+            left: `${activeWord.offsetLeft}px`,
+            bottom: `${activeWord.offsetTop}px`,
+        }
+        return (
+            <div className='absolute' style={cardStyle}>
+                <Card word={activeWord.word}></Card>
+            </div>
+        )
+    })();
+
     const style = {
         fontSize: `${fontSize}px`,
     };
 
     return (
-        <div style={style} className="block relative -left-1/2 font-bold drop-shadow-[0_0_7px_#000000] pointer-events-auto select-text">
+        <div ref={subtitleRef} style={style} className="block relative -left-1/2 font-bold drop-shadow-[0_0_7px_#000000] pointer-events-auto select-text">
+            {vocabularyCard}
             {lineElems}
         </div>
     )
