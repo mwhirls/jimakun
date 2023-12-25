@@ -34,7 +34,7 @@ function Card({ word }: CardProps) {
     ];
 
     return (
-        <div className="bg-white rounded-md text-black p-10">
+        <div className="bg-white rounded-lg text-black px-12 py-4">
             <Header word={word}></Header>
             <Tabs tabs={tabs} selectedIndex={selectedTab}></Tabs>
             <Footer></Footer>
