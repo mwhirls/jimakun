@@ -7,10 +7,17 @@ function Footer() {
     const favoriteIconUrl = chrome.runtime.getURL(FAVORITE_ICON);
     const downloadIconUrl = chrome.runtime.getURL(DOWNLOAD_ICON);
     return (
-        <div>
-            <button><img src={favoriteIconUrl}></img></button>
-            <button><img src={downloadIconUrl}></img></button>
-        </div>
+        <>
+            <hr></hr>
+            <div className="flex justify-between">
+                <button>
+                    <img src={favoriteIconUrl}></img>
+                </button>
+                <button>
+                    <img src={downloadIconUrl}></img>
+                </button>
+            </div>
+        </>
     );
 }
 export default Footer;

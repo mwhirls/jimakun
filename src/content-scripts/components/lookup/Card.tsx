@@ -10,7 +10,7 @@ export interface CardProps {
 
 function Card({ word }: CardProps) {
     return (
-        <div className="bg-white rounded-md text-black">
+        <div className="bg-white rounded-md text-black p-10">
             <Header word={word}></Header>
             <Definitions word={word}></Definitions>
             <Footer></Footer>
