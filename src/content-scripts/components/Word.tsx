@@ -3,6 +3,7 @@ import React, { MouseEventHandler, useState } from 'react';
 import * as bunsetsu from "bunsetsu";
 import * as Diff from "diff";
 import './Word.css'
+import Card from "./lookup/Card";
 
 function toHiragana(text: string | undefined): string {
     if (!text) {
@@ -52,26 +53,40 @@ function toTokens(word: bunsetsu.Word): TokenProps[] {
     return tokens;
 }
 
-interface WordProps {
-    word: bunsetsu.Word;
-    onWordClicked: (word: bunsetsu.Word, element: HTMLElement) => void;
+export interface WordIndex {
+    line: number;
+    word: number;
 }
 
-function Word({ word, onWordClicked }: WordProps) {
+export interface WordProps {
+    word: bunsetsu.Word;
+    index: WordIndex;
+    active: boolean;
+    onWordClicked: (index: WordIndex) => void;
+}
+
+function Word({ word, index, active, onWordClicked }: WordProps) {
     const tokensProps = toTokens(word);
 
-    const onClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-        const element = e.target as HTMLElement;
-        onWordClicked(word, element);
-    }
+    const lookupCard = (() => {
+        if (!active) {
+            return <></>;
+        }
+        return (
+            <div className='absolute left-0 bottom-full w-max'>
+                <Card word={word}></Card>
+            </div>
+        )
+    })();
 
     return (
-        <span className="hover:text-red-500 subtitle-word" onClick={onClick}>
+        <span className="hover:text-red-500 relative subtitle-word" onClick={() => onWordClicked(index)}>
             {tokensProps.map((props, index) => {
                 return (
                     <Token key={index} {...props} />
                 );
             })}
+            {lookupCard}
         </span>
     );
 }
