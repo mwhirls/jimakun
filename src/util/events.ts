@@ -5,6 +5,7 @@ export enum RuntimeEvent {
     SeekCue = 'seek-cue',
     SeekTime = 'seek-time',
     ToggleSubs = 'toggle-subs',
+    LookupWord = 'lookup-word',
 }
 
 export interface RuntimeMessage {
@@ -28,4 +29,10 @@ export interface SeekCueMessage {
 
 export interface SeekTimeMessage {
     startTime: number
+}
+
+export interface LookupWordMessage {
+    surfaceForm: string;
+    baseForm: string;
+    reading: string;
 }
