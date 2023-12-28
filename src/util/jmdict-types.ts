@@ -9,9 +9,9 @@ export enum JMDictPOS {
     AdjectiveNa = "adj-na",
     AdjectiveNari = "adj-nari",
     AdjectiveNo = "adj-no",
-    AdjectivePronoun = "adj-pn",
+    AdjectivePreNoun = "adj-pn",
     AdjectiveShiku = "adj-shiku",
-    AdjectiveTarui = "adj-t",
+    AdjectiveTaru = "adj-t",
     Adverb = "adv",
     AdverbTo = "adv-to",
     Auxiliary = "aux",
@@ -36,7 +36,7 @@ export enum JMDictPOS {
     Unclassified = "unc",
     VerbUnspecified = "v-unspec",
     Verb1 = "v1",
-    Verb1Suru = "v1-s",
+    Verb1Kureru = "v1-s",
     Verb2AruSuru = "v2a-s",
     Verb2BikuKuru = "v2b-k",
     Verb2BiruSuru = "v2b-s",
@@ -81,23 +81,23 @@ export enum JMDictPOS {
     Verb5Sasu = "v5s",
     Verb5Taru = "v5t",
     Verb5U = "v5u",
-    Verb5USuru = "v5u-s",
+    Verb5USpecial = "v5u-s",
     Verb5Uru = "v5uru",
     VerbIntransitive = "vi",
     VerbKuru = "vk",
-    VerbNasu = "vn",
-    VerbReru = "vr",
+    VerbNu = "vn",
+    VerbIrregularRu = "vr",
     VerbSuru = "vs",
-    VerbSuruCausative = "vs-c",
-    VerbSuruIntransitive = "vs-i",
-    VerbSuruSuru = "vs-s",
+    VerbSuruClassical = "vs-c",
+    VerbSuruIncluded = "vs-i",
+    VerbSuruSpecial = "vs-s",
     VerbTransitive = "vt",
     VerbZuru = "vz",
     Unknown = '',
 }
 
-function getPartsOfSpeech(sense: JMdictSense) {
-    sense.partOfSpeech.map((value) => {
+export function getPartsOfSpeech(sense: JMdictSense): JMDictPOS[] {
+    return sense.partOfSpeech.map((value) => {
         const pos = Object.values(JMDictPOS).find(x => value === x) ?? JMDictPOS.Unknown;
         if (pos === JMDictPOS.Unknown) {
             console.error('unrecognized part of speech', value);
