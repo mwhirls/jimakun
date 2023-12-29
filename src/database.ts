@@ -96,17 +96,39 @@ export class IDBWrapper {
         });
     }
 
-    get<T>(storeName: string, indexName: string, query: IDBValidKey): Promise<T | undefined> {
+    getFromIndex<T>(storeName: string, indexName: string, query: IDBValidKey): Promise<T | undefined> {
         return new Promise((resolve, reject) => {
             const request = this.db.transaction(storeName)
                 .objectStore(storeName)
                 .index(indexName)
                 .get(query);
-            request.onerror = (_event: any) => {
+            request.onerror = () => {
                 reject(new DatabaseError(DBErrorType.TransactionError));
             };
-            request.onsuccess = (event: any) => {
+            request.onsuccess = () => {
                 resolve(request.result)
+            };
+        });
+    }
+
+    openCursorOnIndex<T>(storeName: string, indexName: string, query: IDBValidKey): Promise<T[]> {
+        return new Promise((resolve, reject) => {
+            const request = this.db.transaction(storeName)
+                .objectStore(storeName)
+                .index(indexName)
+                .openCursor(query);
+            request.onerror = () => {
+                reject(new DatabaseError(DBErrorType.TransactionError));
+            };
+            const results: T[] = [];
+            request.onsuccess = () => {
+                const cursor = request.result;
+                if (!cursor) {
+                    resolve(results);
+                    return;
+                }
+                results.push(cursor.value);
+                cursor.continue();
             };
         });
     }

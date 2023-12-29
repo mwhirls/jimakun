@@ -1,3 +1,4 @@
+import { match } from "minimatch";
 import { DBErrorType, DatabaseError, IDBUpgradeContext, IDBWrapper } from "./database";
 import { LookupWordMessage } from "./util/events";
 import type { JMdict, JMdictWord } from "@scriptin/jmdict-simplified-types";
@@ -66,11 +67,60 @@ async function tryOpen(attempt: number, maxAttempts: number) {
     }
 }
 
+function gradeBaseForm(match: JMdictWord, lookup: LookupWordMessage): number {
+    const kanaOnly = lookup.katakana === lookup.surfaceForm ||
+        lookup.hiragana === lookup.surfaceForm;
+    if (kanaOnly) {
+        return match.kanji.length ? -1 : 1;
+    }
+    const baseForm = match.kanji.find((x) => x.text === lookup.baseForm);
+    return baseForm ? 1 : 0;
+}
+
+function gradeReading(match: JMdictWord, lookup: LookupWordMessage): number {
+    const reading = match.kana.find((x) => x.text === lookup.katakana || x.text === lookup.hiragana);
+    return reading ? 1 : 0;
+}
+
+function gradePartOfspeech(_match: JMdictWord, _lookup: LookupWordMessage): number {
+    return 0; // todo
+}
+
+function gradeMatch(match: JMdictWord, lookup: LookupWordMessage): number {
+    const baseForm = gradeBaseForm(match, lookup);
+    const reading = gradeReading(match, lookup);
+    const partOfSpeech = gradePartOfspeech(match, lookup);
+    const sum = baseForm + reading + partOfSpeech;
+    return sum;
+}
+
+function findBestMatch(matches: JMdictWord[], lookup: LookupWordMessage): JMdictWord | undefined {
+    if (!matches.length) {
+        return undefined;
+    }
+    let bestScore = Number.MIN_SAFE_INTEGER;
+    let bestMatch = undefined;
+    for (const match of matches) {
+        const grade = gradeMatch(match, lookup);
+        if (grade > bestScore) {
+            bestMatch = match;
+            bestScore = grade;
+        }
+    }
+    return bestMatch;
+}
+
 export async function initializeDictionary(maxAttempts?: number) {
     return tryOpen(0, maxAttempts ?? 5);
 }
 
 export async function lookupWord(lookup: LookupWordMessage): Promise<JMdictWord | undefined> {
     const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onUpgrade);
-    return db.get<JMdictWord>(DB_OBJECT_STORE, DB_INDEX, lookup.baseForm);
+    return db.getFromIndex<JMdictWord>(DB_OBJECT_STORE, DB_INDEX, lookup.baseForm);
+}
+
+export async function lookupBestMatch(lookup: LookupWordMessage): Promise<JMdictWord | undefined> {
+    const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onUpgrade);
+    const matches = await db.openCursorOnIndex<JMdictWord>(DB_OBJECT_STORE, DB_INDEX, lookup.baseForm);
+    return findBestMatch(matches, lookup);
 }

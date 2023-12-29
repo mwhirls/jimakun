@@ -34,5 +34,6 @@ export interface SeekTimeMessage {
 export interface LookupWordMessage {
     surfaceForm: string;
     baseForm: string;
-    reading: string;
+    katakana: string;
+    hiragana: string;
 }

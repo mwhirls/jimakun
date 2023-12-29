@@ -9,12 +9,14 @@ import Kanji from './Kanji';
 import Notes from './Notes';
 import type { JMdict, JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { LookupWordMessage, RuntimeEvent, RuntimeMessage } from '../../../util/events';
+import { toHiragana } from '../../../util/lang';
 
 async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> {
     const data: LookupWordMessage = {
         surfaceForm: word.surfaceForm(),
         baseForm: word.basicForm() ?? "",
-        reading: word.reading() ?? "",
+        katakana: word.reading() ?? "",
+        hiragana: toHiragana(word.reading()),
     };
     const message: RuntimeMessage = { event: RuntimeEvent.LookupWord, data: data };
     return await chrome.runtime.sendMessage(message);

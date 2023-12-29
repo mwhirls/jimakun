@@ -1,4 +1,4 @@
-import { initializeDictionary, lookupWord } from "./dictionary";
+import { initializeDictionary, lookupBestMatch, lookupWord } from "./dictionary";
 import { MovieChangedMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
 
 const NEXT_CUE_ID = 'next-cue';
@@ -69,7 +69,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     switch (request.event) {
         case RuntimeEvent.LookupWord: {
             const message = request.data;
-            lookupWord(message).then(word => sendResponse(word));
+            lookupBestMatch(message).then(word => sendResponse(word));
             break;
         }
         default:
