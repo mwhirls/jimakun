@@ -164,21 +164,18 @@ function Definitions({ word, entry }: DefinitionsProps) {
             {
                 entry.sense.map((sense, senseIndex) => {
                     const posInfo = getPartOfSpeechInfo(sense);
+                    const glossText = sense.gloss.map((gloss) => gloss.text).join('; ');
+                    const infoText = sense.info.join('; ');
                     return (
-                        <div key={senseIndex}>
-                            <h5 className='text-3xl text-slate-400 font-light'>{posInfo}</h5>
-                            {
-                                sense.gloss.map((gloss, glossIndex) => {
-                                    return (
-                                        <p key={glossIndex} className='text-4xl text-black font-normal'>{gloss.text}</p>
-                                    )
-                                })
-                            }
+                        <div key={senseIndex} className='mt-6 leading-tight'>
+                            <h5 className='text-3xl font-medium text-slate-400'>{posInfo}</h5>
+                            <span className='text-4xl font-normal text-black'>{glossText}</span>
+                            <span className='ml-4 text-3xl font-light text-slate-400'>{infoText}</span>
                         </div>
                     );
                 })
             }
-        </div>
+        </div >
     );
 }
 export default Definitions;
