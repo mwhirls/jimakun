@@ -7,7 +7,7 @@ function Footer() {
     const favoriteIconUrl = chrome.runtime.getURL(FAVORITE_ICON);
     const downloadIconUrl = chrome.runtime.getURL(DOWNLOAD_ICON);
     return (
-        <div className='mt-6'>
+        <div className='flex-none'>
             <hr></hr>
             <div className="flex justify-between mt-3">
                 <button>

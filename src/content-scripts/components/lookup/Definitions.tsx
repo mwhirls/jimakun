@@ -165,8 +165,8 @@ function Definitions({ word, entry }: DefinitionsProps) {
                 entry.sense.map((sense, senseIndex) => {
                     const posInfo = getPartOfSpeechInfo(sense);
                     return (
-                        <>
-                            <h5 key={senseIndex} className='text-3xl text-slate-400 font-light'>{posInfo}</h5>
+                        <div key={senseIndex}>
+                            <h5 className='text-3xl text-slate-400 font-light'>{posInfo}</h5>
                             {
                                 sense.gloss.map((gloss, glossIndex) => {
                                     return (
@@ -174,7 +174,7 @@ function Definitions({ word, entry }: DefinitionsProps) {
                                     )
                                 })
                             }
-                        </>
+                        </div>
                     );
                 })
             }
