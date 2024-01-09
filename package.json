@@ -803,7 +803,8 @@
     "yaml": "^1.10.2",
     "yargs": "^16.2.0",
     "yargs-parser": "^20.2.9",
-    "yocto-queue": "^0.1.0"
+    "yocto-queue": "^0.1.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@babel/core": "^7.23.3",

@@ -1,7 +1,7 @@
 // must run in the MAIN world since we need to manipulate some global variables
 
 import { RuntimeEvent, SeekTimeMessage } from "../util/events";
-import { instanceOfNetflixMetadata, instanceOfTimedTextSwitch } from "../util/netflix-types"
+import { NetflixMetadata, TimedTextSwitch } from "../util/netflix-types";
 
 declare const netflix: any; // Netflix API object should exist on the page
 
@@ -22,7 +22,7 @@ const NETFLIX_PROFILES = [
     'BIF320'
 ];
 
-function isSubtitlesProperty(key: string, value: any): boolean {
+function isSubtitlesProperty(key: string, value: unknown): boolean {
     if (key === 'profiles' && Array.isArray(value)) {
         return value.some(item => NETFLIX_PROFILES.includes(item));
     }
@@ -62,10 +62,15 @@ const originalParse = JSON.parse;
 JSON.parse = (text) => {
     const parsed = originalParse(text);
     if (parsed) {
-        if (instanceOfNetflixMetadata(parsed.result)) {
-            window.dispatchEvent(new CustomEvent(RuntimeEvent.MetadataDetected, { detail: parsed.result }));
-        } else if (instanceOfTimedTextSwitch(parsed)) {
-            window.dispatchEvent(new CustomEvent(RuntimeEvent.SubtitleTrackSwitched, { detail: parsed }));
+        if (parsed.result) {
+            const metadata = NetflixMetadata.safeParse(parsed.result);
+            if (metadata.success) {
+                window.dispatchEvent(new CustomEvent(RuntimeEvent.MetadataDetected, { detail: metadata.data }));
+            }
+        }
+        const tts = TimedTextSwitch.safeParse(parsed);
+        if (tts.success) {
+            window.dispatchEvent(new CustomEvent(RuntimeEvent.SubtitleTrackSwitched, { detail: tts.data }));
         }
     }
     return parsed;

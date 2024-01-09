@@ -4,25 +4,13 @@ import { WebvttSubtitles } from './Video'
 import Video from './Video'
 
 import { ChildMutationType, WEBVTT_FORMAT, querySelectorMutation } from "../util/util"
-import { TimedTextTrack, NetflixMetadata, RecommendedMedia, TimedTextSwitch } from "../../util/netflix-types";
+import { TimedTextTrack, NetflixMetadata, TimedTextSwitch } from "../../util/netflix-types";
 import { RuntimeEvent, MovieChangedMessage, RuntimeMessage } from '../../util/events';
 import { SegmenterContext } from '../contexts/SegmenterContext';
 import { Segmenter, build } from 'bunsetsu';
 
 const NETFLIX_PLAYER_CLASS = "watch-video--player-view";
 const NETFLIX_VIDEO_CLASS = `${NETFLIX_PLAYER_CLASS} video`
-
-class MovieMetadata implements NetflixMetadata {
-    movieId: number;
-    recommendedMedia: RecommendedMedia;
-    timedtexttracks: Array<TimedTextTrack>;
-
-    constructor(movieId: number, recommendedMedia: RecommendedMedia, timedtexttracks: Array<TimedTextTrack>) {
-        this.movieId = movieId;
-        this.recommendedMedia = recommendedMedia;
-        this.timedtexttracks = timedtexttracks;
-    }
-}
 
 class SubtitleData implements WebvttSubtitles {
     webvttUrl: string;
@@ -59,7 +47,7 @@ async function downloadSubtitles(track: TimedTextTrack): Promise<SubtitleData | 
 }
 
 function App() {
-    const [moviesMetadata, setMoviesMetadata] = useState(new Map<string, MovieMetadata>);
+    const [moviesMetadata, setMoviesMetadata] = useState(new Map<string, NetflixMetadata>);
     const [subtitleData, setSubtitleData] = useState(new Map<string, SubtitleData>);
     const [currMovie, setCurrMovie] = useState("");
     const [currTrack, setCurrTrack] = useState("");

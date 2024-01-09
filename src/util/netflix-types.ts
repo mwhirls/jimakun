@@ -1,44 +1,38 @@
-export interface CdnUrl {
-    cdn_id: number,
-    url: string,
-}
+import { z } from "zod";
 
-export interface TTDownloadable {
-    urls: CdnUrl[],
-}
+export const CdnUrl = z.object({
+    cdn_id: z.number(),
+    url: z.string(),
+});
 
-export interface TimedTextTrack {
-    language: string,
-    languageDescription: string,
-    new_track_id: string,
-    ttDownloadables: { [key: string]: TTDownloadable },
-}
+export const TTDownloadable = z.object({
+    urls: z.array(z.object(CdnUrl.shape)),
+});
 
-export interface RecommendedMedia {
-    timedTextTrackId: string,
-}
+export const TimedTextTrack = z.object({
+    language: z.nullable(z.string()),
+    languageDescription: z.string(),
+    new_track_id: z.string(),
+    ttDownloadables: z.record(z.object(TTDownloadable.shape)),
+});
 
-export interface NetflixMetadata {
-    movieId: number,
-    recommendedMedia: RecommendedMedia,
-    timedtexttracks: Array<TimedTextTrack>
-}
+export const RecommendedMedia = z.object({
+    timedTextTrackId: z.string(),
+});
 
-export function instanceOfNetflixMetadata(arg: any): arg is NetflixMetadata {
-    // quick and dirty check, can make this more robust later if
-    // needed
-    return arg &&
-        arg.movieId && typeof arg.movieId === "number" &&
-        arg.recommendedMedia &&
-        arg.timedtexttracks && Array.isArray(arg.timedtexttracks);
-}
+export const NetflixMetadata = z.object({
+    movieId: z.number(),
+    recommendedMedia: z.object(RecommendedMedia.shape),
+    timedtexttracks: z.array(z.object(TimedTextTrack.shape)),
+});
 
-export interface TimedTextSwitch {
-    track: { trackId: string };
-}
+export const TimedTextSwitch = z.object({
+    track: z.object({ trackId: z.string() })
+});
 
-export function instanceOfTimedTextSwitch(arg: any): arg is TimedTextSwitch {
-    return arg &&
-        arg.track &&
-        arg.track.trackId && typeof arg.track.trackId === "string";
-}
+export type CdnUrl = z.infer<typeof CdnUrl>;
+export type TTDownloadable = z.infer<typeof TTDownloadable>;
+export type TimedTextTrack = z.infer<typeof TimedTextTrack>;
+export type RecommendedMedia = z.infer<typeof RecommendedMedia>;
+export type NetflixMetadata = z.infer<typeof NetflixMetadata>;
+export type TimedTextSwitch = z.infer<typeof TimedTextSwitch>;
