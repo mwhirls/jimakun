@@ -6,6 +6,7 @@ export enum RuntimeEvent {
     SeekTime = 'seek-time',
     ToggleSubs = 'toggle-subs',
     LookupWord = 'lookup-word',
+    PlayAudio = 'play-audio',
 }
 
 export interface RuntimeMessage {
@@ -36,4 +37,8 @@ export interface LookupWordMessage {
     baseForm: string;
     katakana: string;
     hiragana: string;
+}
+
+export interface PlayAudioMessage {
+    utterance: string;
 }

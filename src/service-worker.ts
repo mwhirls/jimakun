@@ -72,6 +72,14 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
             lookupBestMatch(message).then(word => sendResponse(word));
             break;
         }
+        case RuntimeEvent.PlayAudio: {
+            const message = request.data;
+            if (!message.utterance) {
+                return;
+            }
+            chrome.tts.speak(message.utterance, { lang: 'ja' });
+            break;
+        }
         default:
             console.warn("unrecognized request", request);
     }
