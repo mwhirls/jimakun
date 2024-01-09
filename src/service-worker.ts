@@ -1,4 +1,4 @@
-import { initializeDictionary, lookupBestMatch, lookupWord } from "./dictionary";
+import { initializeDictionary, lookupBestMatch } from "./dictionary";
 import { MovieChangedMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
 
 const NEXT_CUE_ID = 'next-cue';
@@ -87,6 +87,6 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 }
 );
 
-chrome.runtime.onInstalled.addListener((_details) => {
+chrome.runtime.onInstalled.addListener(() => {
     initializeDictionary(5);
 });

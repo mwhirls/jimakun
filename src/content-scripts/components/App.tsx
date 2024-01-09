@@ -101,7 +101,7 @@ function App() {
         // We insert our components into the Netflix DOM, but they constantly
         // mutate it.  Watch for changes so we know when to re-render.
         const netflixObserver = new MutationObserver(mutationCallback);
-        function mutationCallback(mutationsList: MutationRecord[], _observer: MutationObserver) {
+        function mutationCallback(mutationsList: MutationRecord[]) {
             for (const mutation of mutationsList) {
                 if (mutation.type !== 'childList') {
                     continue;
@@ -118,7 +118,7 @@ function App() {
         netflixObserver.observe(document.body, config);
         build(chrome.runtime.getURL("dict/"))
             .then((segmenter) => setSegmenter(segmenter))
-            .catch((err) => console.error('[JIMAKUN] error when building tokenizer'));
+            .catch((err) => console.error('[JIMAKUN] error when building tokenizer', err));
 
         return () => {
             window.removeEventListener(RuntimeEvent.MetadataDetected, metadataListener);

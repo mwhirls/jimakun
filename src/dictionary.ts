@@ -1,4 +1,3 @@
-import { match } from "minimatch";
 import { DBErrorType, DatabaseError, IDBUpgradeContext, IDBWrapper } from "./database";
 import { LookupWordMessage } from "./util/events";
 import type { JMdict, JMdictWord } from "@scriptin/jmdict-simplified-types";
@@ -33,7 +32,7 @@ async function onUpgrade(db: IDBUpgradeContext) {
     const dictUrl = chrome.runtime.getURL(DICTIONARY_DATA);
     const response = await fetch(dictUrl);
     const jmdict = await response.json() as JMdict;
-    const entries = Object.entries(jmdict.words).map((entry: [string, any]) => {
+    const entries = Object.entries(jmdict.words).map((entry: [string, JMdictWord]) => {
         return {
             ...entry[1],
             forms: forms(entry[1])
@@ -82,14 +81,14 @@ function gradeReading(match: JMdictWord, lookup: LookupWordMessage): number {
     return reading ? 1 : 0;
 }
 
-function gradePartOfspeech(_match: JMdictWord, _lookup: LookupWordMessage): number {
+function gradePartOfSpeech(_match: JMdictWord, _lookup: LookupWordMessage): number {
     return 0; // todo
 }
 
 function gradeMatch(match: JMdictWord, lookup: LookupWordMessage): number {
     const baseForm = gradeBaseForm(match, lookup);
     const reading = gradeReading(match, lookup);
-    const partOfSpeech = gradePartOfspeech(match, lookup);
+    const partOfSpeech = gradePartOfSpeech(match, lookup);
     const sum = baseForm + reading + partOfSpeech;
     return sum;
 }

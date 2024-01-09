@@ -7,7 +7,7 @@ import Tabs from './Tabs';
 import Examples from './Examples';
 import Kanji from './Kanji';
 import Notes from './Notes';
-import type { JMdict, JMdictWord } from "@scriptin/jmdict-simplified-types";
+import type { JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { LookupWordMessage, RuntimeEvent, RuntimeMessage } from '../../../util/events';
 import { toHiragana } from '../../../util/lang';
 

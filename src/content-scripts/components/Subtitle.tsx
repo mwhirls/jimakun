@@ -1,5 +1,5 @@
 import { SegmenterContext } from "../contexts/SegmenterContext";
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useState } from "react";
 import * as bunsetsu from "bunsetsu";
 import Word, { WordIndex } from "./Word";
 
@@ -28,8 +28,8 @@ interface SubtitleProps {
 // font-family: 'Netflix Sans', 'Helvetica Nueue', 'Helvetica', 'Arial', sans-serif;
 function Subtitle({ cue, fontSize }: SubtitleProps) {
     const context = useContext(SegmenterContext);
-    const [lines, setLines] = useState<bunsetsu.Word[][]>(parseCue(cue, context.segmenter));
     const [activeWord, setActiveWord] = useState<WordIndex | null>(null);
+    const lines = parseCue(cue, context.segmenter);
 
     const onWordClicked = (index: WordIndex) => {
         setActiveWord(index);

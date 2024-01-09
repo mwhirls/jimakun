@@ -9,7 +9,7 @@ export class DatabaseError extends Error {
     type: DBErrorType;
 
     constructor(type: DBErrorType, message?: string) {
-        super(type);
+        super(message);
         this.type = type;
         this.name = "DatabaseError";
     }
@@ -41,10 +41,10 @@ export class IDBUpgradeContext {
                 for (const index of store.indexes) {
                     objectStore.createIndex(index.name, index.name, { unique: index.unique, multiEntry: index.multiEntry });
                 }
-                objectStore.transaction.oncomplete = (event) => {
+                objectStore.transaction.oncomplete = () => {
                     resolve();
                 };
-                objectStore.transaction.onerror = (event) => {
+                objectStore.transaction.onerror = () => {
                     reject(new DatabaseError(DBErrorType.TransactionError));
                 }
             })
@@ -52,7 +52,7 @@ export class IDBUpgradeContext {
         return Promise.all(result);
     }
 
-    insert(storeName: string, entries: any[]) {
+    insert(storeName: string, entries: unknown[]) {
         const store = this.wrapper.db.transaction(storeName, "readwrite").objectStore(storeName);
         for (const entry of entries) {
             store.add(entry);
@@ -70,19 +70,19 @@ export class IDBWrapper {
     static open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => void): Promise<IDBWrapper> {
         return new Promise((resolve, reject) => {
             const request = self.indexedDB.open(name, version);
-            request.onblocked = (event: any) => {
-                reject(new DatabaseError(DBErrorType.Blocked, `${event.target?.errorCode}`));
+            request.onblocked = () => {
+                reject(new DatabaseError(DBErrorType.Blocked, `${request.error?.name}`));
             };
-            request.onerror = (event: any) => {
-                reject(new DatabaseError(DBErrorType.Unknown, `${event.target?.errorCode}`));
+            request.onerror = () => {
+                reject(new DatabaseError(DBErrorType.Unknown, `${request.error?.name}`));
             };
             request.onsuccess = () => {
                 const db = request.result;
                 resolve(new IDBWrapper(db));
             };
-            request.onupgradeneeded = (event: any) => {
+            request.onupgradeneeded = () => {
                 if (!request.result) {
-                    reject(new DatabaseError(DBErrorType.UpgradeFailed, `${event.target?.errorCode}`))
+                    reject(new DatabaseError(DBErrorType.UpgradeFailed, `${request.error?.name}`))
                     return;
                 }
                 const db = request.result;

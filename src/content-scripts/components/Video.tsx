@@ -167,7 +167,7 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
         resizeObserver.observe(videoElem);
 
         // Get handles to relevant Netflix DOM elements
-        const netflixObserver = new MutationObserver((mutationsList: MutationRecord[], observer: MutationObserver) => {
+        const netflixObserver = new MutationObserver((mutationsList: MutationRecord[]) => {
             for (const mutation of mutationsList) {
                 if (mutation.type === 'childList') {
                     const controls = querySelectorMutation(mutation, `.${NETFLIX_BOTTOM_CONTROLS_CLASS}`);
