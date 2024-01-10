@@ -4,21 +4,10 @@
 from io import BytesIO
 import re
 import urllib.request
-from zipfile import ZipFile
+from unzip import lazy_unzip
 from string import Template
 from pathlib import Path
 import os
-
-def lazy_unzip(zip_path, dest):
-    with ZipFile(zip_path.absolute()) as zfile:
-        names = zfile.namelist()
-        assert len(names) == 1, "expected single zipped json file"
-        dict_name = names[0]
-        archive = Path(f'{dest}/{dict_name}')
-        if not archive.is_file():
-            os.makedirs(os.path.dirname(dest), exist_ok=True)
-            with open(dest, "wb") as unzipped_file:
-                unzipped_file.write(zfile.read(dict_name))
 
 def download_artifact(archive_dest):
     target_files = ['jmdict-eng-$tag.json.zip']

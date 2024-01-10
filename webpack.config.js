@@ -70,7 +70,7 @@ module.exports = function (_env, argv) {
         plugins: [
             new WebpackShellPluginNext({
                 onBuildStart: {
-                    scripts: [`python fetch_dictionary.py`],
+                    scripts: [`python fetch_dictionary.py`, `python fetch_examples.py`],
                     blocking: true,
                     parallel: false
                 }
