@@ -48,7 +48,7 @@ async function tryOpen(attempt: number, maxAttempts: number) {
     }
     try {
         await IDBWrapper.open(DB_NAME, DB_VERSION, onUpgrade);
-    } catch (e: any) {
+    } catch (e: unknown) {
         if (e instanceof DatabaseError) {
             switch (e.type) {
                 case DBErrorType.Blocked:
@@ -60,8 +60,10 @@ async function tryOpen(attempt: number, maxAttempts: number) {
                     console.warn('error when opening database', e.type, e.message, e.stack);
                     break;
             }
-        } else {
+        } else if (e instanceof Error) {
             console.warn('unknown error when initializing database', e.message, e.stack);
+        } else {
+            console.warn('unknown error when initializing database');
         }
     }
 }

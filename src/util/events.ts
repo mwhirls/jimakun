@@ -11,7 +11,7 @@ export enum RuntimeEvent {
 
 export interface RuntimeMessage {
     event: RuntimeEvent,
-    data: any
+    data: unknown
 }
 
 export interface MovieChangedMessage {
