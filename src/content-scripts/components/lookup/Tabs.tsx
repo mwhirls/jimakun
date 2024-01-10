@@ -8,9 +8,10 @@ export interface Tab {
 export interface TabProps {
     tabs: Tab[];
     selectedIndex: number;
+    onSelected: (index: number) => void;
 }
 
-function Tabs({ tabs, selectedIndex }: TabProps) {
+function Tabs({ tabs, selectedIndex, onSelected }: TabProps) {
     const content = selectedIndex >= 0 && selectedIndex < tabs.length ? tabs[selectedIndex].content : <></>;
     return (
         <div className='flex flex-col overflow-y-hidden'>
@@ -24,15 +25,15 @@ function Tabs({ tabs, selectedIndex }: TabProps) {
                         );
                         if (index === selectedIndex) {
                             return (
-                                <div key={index} className="m-3 p-3 bg-white rounded-md">
+                                <button key={index} className="m-3 p-3 bg-white rounded-md" onClick={() => onSelected(index)}>
                                     {label}
-                                </div>
+                                </button>
                             )
                         }
                         return (
-                            <div key={index} className="m-3 p-3">
+                            <button key={index} className="m-3 p-3" onClick={() => onSelected(index)}>
                                 {label}
-                            </div>
+                            </button>
                         )
                     })
                 }

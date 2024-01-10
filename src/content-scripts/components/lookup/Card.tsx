@@ -68,7 +68,7 @@ function Card({ word }: CardProps) {
     return (
         <div className="flex flex-col gap-y-6 bg-white rounded-lg text-black max-w-[40vw] max-h-[60vh] px-12 py-6">
             <Header word={word} entry={entry}></Header>
-            <Tabs tabs={tabs} selectedIndex={selectedTab}></Tabs>
+            <Tabs tabs={tabs} selectedIndex={selectedTab} onSelected={(index) => setSelectedTab(index)}></Tabs>
             <Footer></Footer>
         </div>
     );
