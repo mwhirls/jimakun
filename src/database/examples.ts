@@ -35,7 +35,7 @@ export class ExamplesStore {
         ];
         const results = queries.map(query => this.db.openCursorOnIndex<CorpusSentence>(OBJECT_STORE, INDEX, query));
         const sentences = (await Promise.all(results)).flat();
-        const unique = [... new Set(sentences)];
+        const unique = sentences.filter((v1, index, arr) => arr.findIndex(v2 => v1.id === v2.id) === index);
         return unique;
     }
 }
