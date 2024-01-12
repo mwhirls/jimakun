@@ -54,29 +54,10 @@ export class IDBUpgradeContext {
         });
         return Promise.all(result);
     }
-
-    putAll(store: DBStore, entries: unknown[]) {
-        const transaction = this.wrapper.db.transaction(store.name, "readwrite");
-        const objectStore = transaction.objectStore(store.name);
-        for (const entry of entries) {
-            objectStore.put(entry);
-        }
-        transaction.commit();
-    }
-
-    addAll(store: DBStore, entries: unknown[]) {
-        const transaction = this.wrapper.db.transaction(store.name, "readwrite");
-        const objectStore = transaction.objectStore(store.name);
-        for (const entry of entries) {
-            objectStore.add(entry);
-        }
-        transaction.commit();
-    }
 }
 
 export interface DBStoreUpgrade {
     db: IDBUpgradeContext;
-    objectStore(): DBStore;
     apply(): Promise<void>;
 }
 
@@ -139,6 +120,39 @@ export class IDBWrapper {
                 throw e;
             }
         }
+    }
+
+    putAll(store: DBStore, entries: unknown[]) {
+        const transaction = this.db.transaction(store.name, "readwrite");
+        const objectStore = transaction.objectStore(store.name);
+        for (const entry of entries) {
+            objectStore.put(entry);
+        }
+        transaction.commit();
+    }
+
+    addAll(store: DBStore, entries: unknown[]) {
+        const transaction = this.db.transaction(store.name, "readwrite");
+        const objectStore = transaction.objectStore(store.name);
+        for (const entry of entries) {
+            objectStore.add(entry);
+        }
+        transaction.commit();
+    }
+
+    count(store: DBStore) {
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(store.name, "readwrite");
+            const objectStore = transaction.objectStore(store.name);
+            const request = objectStore.count();
+            request.onerror = () => {
+                reject(new DatabaseError(DBErrorType.TransactionError));
+            };
+            request.onsuccess = () => {
+                resolve(request.result)
+            };
+            transaction.commit();
+        });
     }
 
     getFromIndex<T>(store: DBStore, index: DBIndex, query: IDBValidKey): Promise<T | undefined> {

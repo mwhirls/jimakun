@@ -111,8 +111,6 @@ async function onDBUpgrade(db: IDBUpgradeContext) {
         new DictionaryUpgrade(db),
         new ExamplesStoreUpgrade(db),
     ];
-    const stores = upgrades.map(x => x.objectStore());
-    await db.declare(stores);
     const result = upgrades.map(x => x.apply());
     await Promise.all(result);
     return db.wrapper;
@@ -120,8 +118,12 @@ async function onDBUpgrade(db: IDBUpgradeContext) {
 
 chrome.runtime.onStartup.addListener(function () {
     IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
+    Dictionary.open(DB_NAME, DB_VERSION, onDBUpgrade).then(x => x.populate());
+    ExamplesStore.open(DB_NAME, DB_VERSION, onDBUpgrade).then(x => x.populate());
 });
 
 chrome.runtime.onInstalled.addListener(() => {
     IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
+    Dictionary.open(DB_NAME, DB_VERSION, onDBUpgrade).then(x => x.populate());
+    ExamplesStore.open(DB_NAME, DB_VERSION, onDBUpgrade).then(x => x.populate());
 });

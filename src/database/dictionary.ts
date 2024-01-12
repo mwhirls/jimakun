@@ -1,6 +1,6 @@
 import { JMdict, JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { LookupWordMessage } from "../util/events";
-import { DBStore, DBStoreUpgrade, IDBUpgradeContext, IDBWrapper } from "./database";
+import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper } from "./database";
 
 const INDEX = {
     name: "forms",
@@ -75,6 +75,23 @@ export class Dictionary {
         return new Dictionary(db);
     }
 
+    async populate() {
+        const dictUrl = chrome.runtime.getURL(DATA_URL);
+        const response = await fetch(dictUrl);
+        const jmdict = await response.json() as JMdict;
+        const count = await this.db.count(OBJECT_STORE);
+        if (count === jmdict.words.length) {
+            return;
+        }
+        const entries = Object.entries(jmdict.words).map((entry: [string, JMdictWord]) => {
+            return {
+                ...entry[1],
+                forms: forms(entry[1]),
+            };
+        });
+        this.db.putAll(OBJECT_STORE, entries);
+    }
+
     async lookupWord(lookup: LookupWordMessage): Promise<JMdictWord | undefined> {
         return this.db.getFromIndex<JMdictWord>(OBJECT_STORE, INDEX, lookup.baseForm);
     }
@@ -92,20 +109,7 @@ export class DictionaryUpgrade implements DBStoreUpgrade {
         this.db = db;
     }
 
-    objectStore(): DBStore {
-        return OBJECT_STORE;
-    }
-
     async apply() {
-        const dictUrl = chrome.runtime.getURL(DATA_URL);
-        const response = await fetch(dictUrl);
-        const jmdict = await response.json() as JMdict;
-        const entries = Object.entries(jmdict.words).map((entry: [string, JMdictWord]) => {
-            return {
-                ...entry[1],
-                forms: forms(entry[1]),
-            };
-        });
-        this.db.putAll(OBJECT_STORE, entries);
+        await this.db.declare([OBJECT_STORE]);
     }
 }

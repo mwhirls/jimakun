@@ -38,23 +38,15 @@ export class ExamplesStore {
         const unique = sentences.filter((v1, index, arr) => arr.findIndex(v2 => v1.id === v2.id) === index);
         return unique;
     }
-}
 
-export class ExamplesStoreUpgrade implements DBStoreUpgrade {
-    readonly db: IDBUpgradeContext;
-
-    constructor(db: IDBUpgradeContext) {
-        this.db = db;
-    }
-
-    objectStore(): DBStore {
-        return OBJECT_STORE;
-    }
-
-    async apply() {
+    async populate() {
         const dictUrl = chrome.runtime.getURL(DATA_URL);
         const response = await fetch(dictUrl);
         const sentences = await response.json() as CorpusSentence[];
+        const count = await this.db.count(OBJECT_STORE);
+        if (count === sentences.length) {
+            return;
+        }
         const entries = sentences.map(entry => {
             const keywords: string[] = entry.words.flatMap(word => {
                 return [word.headword, ...word.reading ?? [], ...word.surfaceForm ?? []]
@@ -65,5 +57,17 @@ export class ExamplesStoreUpgrade implements DBStoreUpgrade {
             };
         });
         this.db.putAll(OBJECT_STORE, entries);
+    }
+}
+
+export class ExamplesStoreUpgrade implements DBStoreUpgrade {
+    readonly db: IDBUpgradeContext;
+
+    constructor(db: IDBUpgradeContext) {
+        this.db = db;
+    }
+
+    async apply() {
+        await this.db.declare([OBJECT_STORE]);
     }
 }
