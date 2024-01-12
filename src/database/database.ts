@@ -38,14 +38,17 @@ export class IDBUpgradeContext {
         const result = stores.map((store) => {
             return new Promise<void>((resolve, reject) => {
                 const objectStore = this.wrapper.db.createObjectStore(store.name, { keyPath: store.keyPath });
+                objectStore.transaction.addEventListener('complete', () => {
+                    resolve();
+                });
+                objectStore.transaction.addEventListener('abort', () => {
+                    reject(new DatabaseError(DBErrorType.TransactionError));
+                });
+                objectStore.transaction.addEventListener('error', () => {
+                    reject(new DatabaseError(DBErrorType.TransactionError));
+                });
                 for (const index of store.indexes) {
                     objectStore.createIndex(index.name, index.name, { unique: index.unique, multiEntry: index.multiEntry });
-                }
-                objectStore.transaction.oncomplete = () => {
-                    resolve();
-                };
-                objectStore.transaction.onerror = () => {
-                    reject(new DatabaseError(DBErrorType.TransactionError));
                 }
             })
         });
@@ -62,10 +65,11 @@ export class IDBUpgradeContext {
 
 export interface DBStoreUpgrade {
     db: IDBUpgradeContext;
+    objectStore(): DBStore;
     apply(): Promise<void>;
 }
 
-function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => void): Promise<IDBWrapper> {
+function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>): Promise<IDBWrapper> {
     return new Promise((resolve, reject) => {
         const request = self.indexedDB.open(name, version);
         request.onblocked = () => {
@@ -88,8 +92,7 @@ function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgrade
                 db.close(); // close to allow new database instances in other tabs to upgrade
             };
             const wrapper = new IDBWrapper(db);
-            onUpgrade(new IDBUpgradeContext(wrapper));
-            resolve(wrapper);
+            resolve(onUpgrade(new IDBUpgradeContext(wrapper)));
         };
     });
 }
@@ -101,9 +104,9 @@ export class IDBWrapper {
         this.db = db;
     }
 
-    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => void): Promise<IDBWrapper>;
-    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => void, attempts?: number): Promise<IDBWrapper>;
-    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => void, attempts?: number): Promise<IDBWrapper> {
+    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>): Promise<IDBWrapper>;
+    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, attempts?: number): Promise<IDBWrapper>;
+    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, attempts?: number): Promise<IDBWrapper> {
         if (!attempts) {
             return await openIndexedDB(name, version, onUpgrade);
         }

@@ -1,5 +1,5 @@
 import { TanakaCorpus, CorpusSentence } from "../util/tanaka-corpus-types";
-import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext } from "./database";
+import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStore } from "./database";
 
 const INDEX = {
     name: "keywords",
@@ -20,7 +20,7 @@ export class ExamplesStore {
         this.db = db;
     }
 
-    static async open(name: string, version: number, onDBUpgrade: (db: IDBUpgradeContext) => void) {
+    static async open(name: string, version: number, onDBUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>) {
         const db = await IDBWrapper.open(name, version, onDBUpgrade);
         return new ExamplesStore(db);
     }
@@ -35,14 +35,18 @@ export class ExamplesStoreUpgrade implements DBStoreUpgrade {
         this.db = db;
     }
 
+    objectStore(): DBStore {
+        return OBJECT_STORE;
+    }
+
     async apply() {
         const dictUrl = chrome.runtime.getURL(DATA_URL);
         const response = await fetch(dictUrl);
-        const corpus = await response.json() as TanakaCorpus;
-        const entries = Object.entries(corpus.sentences).map((entry: [string, CorpusSentence]) => {
+        const sentences = await response.json() as CorpusSentence[];
+        const entries = sentences.map(entry => {
             const keywords: string[] = []; // todo: populate keywords for indexing
             return {
-                ...entry[1],
+                ...entry,
                 keywords,
             };
         });

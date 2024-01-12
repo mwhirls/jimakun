@@ -101,9 +101,12 @@ async function onDBUpgrade(db: IDBUpgradeContext) {
     const upgrades = [
         new DictionaryUpgrade(db),
         new ExamplesStoreUpgrade(db),
-    ]
+    ];
+    const stores = upgrades.map(x => x.objectStore());
+    await db.declare(stores);
     const result = upgrades.map(x => x.apply());
-    Promise.all(result);
+    await Promise.all(result);
+    return db.wrapper;
 }
 
 chrome.runtime.onInstalled.addListener(() => {

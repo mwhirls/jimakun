@@ -1,6 +1,6 @@
 import { JMdict, JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { LookupWordMessage } from "../util/events";
-import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper } from "./database";
+import { DBStore, DBStoreUpgrade, IDBUpgradeContext, IDBWrapper } from "./database";
 
 const INDEX = {
     name: "forms",
@@ -70,7 +70,7 @@ export class Dictionary {
         this.db = db;
     }
 
-    static async open(name: string, version: number, onDBUpgrade: (db: IDBUpgradeContext) => void) {
+    static async open(name: string, version: number, onDBUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>) {
         const db = await IDBWrapper.open(name, version, onDBUpgrade);
         return new Dictionary(db);
     }
@@ -92,6 +92,10 @@ export class DictionaryUpgrade implements DBStoreUpgrade {
         this.db = db;
     }
 
+    objectStore(): DBStore {
+        return OBJECT_STORE;
+    }
+
     async apply() {
         const dictUrl = chrome.runtime.getURL(DATA_URL);
         const response = await fetch(dictUrl);
@@ -102,9 +106,6 @@ export class DictionaryUpgrade implements DBStoreUpgrade {
                 forms: forms(entry[1]),
             };
         });
-        await this.db.declare([
-            OBJECT_STORE,
-        ]);
         this.db.insert(OBJECT_STORE, entries);
     }
 }
