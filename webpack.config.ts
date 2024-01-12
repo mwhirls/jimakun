@@ -27,6 +27,7 @@ module.exports = (
         devtool: isDevelopment && "inline-source-map",
         entry: {
             popup: "./src/popup/popup.tsx",
+            options: "./src/options/options.tsx",
             content: "./src/content-scripts/content.tsx",
             interceptor: "./src/content-scripts/interceptor.ts",
             "service-worker": "./src/service-worker.ts",
@@ -96,6 +97,11 @@ module.exports = (
                 template: path.resolve(__dirname, "src/popup/popup.html"),
                 inject: true,
                 filename: "popup.html"
+            }),
+            new HtmlWebpackPlugin({
+                template: path.resolve(__dirname, "src/options/options.html"),
+                inject: true,
+                filename: "options.html"
             }),
             new CopyPlugin({
                 patterns: [
