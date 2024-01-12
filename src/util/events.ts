@@ -1,13 +1,14 @@
 export enum RuntimeEvent {
+    LookupKanji = 'lookup-kanji',
+    LookupSentences = 'lookup-sentences',
+    LookupWord = 'lookup-word',
     MetadataDetected = 'metadata-detected',
     MovieUpdated = 'movie-updated',
     SubtitleTrackSwitched = 'subtitle-track-switched',
     SeekCue = 'seek-cue',
     SeekTime = 'seek-time',
     ToggleSubs = 'toggle-subs',
-    LookupWord = 'lookup-word',
     PlayAudio = 'play-audio',
-    LookupSentences = 'lookup-sentences',
 }
 
 export interface RuntimeMessage {
@@ -45,6 +46,10 @@ export interface LookupSentencesMessage {
     baseForm: string;
     katakana: string;
     hiragana: string;
+}
+
+export interface LookupKanjiMessage {
+    kanji: string[];
 }
 
 export interface PlayAudioMessage {

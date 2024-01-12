@@ -1,6 +1,7 @@
 import { IDBUpgradeContext, IDBWrapper } from "./database/database";
 import { Dictionary, DictionaryUpgrade } from "./database/dictionary";
 import { ExamplesStore, ExamplesStoreUpgrade } from "./database/examples";
+import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanji";
 import { MovieChangedMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
 
 const DB_NAME = 'jimakun';
@@ -82,6 +83,15 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
                 });
             break;
         }
+        case RuntimeEvent.LookupKanji: {
+            const message = request.data;
+            KanjiDic2Store.open(DB_NAME, DB_VERSION, onDBUpgrade)
+                .then(store => {
+                    store.lookup(message)
+                        .then(kanji => sendResponse(kanji));
+                });
+            break;
+        }
         case RuntimeEvent.LookupSentences: {
             const message = request.data;
             ExamplesStore.open(DB_NAME, DB_VERSION, onDBUpgrade)
@@ -110,6 +120,7 @@ async function onDBUpgrade(db: IDBUpgradeContext) {
     const upgrades = [
         new DictionaryUpgrade(db),
         new ExamplesStoreUpgrade(db),
+        new KanjiDic2StoreUpgrade(db),
     ];
     const result = upgrades.map(x => x.apply());
     await Promise.all(result);
@@ -119,11 +130,13 @@ async function onDBUpgrade(db: IDBUpgradeContext) {
 chrome.runtime.onStartup.addListener(function () {
     IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
     Dictionary.open(DB_NAME, DB_VERSION, onDBUpgrade).then(x => x.populate());
+    KanjiDic2Store.open(DB_NAME, DB_VERSION, onDBUpgrade).then(x => x.populate());
     ExamplesStore.open(DB_NAME, DB_VERSION, onDBUpgrade).then(x => x.populate());
 });
 
 chrome.runtime.onInstalled.addListener(() => {
     IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
     Dictionary.open(DB_NAME, DB_VERSION, onDBUpgrade).then(x => x.populate());
+    KanjiDic2Store.open(DB_NAME, DB_VERSION, onDBUpgrade).then(x => x.populate());
     ExamplesStore.open(DB_NAME, DB_VERSION, onDBUpgrade).then(x => x.populate());
 });
