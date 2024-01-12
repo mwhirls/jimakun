@@ -5,6 +5,15 @@ import CopyPlugin from 'copy-webpack-plugin';
 import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+import packageJSON from './package.json'
+
+function updateChromeManifest(data: Buffer) {
+    const manifest = JSON.parse(data.toString());
+    manifest.name = packageJSON.name;
+    manifest.description = packageJSON.description;
+    manifest.version = packageJSON.version;
+    return JSON.stringify(manifest, null, 2);
+}
 
 module.exports = (
     env: Record<string, unknown>,
@@ -91,9 +100,16 @@ module.exports = (
             new CopyPlugin({
                 patterns: [
                     { from: "public", to: "./" },
+                    {
+                        from: "public/manifest.json",
+                        to: "manifest.json",
+                        transform(content) {
+                            return updateChromeManifest(content);
+                        }
+                    },
                     { from: 'node_modules/kuromoji/dict', to: './dict' },
                 ]
-            })
+            }),
         ]
     }
 }

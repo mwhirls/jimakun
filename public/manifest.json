@@ -1,7 +1,5 @@
 {
     "manifest_version": 3,
-    "name": "Jimakun",
-    "version": "1.0.0",
     "action": {
         "default_popup": "popup.html"
     },
