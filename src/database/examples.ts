@@ -1,3 +1,4 @@
+import { LookupSentencesMessage } from "../util/events";
 import { TanakaCorpus, CorpusSentence } from "../util/tanaka-corpus-types";
 import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStore } from "./database";
 
@@ -25,7 +26,9 @@ export class ExamplesStore {
         return new ExamplesStore(db);
     }
 
-    // todo: look up example sentences
+    async lookup(lookup: LookupSentencesMessage): Promise<CorpusSentence[]> {
+        return await this.db.openCursorOnIndex<CorpusSentence>(OBJECT_STORE, INDEX, lookup.baseForm);
+    }
 }
 
 export class ExamplesStoreUpgrade implements DBStoreUpgrade {

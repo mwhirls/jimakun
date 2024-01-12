@@ -1,6 +1,6 @@
 import { IDBUpgradeContext, IDBWrapper } from "./database/database";
 import { Dictionary, DictionaryUpgrade } from "./database/dictionary";
-import { ExamplesStoreUpgrade } from "./database/examples";
+import { ExamplesStore, ExamplesStoreUpgrade } from "./database/examples";
 import { MovieChangedMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
 
 const DB_NAME = 'jimakun';
@@ -79,6 +79,15 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
                 .then(dict => {
                     dict.lookupBestMatch(message)
                         .then(word => sendResponse(word));
+                });
+            break;
+        }
+        case RuntimeEvent.LookupSentences: {
+            const message = request.data;
+            ExamplesStore.open(DB_NAME, DB_VERSION, onDBUpgrade)
+                .then(store => {
+                    store.lookup(message)
+                        .then(sentences => sendResponse(sentences));
                 });
             break;
         }
