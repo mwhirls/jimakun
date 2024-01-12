@@ -64,6 +64,6 @@ export class ExamplesStoreUpgrade implements DBStoreUpgrade {
                 keywords,
             };
         });
-        this.db.insert(OBJECT_STORE, entries);
+        this.db.putAll(OBJECT_STORE, entries);
     }
 }

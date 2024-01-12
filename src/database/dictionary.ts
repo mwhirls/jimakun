@@ -106,6 +106,6 @@ export class DictionaryUpgrade implements DBStoreUpgrade {
                 forms: forms(entry[1]),
             };
         });
-        this.db.insert(OBJECT_STORE, entries);
+        this.db.putAll(OBJECT_STORE, entries);
     }
 }

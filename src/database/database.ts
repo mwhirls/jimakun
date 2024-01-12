@@ -55,11 +55,22 @@ export class IDBUpgradeContext {
         return Promise.all(result);
     }
 
-    insert(store: DBStore, entries: unknown[]) {
-        const transaction = this.wrapper.db.transaction(store.name, "readwrite").objectStore(store.name);
+    putAll(store: DBStore, entries: unknown[]) {
+        const transaction = this.wrapper.db.transaction(store.name, "readwrite");
+        const objectStore = transaction.objectStore(store.name);
         for (const entry of entries) {
-            transaction.add(entry);
+            objectStore.put(entry);
         }
+        transaction.commit();
+    }
+
+    addAll(store: DBStore, entries: unknown[]) {
+        const transaction = this.wrapper.db.transaction(store.name, "readwrite");
+        const objectStore = transaction.objectStore(store.name);
+        for (const entry of entries) {
+            objectStore.add(entry);
+        }
+        transaction.commit();
     }
 }
 
