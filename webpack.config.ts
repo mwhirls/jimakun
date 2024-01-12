@@ -1,10 +1,15 @@
-const path = require("path");
-const WebpackShellPluginNext = require('webpack-shell-plugin-next');
-const CopyPlugin = require('copy-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
+import path from 'path';
+import webpack from 'webpack';
+import WebpackShellPluginNext from 'webpack-shell-plugin-next';
+import CopyPlugin from 'copy-webpack-plugin';
+import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 
-module.exports = function (_env, argv) {
+module.exports = (
+    env: Record<string, unknown>,
+    argv: Record<string, unknown>,
+): webpack.Configuration => {
     const isProduction = argv.mode === "production";
     const isDevelopment = !isProduction;
     const outputDir = path.resolve(__dirname, "dist");
@@ -90,5 +95,5 @@ module.exports = function (_env, argv) {
                 ]
             })
         ]
-    };
-};
+    }
+}
