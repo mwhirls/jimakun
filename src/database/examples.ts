@@ -1,5 +1,5 @@
 import { LookupSentencesMessage } from "../util/events";
-import { TanakaCorpus, CorpusSentence } from "../util/tanaka-corpus-types";
+import { CorpusSentence } from "../util/tanaka-corpus-types";
 import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStore } from "./database";
 
 const INDEX = {
@@ -27,7 +27,16 @@ export class ExamplesStore {
     }
 
     async lookup(lookup: LookupSentencesMessage): Promise<CorpusSentence[]> {
-        return await this.db.openCursorOnIndex<CorpusSentence>(OBJECT_STORE, INDEX, lookup.baseForm);
+        const queries = [
+            lookup.baseForm,
+            lookup.hiragana,
+            lookup.katakana,
+            lookup.surfaceForm,
+        ];
+        const results = queries.map(query => this.db.openCursorOnIndex<CorpusSentence>(OBJECT_STORE, INDEX, query));
+        const sentences = (await Promise.all(results)).flat();
+        const unique = [... new Set(sentences)];
+        return unique;
     }
 }
 
@@ -47,7 +56,9 @@ export class ExamplesStoreUpgrade implements DBStoreUpgrade {
         const response = await fetch(dictUrl);
         const sentences = await response.json() as CorpusSentence[];
         const entries = sentences.map(entry => {
-            const keywords: string[] = []; // todo: populate keywords for indexing
+            const keywords: string[] = entry.words.flatMap(word => {
+                return [word.headword, ...word.reading ?? [], ...word.surfaceForm ?? []]
+            });
             return {
                 ...entry,
                 keywords,
