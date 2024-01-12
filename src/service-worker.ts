@@ -118,6 +118,10 @@ async function onDBUpgrade(db: IDBUpgradeContext) {
     return db.wrapper;
 }
 
+chrome.runtime.onStartup.addListener(function () {
+    IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
+});
+
 chrome.runtime.onInstalled.addListener(() => {
     IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
 });

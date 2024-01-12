@@ -91,8 +91,12 @@ function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgrade
             db.onversionchange = () => {
                 db.close(); // close to allow new database instances in other tabs to upgrade
             };
-            const wrapper = new IDBWrapper(db);
-            resolve(onUpgrade(new IDBUpgradeContext(wrapper)));
+            onUpgrade(new IDBUpgradeContext(new IDBWrapper(db)))
+                .then(wrapper => {
+                    request.transaction?.commit();
+                    resolve(wrapper);
+                })
+                .catch(e => reject(e));
         };
     });
 }
