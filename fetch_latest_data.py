@@ -51,6 +51,16 @@ RELEASES = [
         ],
     ),
     GithubRelease(
+        "https://github.com/scriptin/jmdict-simplified",
+        [
+            GithubAsset(
+                "kanjidic2-en-$tag.json.zip",
+                "third-party/jmdict-simplified/kanjidic2-en.zip",
+                "public/jmdict-simplified/kanjidic2-en.json",
+            )
+        ],
+    ),
+    GithubRelease(
         "https://github.com/mwhirls/tanaka-corpus-json",
         [
             GithubAsset(
