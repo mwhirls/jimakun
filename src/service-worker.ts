@@ -1,5 +1,11 @@
-import { initializeDictionary, lookupBestMatch } from "./dictionary";
+import { IDBUpgradeContext, IDBWrapper } from "./database/database";
+import { Dictionary, DictionaryUpgrade } from "./database/dictionary";
+import { ExamplesStoreUpgrade } from "./database/examples";
 import { MovieChangedMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
+
+const DB_NAME = 'jimakun';
+const DB_VERSION = 1; // todo
+const DB_OPEN_MAX_ATTEMPTS = 5;
 
 const NEXT_CUE_ID = 'next-cue';
 const PREV_CUE_ID = 'prev-cue';
@@ -69,7 +75,11 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     switch (request.event) {
         case RuntimeEvent.LookupWord: {
             const message = request.data;
-            lookupBestMatch(message).then(word => sendResponse(word));
+            Dictionary.open(DB_NAME, DB_VERSION, onDBUpgrade)
+                .then(dict => {
+                    dict.lookupBestMatch(message)
+                        .then(word => sendResponse(word));
+                });
             break;
         }
         case RuntimeEvent.PlayAudio: {
@@ -87,6 +97,15 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 }
 );
 
+async function onDBUpgrade(db: IDBUpgradeContext) {
+    const upgrades = [
+        new DictionaryUpgrade(db),
+        new ExamplesStoreUpgrade(db),
+    ]
+    const result = upgrades.map(x => x.apply());
+    Promise.all(result);
+}
+
 chrome.runtime.onInstalled.addListener(() => {
-    initializeDictionary(5);
+    IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
 });
