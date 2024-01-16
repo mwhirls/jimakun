@@ -27,15 +27,17 @@ export interface DBStore {
     indexes: DBIndex[];
 }
 
-export class IDBUpgradeContext {
+export class DBStoreUpgradeContext {
     wrapper: IDBWrapper;
+    requests: Promise<void>[];
 
     constructor(wrapper: IDBWrapper) {
         this.wrapper = wrapper;
+        this.requests = [];
     }
 
-    declare(stores: DBStore[]): Promise<void[]> {
-        const result = stores.map((store) => {
+    create(stores: DBStore[]) {
+        const requests = stores.map((store) => {
             return new Promise<void>((resolve, reject) => {
                 const objectStore = this.wrapper.db.createObjectStore(store.name, { keyPath: store.keyPath });
                 objectStore.transaction.addEventListener('complete', () => {
@@ -52,13 +54,41 @@ export class IDBUpgradeContext {
                 }
             })
         });
-        return Promise.all(result);
+        this.requests.push(...requests);
+    }
+
+    delete(stores: DBStore[]) {
+        const requests = stores.map((store) => {
+            return new Promise<void>(() => {
+                this.wrapper.db.deleteObjectStore(store.name);
+            })
+        });
+        this.requests.push(...requests);
+    }
+}
+
+export class IDBUpgradeContext {
+    readonly wrapper: IDBWrapper;
+    private readonly context: DBStoreUpgradeContext;
+
+    constructor(wrapper: IDBWrapper) {
+        this.wrapper = wrapper;
+        this.context = new DBStoreUpgradeContext(wrapper);
+    }
+
+    getContext(): DBStoreUpgradeContext {
+        return this.context;
+    }
+
+    async commit() {
+        await Promise.all(this.context.requests);
+        return this.wrapper;
     }
 }
 
 export interface DBStoreUpgrade {
-    db: IDBUpgradeContext;
-    apply(): Promise<void>;
+    db: DBStoreUpgradeContext;
+    apply(): void;
 }
 
 function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>): Promise<IDBWrapper> {
@@ -85,12 +115,16 @@ function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgrade
             };
             onUpgrade(new IDBUpgradeContext(new IDBWrapper(db)))
                 .then(wrapper => {
-                    request.transaction?.commit();
                     resolve(wrapper);
                 })
                 .catch(e => reject(e));
         };
     });
+}
+
+export interface Pagination {
+    page: number;
+    perPage: number
 }
 
 export class IDBWrapper {
@@ -140,11 +174,28 @@ export class IDBWrapper {
         transaction.commit();
     }
 
-    count(store: DBStore) {
+    countRecords(store: DBStore) {
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction(store.name, "readwrite");
             const objectStore = transaction.objectStore(store.name);
             const request = objectStore.count();
+            request.onerror = () => {
+                reject(new DatabaseError(DBErrorType.TransactionError));
+            };
+            request.onsuccess = () => {
+                resolve(request.result)
+            };
+            transaction.commit();
+        });
+    }
+
+    countQueryResults(store: DBStore, index: DBIndex, query: IDBValidKey): Promise<number> {
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(store.name, "readwrite");
+            const request = transaction
+                .objectStore(store.name)
+                .index(index.name)
+                .count(query);
             request.onerror = () => {
                 reject(new DatabaseError(DBErrorType.TransactionError));
             };
@@ -170,7 +221,7 @@ export class IDBWrapper {
         });
     }
 
-    openCursorOnIndex<T>(store: DBStore, index: DBIndex, query: IDBValidKey): Promise<T[]> {
+    openCursorOnIndex<T>(store: DBStore, index: DBIndex, query: IDBValidKey, pagination?: Pagination): Promise<T[]> {
         return new Promise((resolve, reject) => {
             const request = this.db.transaction(store.name)
                 .objectStore(store.name)
@@ -180,11 +231,19 @@ export class IDBWrapper {
                 reject(new DatabaseError(DBErrorType.TransactionError));
             };
             const results: T[] = [];
+            let advanced = false;
             request.onsuccess = () => {
                 const cursor = request.result;
-                if (!cursor) {
+                if (!cursor || (pagination && results.length === pagination.perPage)) {
                     resolve(results);
                     return;
+                }
+                if (!advanced && pagination) {
+                    const offset = pagination.page * pagination.perPage;
+                    if (offset) {
+                        cursor.advance(offset);
+                    }
+                    advanced = true;
                 }
                 results.push(cursor.value);
                 cursor.continue();

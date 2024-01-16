@@ -1,6 +1,6 @@
 import { JMdict, JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { LookupWordMessage } from "../util/events";
-import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper } from "./database";
+import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper, DBStoreUpgradeContext } from "./database";
 
 const INDEX = {
     name: "forms",
@@ -79,7 +79,7 @@ export class Dictionary {
         const dictUrl = chrome.runtime.getURL(DATA_URL);
         const response = await fetch(dictUrl);
         const jmdict = await response.json() as JMdict;
-        const count = await this.db.count(OBJECT_STORE);
+        const count = await this.db.countRecords(OBJECT_STORE);
         if (count === jmdict.words.length) {
             return;
         }
@@ -103,13 +103,13 @@ export class Dictionary {
 }
 
 export class DictionaryUpgrade implements DBStoreUpgrade {
-    readonly db: IDBUpgradeContext;
+    readonly db: DBStoreUpgradeContext;
 
-    constructor(db: IDBUpgradeContext) {
+    constructor(db: DBStoreUpgradeContext) {
         this.db = db;
     }
 
     async apply() {
-        await this.db.declare([OBJECT_STORE]);
+        this.db.create([OBJECT_STORE]);
     }
 }

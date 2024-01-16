@@ -1,6 +1,6 @@
-import { LookupSentencesMessage } from "../util/events";
+import { LookupSentencesMessage, LookupSentencesResult } from "../util/events";
 import { CorpusSentence } from "../util/tanaka-corpus-types";
-import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStore } from "./database";
+import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext } from "./database";
 
 const INDEX = {
     name: "keywords",
@@ -26,24 +26,19 @@ export class ExamplesStore {
         return new ExamplesStore(db);
     }
 
-    async lookup(lookup: LookupSentencesMessage): Promise<CorpusSentence[]> {
-        const queries = [
-            lookup.baseForm,
-            lookup.hiragana,
-            lookup.katakana,
-            lookup.surfaceForm,
-        ];
-        const results = queries.map(query => this.db.openCursorOnIndex<CorpusSentence>(OBJECT_STORE, INDEX, query));
-        const sentences = (await Promise.all(results)).flat();
-        const unique = sentences.filter((v1, index, arr) => arr.findIndex(v2 => v1.id === v2.id) === index);
-        return unique;
+    async lookup(lookup: LookupSentencesMessage): Promise<LookupSentencesResult> {
+        const count = await this.db.countQueryResults(OBJECT_STORE, INDEX, lookup.searchTerm);
+        const pages = Math.ceil(count / lookup.perPage);
+        const pagination = { page: lookup.page, perPage: lookup.perPage };
+        const sentences = await this.db.openCursorOnIndex<CorpusSentence>(OBJECT_STORE, INDEX, lookup.searchTerm, pagination);
+        return { pages, sentences };
     }
 
     async populate() {
         const dictUrl = chrome.runtime.getURL(DATA_URL);
         const response = await fetch(dictUrl);
         const sentences = await response.json() as CorpusSentence[];
-        const count = await this.db.count(OBJECT_STORE);
+        const count = await this.db.countRecords(OBJECT_STORE);
         if (count === sentences.length) {
             return;
         }
@@ -61,13 +56,13 @@ export class ExamplesStore {
 }
 
 export class ExamplesStoreUpgrade implements DBStoreUpgrade {
-    readonly db: IDBUpgradeContext;
+    readonly db: DBStoreUpgradeContext;
 
-    constructor(db: IDBUpgradeContext) {
+    constructor(db: DBStoreUpgradeContext) {
         this.db = db;
     }
 
     async apply() {
-        await this.db.declare([OBJECT_STORE]);
+        this.db.create([OBJECT_STORE]);
     }
 }

@@ -97,7 +97,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
             ExamplesStore.open(DB_NAME, DB_VERSION, onDBUpgrade)
                 .then(store => {
                     store.lookup(message)
-                        .then(sentences => sendResponse(sentences));
+                        .then(result => sendResponse(result));
                 });
             break;
         }
@@ -117,14 +117,14 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 );
 
 async function onDBUpgrade(db: IDBUpgradeContext) {
+    const ctx = db.getContext();
     const upgrades = [
-        new DictionaryUpgrade(db),
-        new ExamplesStoreUpgrade(db),
-        new KanjiDic2StoreUpgrade(db),
+        new DictionaryUpgrade(ctx),
+        new ExamplesStoreUpgrade(ctx),
+        new KanjiDic2StoreUpgrade(ctx),
     ];
-    const result = upgrades.map(x => x.apply());
-    await Promise.all(result);
-    return db.wrapper;
+    upgrades.map(x => x.apply());
+    return db.commit();
 }
 
 chrome.runtime.onStartup.addListener(function () {

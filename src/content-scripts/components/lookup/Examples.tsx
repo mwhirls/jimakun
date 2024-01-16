@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import * as bunsetsu from "bunsetsu";
 import { CorpusSentence } from '../../../util/tanaka-corpus-types';
-import { LookupSentencesMessage, RuntimeEvent, RuntimeMessage } from '../../../util/events';
+import { LookupSentencesMessage, LookupSentencesResult, RuntimeEvent, RuntimeMessage } from '../../../util/events';
 import { toHiragana } from '../../../util/lang';
 
-async function lookupSentences(word: bunsetsu.Word): Promise<CorpusSentence[]> {
+const SENTENCES_PER_PAGE = 20;
+
+async function lookupSentences(word: bunsetsu.Word, page: number): Promise<LookupSentencesResult> {
     const data: LookupSentencesMessage = {
-        surfaceForm: word.surfaceForm(),
-        baseForm: word.basicForm() ?? "",
-        katakana: word.reading() ?? "",
-        hiragana: toHiragana(word.reading()),
+        searchTerm: word.basicForm() ?? toHiragana(word.reading()),
+        page,
+        perPage: SENTENCES_PER_PAGE,
     };
     const message: RuntimeMessage = { event: RuntimeEvent.LookupSentences, data: data };
     return await chrome.runtime.sendMessage(message);
@@ -20,21 +21,26 @@ export interface DefinitionsProps {
 }
 
 function Definitions({ word }: DefinitionsProps) {
+    const [count, setCount] = useState<number>(0);
+    const [page, setPage] = useState<number>(0);
+    const [numPages, setNumPages] = useState<number | null>(0);
     const [sentences, setSentences] = useState<CorpusSentence[]>([]);
 
     useEffect(() => {
         (async () => {
-            const sentences = await lookupSentences(word);
-            if (!sentences) {
+            const result = await lookupSentences(word, 0);
+            if (!result) {
                 // todo: how to display this to the user?
                 return;
             }
-            setSentences(sentences);
+            setNumPages(result.pages);
+            setSentences(result.sentences);
         })();
     }, []);
 
     return (
         <div>
+            <h3>{`Sentences - ${count} found`}</h3>
             {
                 sentences.map((sentence, index) => {
                     return (

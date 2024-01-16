@@ -1,3 +1,5 @@
+import { CorpusSentence } from "./tanaka-corpus-types";
+
 export enum RuntimeEvent {
     LookupKanji = 'lookup-kanji',
     LookupSentences = 'lookup-sentences',
@@ -42,10 +44,14 @@ export interface LookupWordMessage {
 }
 
 export interface LookupSentencesMessage {
-    surfaceForm: string;
-    baseForm: string;
-    katakana: string;
-    hiragana: string;
+    searchTerm: string;
+    page: number;
+    perPage: number;
+}
+
+export interface LookupSentencesResult {
+    sentences: CorpusSentence[];
+    pages: number;
 }
 
 export interface LookupKanjiMessage {

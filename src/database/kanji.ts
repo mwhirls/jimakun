@@ -1,6 +1,6 @@
 import { Kanjidic2, Kanjidic2Character } from "@scriptin/jmdict-simplified-types";
 import { LookupKanjiMessage } from "../util/events";
-import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext } from "./database";
+import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext } from "./database";
 
 const INDEX = {
     name: "literal",
@@ -36,7 +36,7 @@ export class KanjiDic2Store {
         const dataUrl = chrome.runtime.getURL(DATA_URL);
         const response = await fetch(dataUrl);
         const kanjidic2 = await response.json() as Kanjidic2;
-        const count = await this.db.count(OBJECT_STORE);
+        const count = await this.db.countRecords(OBJECT_STORE);
         if (count === kanjidic2.characters.length) {
             return;
         }
@@ -51,13 +51,13 @@ export class KanjiDic2Store {
 }
 
 export class KanjiDic2StoreUpgrade implements DBStoreUpgrade {
-    readonly db: IDBUpgradeContext;
+    readonly db: DBStoreUpgradeContext;
 
-    constructor(db: IDBUpgradeContext) {
+    constructor(db: DBStoreUpgradeContext) {
         this.db = db;
     }
 
     async apply() {
-        await this.db.declare([OBJECT_STORE]);
+        await this.db.create([OBJECT_STORE]);
     }
 }
