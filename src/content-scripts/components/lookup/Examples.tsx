@@ -3,6 +3,7 @@ import * as bunsetsu from "bunsetsu";
 import { CorpusSentence } from '../../../util/tanaka-corpus-types';
 import { LookupSentencesMessage, LookupSentencesResult, RuntimeEvent, RuntimeMessage } from '../../../util/events';
 import { toHiragana } from '../../../util/lang';
+import Pagination from './Pagination';
 
 const SENTENCES_PER_PAGE = 20;
 
@@ -16,27 +17,30 @@ async function lookupSentences(word: bunsetsu.Word, page: number): Promise<Looku
     return await chrome.runtime.sendMessage(message);
 }
 
-export interface DefinitionsProps {
+export interface ExamplesProps {
     word: bunsetsu.Word;
 }
 
-function Definitions({ word }: DefinitionsProps) {
+function Examples({ word }: ExamplesProps) {
     const [count, setCount] = useState<number>(0);
-    const [page, setPage] = useState<number>(0);
     const [numPages, setNumPages] = useState<number | null>(0);
     const [sentences, setSentences] = useState<CorpusSentence[]>([]);
 
     useEffect(() => {
-        (async () => {
-            const result = await lookupSentences(word, 0);
-            if (!result) {
-                // todo: how to display this to the user?
-                return;
-            }
-            setNumPages(result.pages);
-            setSentences(result.sentences);
-        })();
+        onPageSelected(0);
     }, []);
+
+    const onPageSelected = async (page: number) => {
+        const result = await lookupSentences(word, page);
+        if (!result) {
+            // todo: how to display this to the user?
+            return;
+        }
+        setNumPages(result.pages);
+        setSentences(result.sentences);
+    }
+
+    const pagination = numPages ? <Pagination numPages={numPages} onPageClicked={onPageSelected}></Pagination> : <></>;
 
     return (
         <div>
@@ -51,7 +55,8 @@ function Definitions({ word }: DefinitionsProps) {
                     );
                 })
             }
+            {pagination}
         </div >
     );
 }
-export default Definitions;
+export default Examples;
