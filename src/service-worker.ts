@@ -1,7 +1,7 @@
 import { IDBUpgradeContext, IDBWrapper } from "./database/database";
 import { Dictionary, DictionaryUpgrade } from "./database/dictionary";
 import { ExamplesStore, ExamplesStoreUpgrade } from "./database/examples";
-import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanji";
+import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanjidic2";
 import { MovieChangedMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
 
 const DB_NAME = 'jimakun';

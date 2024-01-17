@@ -53,7 +53,7 @@ function Card({ word }: CardProps) {
         },
         {
             label: "Kanji",
-            content: <Kanji word={word}></Kanji>
+            content: <Kanji entry={entry}></Kanji>
         },
         {
             label: "Examples",
