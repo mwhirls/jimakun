@@ -242,8 +242,12 @@ export class IDBWrapper {
                     const offset = pagination.page * pagination.perPage;
                     if (offset) {
                         cursor.advance(offset);
+                    } else {
+                        results.push(cursor.value);
+                        cursor.continue();
                     }
                     advanced = true;
+                    return;
                 }
                 results.push(cursor.value);
                 cursor.continue();

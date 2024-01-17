@@ -30,14 +30,13 @@ function Examples({ word }: ExamplesProps) {
         onPageSelected(0);
     }, []);
 
-    const onPageSelected = async (page: number) => {
-        const result = await lookupSentences(word, page);
-        if (!result) {
-            // todo: how to display this to the user?
-            return;
-        }
-        setNumPages(result.pages);
-        setSentences(result.sentences);
+    const onPageSelected = (page: number) => {
+        lookupSentences(word, page).then(result => {
+            setNumPages(result.pages);
+            setSentences(result.sentences);
+        }).catch(e => {
+            console.error(e);
+        })
     }
 
     const pagination = () => {
