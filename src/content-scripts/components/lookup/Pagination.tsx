@@ -66,11 +66,10 @@ class PageNavigation extends PageItem {
     }
 
     render(): JSX.Element {
-        const color = this.selected === Selected.Yes ? "bg-red-500" : "bg-white";
-        const textColor = this.selected === Selected.Yes ? "text-white" : "text-black";
         const mirror = this.mirrored === Mirrored.Yes ? "-scale-x-100" : "scale-x-100";
+        const border = this.selected === Selected.Yes ? "border border-solid border-black" : "";
         return (
-            <button onClick={() => this.onClick()} className={`border border-solid rounded-lg border-slate-300 w-full h-full align-top ${color} ${textColor} ${mirror}`}>
+            <button onClick={() => this.onClick()} className={`w-full h-full align-top ${border} rounded-lg bg-white hover:bg-red-500 active:bg-red-400 text-black hover:text-white ${mirror}`}>
                 {itemContent(this.content)}
             </button>
         )
@@ -117,7 +116,7 @@ function Pagination({ numPages, onPageClicked }: PaginationProps) {
     ];
 
     return (
-        <div className="inline-grid gap-2 auto-cols-fr grid-flow-col">
+        <div className="inline-grid gap-2 auto-cols-fr grid-flow-col m-3">
             {
                 items.map((item, index) => {
                     if (!item) {

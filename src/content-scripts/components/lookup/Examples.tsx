@@ -40,7 +40,16 @@ function Examples({ word }: ExamplesProps) {
         setSentences(result.sentences);
     }
 
-    const pagination = numPages ? <Pagination numPages={numPages} onPageClicked={onPageSelected}></Pagination> : <></>;
+    const pagination = () => {
+        if (!numPages || numPages <= 1) {
+            return <></>;
+        }
+        return (
+            <div className='flex justify-center'>
+                <Pagination numPages={numPages} onPageClicked={onPageSelected}></Pagination>
+            </div>
+        )
+    }
 
     return (
         <div>
@@ -49,13 +58,13 @@ function Examples({ word }: ExamplesProps) {
                 sentences.map((sentence, index) => {
                     return (
                         <div key={index} className='mt-6 leading-tight'>
-                            <p className='text-4xl font-normal text-black'>{sentence.text}</p>
+                            <p className='text-3xl font-normal text-black'>{sentence.text}</p>
                             <p className='ml-4 text-3xl font-light text-slate-400'>{sentence.translation}</p>
                         </div>
                     );
                 })
             }
-            {pagination}
+            {pagination()}
         </div >
     );
 }
