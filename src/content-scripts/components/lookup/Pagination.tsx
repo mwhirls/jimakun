@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 
-const FIRST_ICON = 'assets/first.svg';
 const PREV_ICON = 'assets/prev.svg';
 
 class Icon {
@@ -25,18 +24,18 @@ function itemContent(content: Icon | string) {
     const inner = () => {
         if (content instanceof Icon) {
             return (
-                <img src={content.url}></img>
+                <img src={content.url} className="block m-auto"></img>
             )
         } else if (typeof content === 'string') {
             return (
-                <div className="m-3 text-3xl font-normal">{content}</div>
+                <div className="text-2xl font-normal text-center mx-3">{content}</div>
             )
         } else {
             throw new Error('unrecognized content type');
         }
     }
     return (
-        <div className="flex flex-column justify-around">
+        <div>
             {inner()}
         </div>
     )
@@ -71,7 +70,7 @@ class PageNavigation extends PageItem {
         const textColor = this.selected === Selected.Yes ? "text-white" : "text-black";
         const mirror = this.mirrored === Mirrored.Yes ? "-scale-x-100" : "scale-x-100";
         return (
-            <button onClick={() => this.onClick()} className={`border border-solid rounded-lg border-slate-300 w-full h-full ${color} ${textColor} ${mirror}`}>
+            <button onClick={() => this.onClick()} className={`border border-solid rounded-lg border-slate-300 w-full h-full align-top ${color} ${textColor} ${mirror}`}>
                 {itemContent(this.content)}
             </button>
         )
@@ -81,7 +80,7 @@ class PageNavigation extends PageItem {
 function numberedPage(page: number, selectedPage: number, onPageClicked: (page: number) => void) {
     const selected = page === selectedPage ? Selected.Yes : Selected.No;
     const onClickNumbered = () => onPageClicked(page);
-    return new PageNavigation(page.toString(), onClickNumbered, selected, Mirrored.No);
+    return new PageNavigation((page + 1).toString(), onClickNumbered, selected, Mirrored.No);
 }
 
 export interface PaginationProps {
@@ -92,41 +91,40 @@ export interface PaginationProps {
 function Pagination({ numPages, onPageClicked }: PaginationProps) {
     const [selectedPage, setSelectedPage] = useState<number>(0);
 
-    const firstIcon = new Icon(FIRST_ICON);
     const prevIcon = new Icon(PREV_ICON);
 
     const onClick = (page: number) => {
         setSelectedPage(page);
         onPageClicked(page);
     }
-    const onClickFirst = () => onClick(0);
     const onClickPrev = () => onClick(selectedPage - 1);
     const onClickNext = () => onClick(selectedPage + 1);
-    const onClickLast = () => onClick(numPages - 1);
+
+    if (numPages <= 1) {
+        return <></>;
+    }
 
     const pages = Array.from(Array(numPages).keys());
-    const firstFewPages = pages.slice(0, Math.min(3, pages.length - 2)).map(page => numberedPage(page, selectedPage, onClick));
+    const firstFewPages = pages.slice(0, Math.min(2, pages.length - 2)).map(page => numberedPage(page, selectedPage, onClick));
     const collapsedPages = pages.length >= 5 ? new PageItem("...") : undefined;
     const finalPages = pages.slice(pages.length - 1).map(page => numberedPage(page, selectedPage, onClick));
     const items = [
-        new PageNavigation(firstIcon, onClickFirst, Selected.No, Mirrored.No),
         new PageNavigation(prevIcon, onClickPrev, Selected.No, Mirrored.No),
         ...firstFewPages,
         collapsedPages,
         ...finalPages,
         new PageNavigation(prevIcon, onClickNext, Selected.No, Mirrored.Yes),
-        new PageNavigation(firstIcon, onClickLast, Selected.No, Mirrored.Yes),
     ];
 
     return (
-        <div className="flex flex-row gap-4">
+        <div className="inline-grid gap-2 auto-cols-fr grid-flow-col">
             {
                 items.map((item, index) => {
                     if (!item) {
                         return <></>;
                     }
                     return (
-                        <div key={index} className="flex-1">
+                        <div key={index} className="flex flex-col justify-center items-center aspect-square">
                             {item.render()}
                         </div>
                     );
