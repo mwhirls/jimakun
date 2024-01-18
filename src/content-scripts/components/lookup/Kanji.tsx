@@ -26,17 +26,30 @@ async function lookupKanji(entry: JMdictWord): Promise<Kanjidic2Character[]> {
     return chrome.runtime.sendMessage(message);
 }
 
-interface InlineHeadingProps {
-    header: string;
+interface SquareIconProps {
+    content: string;
+    className: string;
+}
+
+function SquareIcon({ content, className }: SquareIconProps): JSX.Element {
+    return (
+        <div className={`border rounded-lg mr-4 p-2 font-medium bg-white ${className}`}>
+            <h5 className='leading-none w-full h-0 pb-[100%]'>{content}</h5>
+        </div>
+    )
+}
+
+interface SingleLineProps {
+    header: JSX.Element;
     content: string;
 }
 
-function InlineHeading({ header, content }: InlineHeadingProps): JSX.Element {
+function SingleLine({ header, content }: SingleLineProps): JSX.Element {
     return (
         <div className='text-3xl'>
-            <div className='inline-block border border-slate-400 rounded-lg mr-4 p-2 font-medium'>
-                <h5 className='leading-none w-full h-0 pb-[100%]'>{header}</h5>
-            </div>
+            <span className="inline-block">
+                {header}
+            </span>
             <p className="inline">{content}</p>
         </div>
     )
@@ -51,23 +64,26 @@ function ReadingMeaning({ readingMeaning }: ReadingMeaningProps): JSX.Element {
         return <></>
     }
     const nanori = readingMeaning.nanori.join(', ');
+    const nanoriIcon = <SquareIcon content='名' className='text-blue-700 border-blue-700'></SquareIcon>;
     return (
-        <div className='text-4xl font-light flex flex-col gap-4'>
+        <div className='text-4xl font-normal flex flex-col gap-4'>
             {
                 readingMeaning.groups.map((group, groupIndex) => {
                     const meanings = group.meanings.filter(m => m.lang === "en").map(m => m.value).join(', ');
                     const onyomi = group.readings.filter(r => r.type === "ja_on").map(r => r.value).join(', ');
+                    const onyomiIcon = <SquareIcon content='音' className="text-red-700 border-red-700"></SquareIcon>;
                     const kunyomi = group.readings.filter(r => r.type === "ja_kun").map(r => r.value).join(', ');
+                    const kunyomiIcon = <SquareIcon content='訓' className='text-green-700 border-green-700'></SquareIcon>;
                     return (
                         <div key={groupIndex} className='flex flex-col gap-4'>
                             {meanings.length > 0 && <p>{meanings}</p>}
-                            {onyomi.length > 0 && <InlineHeading header={"音"} content={onyomi}></InlineHeading>}
-                            {kunyomi.length > 0 && <InlineHeading header={"訓"} content={kunyomi}></InlineHeading>}
+                            {onyomi.length > 0 && <SingleLine header={onyomiIcon} content={onyomi}></SingleLine>}
+                            {kunyomi.length > 0 && <SingleLine header={kunyomiIcon} content={kunyomi}></SingleLine>}
                         </div>
                     )
                 })
             }
-            {nanori.length > 0 && <InlineHeading header={"名"} content={nanori}></InlineHeading>}
+            {nanori.length > 0 && <SingleLine header={nanoriIcon} content={nanori}></SingleLine>}
         </div>
     )
 }
