@@ -138,7 +138,7 @@ Maybe.  After the Chrome version is reasonably feature complete, I'll look into 
 
 ### Icons
 
-Several icons used by the plugin are sourced from the [Unicons](https://www.figma.com/community/file/931512007012650048) library on Figma, which is made available under the [CC BY 4.0 license][cc-by].
+Several icons used by the plugin are sourced from the [Stratis UI Icons](https://www.figma.com/community/file/1177180791780461401) library on Figma, which is made available under the [CC BY 4.0 license][cc-by].
 
 [![CC BY 4.0][cc-by-image]][cc-by]
 

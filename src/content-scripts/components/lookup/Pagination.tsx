@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const PREV_ICON = 'assets/prev.svg';
+const PREV_ICON = 'assets/chevron-left.svg';
 
 class Icon {
     url: string

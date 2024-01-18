@@ -3,7 +3,7 @@ import * as bunsetsu from "bunsetsu";
 import { RuntimeMessage, RuntimeEvent, PlayAudioMessage } from '../../../util/events';
 import { JMdictKana, JMdictWord } from '@scriptin/jmdict-simplified-types';
 
-const SOUND_ICON = 'assets/icon-sound-on.svg';
+const SOUND_ICON = 'assets/volume-05.svg';
 
 export interface HeaderProps {
     word: bunsetsu.Word;

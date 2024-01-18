@@ -14,14 +14,14 @@ function isKanji(char: string) {
 
 function extractKanji(word: string): string[] {
     const chars = word.split('');
-    const kanji = chars.filter(c => isKanji(c));
-    return kanji.filter((c, index, arr) => arr.indexOf(c) === index); // filter unique
+    return chars.filter(c => isKanji(c));
 }
 
 async function lookupKanji(entry: JMdictWord): Promise<Kanjidic2Character[]> {
     const kanjiWords = entry.kanji.map(k => k.text);
     const kanji = kanjiWords.flatMap(word => extractKanji(word));
-    const data: LookupKanjiMessage = { kanji };
+    const unique = kanji.filter((c, index, arr) => arr.indexOf(c) === index);
+    const data: LookupKanjiMessage = { kanji: unique };
     const message: RuntimeMessage = { event: RuntimeEvent.LookupKanji, data: data };
     return chrome.runtime.sendMessage(message);
 }
@@ -33,9 +33,11 @@ interface InlineHeadingProps {
 
 function InlineHeading({ header, content }: InlineHeadingProps): JSX.Element {
     return (
-        <div>
-            <h5 className="mr-4 inline-block text-slate-400">{header}</h5>
-            <p className="inline-block">{content}</p>
+        <div className='text-3xl'>
+            <div className='inline-block border border-slate-400 rounded-lg mr-4 p-2 font-medium'>
+                <h5 className='leading-none w-full h-0 pb-[100%]'>{header}</h5>
+            </div>
+            <p className="inline">{content}</p>
         </div>
     )
 }
@@ -50,22 +52,22 @@ function ReadingMeaning({ readingMeaning }: ReadingMeaningProps): JSX.Element {
     }
     const nanori = readingMeaning.nanori.join(', ');
     return (
-        <div className='text-3xl font-light'>
+        <div className='text-4xl font-light flex flex-col gap-4'>
             {
                 readingMeaning.groups.map((group, groupIndex) => {
                     const meanings = group.meanings.filter(m => m.lang === "en").map(m => m.value).join(', ');
                     const onyomi = group.readings.filter(r => r.type === "ja_on").map(r => r.value).join(', ');
                     const kunyomi = group.readings.filter(r => r.type === "ja_kun").map(r => r.value).join(', ');
                     return (
-                        <div key={groupIndex}>
+                        <div key={groupIndex} className='flex flex-col gap-4'>
                             {meanings.length > 0 && <p>{meanings}</p>}
-                            {onyomi.length > 0 && <InlineHeading header={"onyomi:"} content={onyomi}></InlineHeading>}
-                            {kunyomi.length > 0 && <InlineHeading header={"kunyomi:"} content={kunyomi}></InlineHeading>}
+                            {onyomi.length > 0 && <InlineHeading header={"音"} content={onyomi}></InlineHeading>}
+                            {kunyomi.length > 0 && <InlineHeading header={"訓"} content={kunyomi}></InlineHeading>}
                         </div>
                     )
                 })
             }
-            {nanori.length > 0 && <InlineHeading header={"nanori:"} content={nanori}></InlineHeading>}
+            {nanori.length > 0 && <InlineHeading header={"名"} content={nanori}></InlineHeading>}
         </div>
     )
 }
@@ -94,8 +96,8 @@ function Kanji({ entry }: KanjiProps) {
             {
                 kanji.map((kanji, index) => {
                     return (
-                        <div key={index} className="py-4 flex flex-row gap-4">
-                            <h3 className='text-5xl font-light pt-2'>{kanji.literal}</h3>
+                        <div key={index} className="py-4 flex flex-row gap-8">
+                            <h3 className='text-7xl font-light pt-2'>{kanji.literal}</h3>
                             <div>
                                 <ReadingMeaning readingMeaning={kanji.readingMeaning}></ReadingMeaning>
                             </div>
