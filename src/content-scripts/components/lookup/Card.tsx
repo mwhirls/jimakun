@@ -10,6 +10,7 @@ import Notes from './Notes';
 import type { JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { LookupWordMessage, RuntimeEvent, RuntimeMessage } from '../../../util/events';
 import { toHiragana } from '../../../util/lang';
+import ProgressBar from './ProgressBar';
 
 async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> {
     const data: LookupWordMessage = {
@@ -22,29 +23,22 @@ async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> 
     return await chrome.runtime.sendMessage(message);
 }
 
-export interface CardProps {
-    word: bunsetsu.Word;
+function LoadingScreen() {
+    return (
+        <>
+            <ProgressBar id={"database-update-progress"} label={"Updating database..."} maxValue={100} units={'%'} ></ProgressBar>
+            <ProgressBar id={"dictionary-initialization-progress"} label={"Initializing dictionary..."} maxValue={100} units={'%'} ></ProgressBar>
+        </>
+    )
 }
 
-function Card({ word }: CardProps) {
+interface EntryDetailsProps {
+    word: bunsetsu.Word;
+    entry: JMdictWord;
+}
+
+function EntryDetails({ word, entry }: EntryDetailsProps) {
     const [selectedTab, setSelectedTab] = useState(0);
-    const [entry, setEntry] = useState<JMdictWord | null>(null);
-
-    useEffect(() => {
-        (async () => {
-            const entry = await lookupWord(word);
-            if (!entry) {
-                // todo: how to display this to the user?
-                return;
-            }
-            setEntry(entry);
-        })();
-    }, []);
-
-    if (!entry) {
-        // todo: show loading screen
-        return <></>
-    }
 
     const tabs = [
         {
@@ -66,7 +60,7 @@ function Card({ word }: CardProps) {
     ];
 
     return (
-        <div className="flex flex-col gap-y-6 bg-white rounded-lg text-black max-w-[40vw] max-h-[60vh] px-12 py-6">
+        <>
             <div className='flex-none'>
                 <Header word={word} entry={entry}></Header>
             </div>
@@ -76,6 +70,34 @@ function Card({ word }: CardProps) {
             <div className='flex-none'>
                 <Footer></Footer>
             </div>
+        </>
+    )
+}
+
+export interface CardProps {
+    word: bunsetsu.Word;
+}
+
+function Card({ word }: CardProps) {
+
+    const [entry, setEntry] = useState<JMdictWord | null>(null);
+
+    useEffect(() => {
+        (async () => {
+            const entry = await lookupWord(word);
+            if (!entry) {
+                // todo: how to display this to the user?
+                return;
+            }
+            setEntry(entry);
+        })();
+    }, []);
+
+    const showEntry = false; // TEMP FOR TESTING
+
+    return (
+        <div className="flex flex-col gap-y-6 bg-white rounded-lg text-black max-w-[40vw] max-h-[60vh] px-12 py-6">
+            {showEntry && entry ? <EntryDetails word={word} entry={entry}></EntryDetails> : <LoadingScreen></LoadingScreen>}
         </div>
     );
 }
