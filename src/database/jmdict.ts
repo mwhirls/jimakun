@@ -87,14 +87,17 @@ export class JMDictStore {
         if (!this.db.upgraded && count === jmdict.words.length) {
             return;
         }
+        const checkpoints: number[] = [0, 0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((jmdict.words.length - 1) * pct));
         const entries = Object.entries(jmdict.words).map((entry: [string, JMdictWord], index, arr) => {
-            onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length)
+            if (checkpoints.includes(index)) {
+                onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length);
+            }
             return {
                 ...entry[1],
                 forms: forms(entry[1]),
             };
         });
-        this.db.putAll(OBJECT_STORE, entries, onProgressTick);
+        this.db.putAll(OBJECT_STORE, entries, onProgressTick, checkpoints);
     }
 
     async lookupWord(lookup: LookupWordMessage): Promise<JMdictWord | undefined> {

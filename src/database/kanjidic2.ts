@@ -44,14 +44,17 @@ export class KanjiDic2Store {
         if (count === kanjidic2.characters.length) {
             return;
         }
+        const checkpoints: number[] = [0, 0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((kanjidic2.characters.length - 1) * pct));
         const entries = kanjidic2.characters.map((entry, index, arr) => {
-            onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length)
+            if (checkpoints.includes(index)) {
+                onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length);
+            }
             return {
                 ...entry,
                 id: index,
             };
         });
-        this.db.putAll(OBJECT_STORE, entries, onProgressTick);
+        this.db.putAll(OBJECT_STORE, entries, onProgressTick, checkpoints);
     }
 }
 

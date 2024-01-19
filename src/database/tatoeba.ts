@@ -46,9 +46,12 @@ export class TatoebaStore {
         if (count === sentences.length) {
             return;
         }
-        const entries = sentences.map(entry => {
-            const keywords: string[] = entry.words.flatMap((word, index, arr) => {
-                onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length)
+        const checkpoints: number[] = [0, 0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((sentences.length - 1) * pct));
+        const entries = sentences.map((entry, index, arr) => {
+            if (checkpoints.includes(index)) {
+                onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length);
+            }
+            const keywords: string[] = entry.words.flatMap(word => {
                 return [word.headword, ...word.reading ?? [], ...word.surfaceForm ?? []]
             });
             return {
@@ -56,7 +59,7 @@ export class TatoebaStore {
                 keywords,
             };
         });
-        this.db.putAll(OBJECT_STORE, entries, onProgressTick);
+        this.db.putAll(OBJECT_STORE, entries, onProgressTick, checkpoints);
     }
 }
 

@@ -164,22 +164,26 @@ export class IDBWrapper {
         }
     }
 
-    putAll(store: DBStore, entries: unknown[], onProgressTick: (op: DBStoreOperation, value: number, max: number) => void): Promise<void> {
+    putAll(store: DBStore, entries: unknown[], onProgressTick: (op: DBStoreOperation, value: number, max: number) => void, checkpoints: number[]): Promise<void> {
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction(store.name, "readwrite");
             const objectStore = transaction.objectStore(store.name);
             for (let i = 0; i < entries.length; i++) {
                 const request = objectStore.put(entries[i]);
-                onProgressTick(DBStoreOperation.PutData, i + 1, entries.length);
-                request.onerror = () => {
-                    reject(new DatabaseError(DBErrorType.TransactionError));
-                };
-                request.onsuccess = () => {
-                    onProgressTick(DBStoreOperation.Index, i + 1, entries.length);
-                    resolve()
-                };
+
+                // only track progress at certain checkpoints in order to improve performance
+                const checkpoint = checkpoints.includes(i);
+                if (checkpoint) {
+                    onProgressTick(DBStoreOperation.PutData, i + 1, entries.length);
+                    request.onerror = () => {
+                        reject(new DatabaseError(DBErrorType.TransactionError));
+                    };
+                    request.onsuccess = () => {
+                        onProgressTick(DBStoreOperation.Index, i + 1, entries.length);
+                        resolve()
+                    };
+                }
             }
-            // TODO: maybe only set onsuccess for last request to improve performance
             transaction.commit();
         });
     }

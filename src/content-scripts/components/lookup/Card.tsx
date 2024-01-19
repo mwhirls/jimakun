@@ -54,9 +54,11 @@ function LoadingScreen({ dbStatus }: LoadingScreenProps) {
         throw new Error('unknown database update');
     }
     if (dbStatus.progress) {
-        <div className='p-8'>
-            <ProgressBar id={"database-progress"} label={text()} value={dbStatus.progress.value} maxValue={dbStatus.progress.max} units={'entries'} ></ProgressBar>
-        </div>
+        return (
+            <div className='p-8'>
+                <ProgressBar id={"database-progress"} label={text()} value={dbStatus.progress.value} maxValue={dbStatus.progress.max} units={'entries'} ></ProgressBar>
+            </div>
+        )
     }
     return (
         <></>
