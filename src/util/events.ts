@@ -65,6 +65,7 @@ export interface PlayAudioMessage {
 }
 
 export enum Operation {
+    Opening,
     UpgradeDatabase,
     LoadData,
     PutData,
@@ -99,7 +100,7 @@ export interface Progress {
 export interface Busy {
     type: Status.Busy;
     operation: Operation;
-    progress: Progress;
+    progress?: Progress;
     source?: DataSource;
 }
 

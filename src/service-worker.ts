@@ -76,6 +76,13 @@ chrome.commands.onCommand.addListener(function (command) {
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     switch (request.event) {
         case RuntimeEvent.RequestDBStatus: {
+            DBStatusNotifier.getDBStatus()
+                .then(status => {
+                    sendResponse(status);
+                })
+                .catch(e => {
+                    sendResponse(e);
+                });
             break;
         }
         case RuntimeEvent.LookupWord: {
@@ -84,6 +91,9 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
                 .then(dict => {
                     dict.lookupBestMatch(message)
                         .then(word => sendResponse(word));
+                })
+                .catch(e => {
+                    sendResponse(e);
                 });
             break;
         }
@@ -93,6 +103,9 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
                 .then(store => {
                     store.lookup(message)
                         .then(kanji => sendResponse(kanji));
+                })
+                .catch(e => {
+                    sendResponse(e);
                 });
             break;
         }
@@ -102,6 +115,9 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
                 .then(store => {
                     store.lookup(message)
                         .then(result => sendResponse(result));
+                })
+                .catch(e => {
+                    sendResponse(e);
                 });
             break;
         }
@@ -127,22 +143,28 @@ async function onDBUpgrade(db: IDBUpgradeContext) {
         new KanjiDic2StoreUpgrade(ctx),
         new TatoebaStoreUpgrade(ctx),
     ];
-    upgrades.map(x => x.apply());
+    DBStatusNotifier.setDBStatusBusy(Operation.UpgradeDatabase, { value: 0, max: upgrades.length });
+    upgrades.map((x, index, arr) => {
+        x.apply();
+        DBStatusNotifier.setDBStatusBusy(Operation.UpgradeDatabase, { value: index + 1, max: arr.length });
+    });
     return db.commit();
 }
 
-async function initializeDB() {
+async function openDatabase() {
     try {
+        DBStatusNotifier.setDBStatusBusy(Operation.Opening);
         const onProgressTick = (op: DBStoreOperation, value: number, max: number, source: DataSource) => {
+            const progress = { value, max };
             switch (op) {
                 case DBStoreOperation.LoadData:
-                    DBStatusNotifier.setDBStatusBusy(Operation.LoadData, value, max, source);
+                    DBStatusNotifier.setDBStatusBusy(Operation.LoadData, progress, source);
                     break;
                 case DBStoreOperation.PutData:
-                    DBStatusNotifier.setDBStatusBusy(Operation.PutData, value, max, source);
+                    DBStatusNotifier.setDBStatusBusy(Operation.PutData, progress, source);
                     break;
                 case DBStoreOperation.Index:
-                    DBStatusNotifier.setDBStatusBusy(Operation.IndexStore, value, max, source);
+                    DBStatusNotifier.setDBStatusBusy(Operation.IndexStore, progress, source);
                     break;
             }
         };
@@ -154,15 +176,16 @@ async function initializeDB() {
         await kanjidic2.populate((op, value, max) => onProgressTick(op, value, max, DataSource.Kanji));
         const tatoeba = await TatoebaStore.openWith(db);
         await tatoeba.populate((op, value, max) => onProgressTick(op, value, max, DataSource.ExampleSentences));
+        DBStatusNotifier.setDBStatusReady();
     } catch (e) {
         console.error(e);
     }
 }
 
 chrome.runtime.onStartup.addListener(() => {
-    initializeDB();
+    openDatabase();
 });
 
 chrome.runtime.onInstalled.addListener(() => {
-    initializeDB();
+    openDatabase();
 });

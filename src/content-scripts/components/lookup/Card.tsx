@@ -40,19 +40,26 @@ function LoadingScreen({ dbStatus }: LoadingScreenProps) {
             }
         }
         switch (dbStatus.operation) {
+            case Operation.Opening:
+                return `Establishing connection...`;
             case Operation.UpgradeDatabase:
                 return "Upgrading database...";
             case Operation.LoadData:
                 return `Parsing ${sourceText()} data...`;
             case Operation.PutData:
                 return `Updating ${sourceText()} database...`;
+            case Operation.IndexStore:
+                return `Indexing ${sourceText()} database...`;
         }
         throw new Error('unknown database update');
     }
-    return (
+    if (dbStatus.progress) {
         <div className='p-8'>
             <ProgressBar id={"database-progress"} label={text()} value={dbStatus.progress.value} maxValue={dbStatus.progress.max} units={'entries'} ></ProgressBar>
         </div>
+    }
+    return (
+        <></>
     )
 }
 
@@ -128,6 +135,16 @@ function Card({ word }: CardProps) {
             }
         };
         chrome.runtime.onMessage.addListener(runtimeListener);
+        (async () => {
+            try {
+                const message: RuntimeMessage = { event: RuntimeEvent.RequestDBStatus, data: undefined };
+                const result = await chrome.runtime.sendMessage(message) as DBStatusResult; // todo: validate
+                setDBStatus(result);
+            } catch (e) {
+                console.error(e);
+            }
+        })();
+
         return () => {
             chrome.runtime.onMessage.removeListener(runtimeListener);
         }

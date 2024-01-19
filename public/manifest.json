@@ -47,7 +47,8 @@
     ],
     "permissions": [
         "tabs",
-        "tts"
+        "tts",
+        "storage"
     ],
     "commands": {
         "prev-cue": {
