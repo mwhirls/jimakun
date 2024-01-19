@@ -5,10 +5,13 @@ import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanjidic2";
 import { DataSource, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, MovieChangedMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
 import * as DBStatusNotifier from './dbstatus-notifier'
 import * as tabs from './tabs'
+import { LocalStorageObject } from "./local-storage";
 
 const DB_NAME = 'jimakun';
 const DB_VERSION = 1; // todo
 const DB_OPEN_MAX_ATTEMPTS = 5;
+
+const MOVIE_KEY = 'lastMovieId';
 
 enum Command {
     NextCue = 'next-cue',
@@ -33,9 +36,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
     const movieId = extractMovieId(url);
     if (movieId) {
-        const data: MovieChangedMessage = { movieId: movieId };
-        const message: RuntimeMessage = { event: RuntimeEvent.MovieUpdated, data: data };
-        chrome.tabs.sendMessage(tabId, message);
+        const storage = new LocalStorageObject<string>(MOVIE_KEY);
+        storage.set(movieId);
+        const data: MovieChangedMessage = { movieId };
+        const message: RuntimeMessage = { event: RuntimeEvent.MovieUpdated, data };
+        tabs.sendMessageTo(tabId, message);
     }
 });
 

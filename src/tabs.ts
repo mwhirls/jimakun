@@ -29,3 +29,9 @@ export async function sendMessageToActive(message: RuntimeMessage) {
         console.error('failed to query tabs', e);
     }
 }
+
+export function sendMessageTo(tabId: number, message: RuntimeMessage) {
+    chrome.tabs.sendMessage(tabId, message, () => {
+        console.warn(`message not received by tab ${tabId}`, chrome.runtime.lastError);
+    });
+}

@@ -2,6 +2,7 @@ import { DBOperation } from "./database/database";
 import { RuntimeMessage, RuntimeEvent, DBStatusResult, Status, DataSource } from "./util/events";
 import { ProgressType } from "./util/progress";
 import * as tabs from './tabs';
+import { LocalStorageObject } from "./local-storage";
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
@@ -64,20 +65,20 @@ export async function notifyDBStatusError(e?: Error) {
 }
 
 export async function clearStatus() {
-    return chrome.storage.local.remove(DB_STATUS_KEY);
+    const storage = new LocalStorageObject<DBStatusResult>(DB_STATUS_KEY);
+    return storage.clear();
 }
 
 export async function getDBStatus(): Promise<DBStatusResult> {
-    const kv = await chrome.storage.local.get(DB_STATUS_KEY);
-    const value = kv[DB_STATUS_KEY];
-    return value as DBStatusResult; // todo: validate
+    const storage = new LocalStorageObject<DBStatusResult>(DB_STATUS_KEY);
+    return storage.get();
 }
 
 async function updateStatus(result: DBStatusResult) {
-    const data = { [DB_STATUS_KEY]: result };
     try {
         await notifyContentScripts(result);
-        await chrome.storage.local.set(data);
+        const storage = new LocalStorageObject<DBStatusResult>(DB_STATUS_KEY);
+        return storage.set(result);
     } catch (e) {
         console.error(e);
     }
