@@ -1,3 +1,5 @@
+const MIN_CHECKPOINTS = 1;
+const MAX_CHECKPOINTS = 100;
 const CHECKPOINT_RATE = 1 / 10000;
 
 export enum ProgressType {
@@ -33,14 +35,19 @@ export class Checkpoints {
     }
 
     static generateN(n: number, max: number) {
-        const indices = [...Array(n)].map(() => rand(0, max)).sort();
+        const between = [...Array(n - 1)].map(() => rand(1, max)).sort();
+        const indices = [0, ...between, max]; // should always mark start and end of operation as a checkpoint
         return new Checkpoints(indices);
     }
 
     static generate(max: number) {
-        const min = Math.min(max, 100);
-        const n = clamp(max * CHECKPOINT_RATE, min, 100);
-        return this.generateN(n, max);
+        if (max <= 0) {
+            return new Checkpoints([0]);
+        } else if (max <= 1) {
+            return new Checkpoints([0, 1]);
+        }
+        const clamped = clamp(Math.ceil(max * CHECKPOINT_RATE), MIN_CHECKPOINTS, MAX_CHECKPOINTS);
+        return this.generateN(clamped, max);
     }
 
     includes(i: number): boolean {

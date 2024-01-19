@@ -22,7 +22,6 @@ export class JSONDataProvider<Data, Entry, Parsed> {
 
     async parse(readEntries: ReadEntriesCallback<Data, Entry>, parseEntry: ParseEntryCallback<Entry, Parsed>, onProgressUpdate: ProgressUpdateCallback) {
         const entries = readEntries(this.data);
-        await onProgressUpdate(DBOperation.ParseData, 0, entries.length);
         const checkpoints = Checkpoints.generate(entries.length - 1);
         const promises = entries.map(async (entry, index, arr) => {
             const parsed = parseEntry(entry);
@@ -31,6 +30,7 @@ export class JSONDataProvider<Data, Entry, Parsed> {
             }
             return parsed;
         });
-        return awaitSequential(promises);
+        const parsed = await awaitSequential(promises);
+        return parsed;
     }
 }
