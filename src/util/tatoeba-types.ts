@@ -1,15 +1,15 @@
 export interface TanakaCorpus {
-    sentences: CorpusSentence[]
+    sentences: TatoebaSentence[]
 }
 
-export interface CorpusSentence {
+export interface TatoebaSentence {
     id: string;
     text: string;
     translation: string;
-    words: CorpusWord[];
+    words: TatoebaWord[];
 }
 
-export interface CorpusWord {
+export interface TatoebaWord {
     headword: string;
     reading?: string;
     sense?: number;

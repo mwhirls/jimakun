@@ -1,5 +1,5 @@
 import { DBOperation } from "../database/database";
-import { CorpusSentence } from "./tanaka-corpus-types";
+import { TatoebaSentence } from "./tatoeba-types";
 
 export enum RuntimeEvent {
     LookupKanji = 'lookup-kanji',
@@ -68,7 +68,7 @@ export interface LookupSentencesMessage {
 }
 
 export interface LookupSentencesResult {
-    sentences: CorpusSentence[];
+    sentences: TatoebaSentence[];
     pages: number;
 }
 

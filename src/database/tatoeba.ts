@@ -1,7 +1,7 @@
 import { LookupSentencesMessage, LookupSentencesResult } from "../util/events";
-import { CorpusSentence, CorpusWord } from "../util/tanaka-corpus-types";
+import { TatoebaSentence, TatoebaWord } from "../util/tatoeba-types";
 import { JSONDataProvider } from "./data-provider";
-import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, DBOperation, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
+import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
 
 const INDEX = {
     name: "keywords",
@@ -20,7 +20,7 @@ interface TatoebaEntry {
     id: string;
     text: string;
     translation: string;
-    words: CorpusWord[];
+    words: TatoebaWord[];
 }
 
 export class TatoebaStore implements IDBObjectStoreWrapper {
@@ -39,7 +39,7 @@ export class TatoebaStore implements IDBObjectStoreWrapper {
         const count = await this.db.countQueryResults(OBJECT_STORE, INDEX, lookup.searchTerm);
         const pages = Math.ceil(count / lookup.perPage);
         const pagination = { page: lookup.page, perPage: lookup.perPage };
-        const sentences = await this.db.openCursorOnIndex<CorpusSentence>(OBJECT_STORE, INDEX, lookup.searchTerm, pagination);
+        const sentences = await this.db.openCursorOnIndex<TatoebaSentence>(OBJECT_STORE, INDEX, lookup.searchTerm, pagination);
         return { pages, sentences };
     }
 
@@ -48,9 +48,9 @@ export class TatoebaStore implements IDBObjectStoreWrapper {
     }
 
     async populate(onProgressUpdate: ProgressUpdateCallback) {
-        const data = await JSONDataProvider.fetch<CorpusSentence[], CorpusSentence, TatoebaEntry>(DATA_URL, onProgressUpdate);
-        const readEntries = (data: CorpusSentence[]) => data;
-        const parseEntry = ((entry: CorpusSentence) => {
+        const data = await JSONDataProvider.fetch<TatoebaSentence[], TatoebaSentence, TatoebaEntry>(DATA_URL, onProgressUpdate);
+        const readEntries = (data: TatoebaSentence[]) => data;
+        const parseEntry = ((entry: TatoebaSentence) => {
             const keywords: string[] = entry.words.flatMap(word => {
                 return [word.headword, ...word.reading ?? [], ...word.surfaceForm ?? []]
             });

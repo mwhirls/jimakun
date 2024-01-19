@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import * as bunsetsu from "bunsetsu";
-import { CorpusSentence } from '../../../util/tanaka-corpus-types';
+import { TatoebaSentence } from '../../../util/tatoeba-types';
 import { LookupSentencesMessage, LookupSentencesResult, RuntimeEvent, RuntimeMessage } from '../../../util/events';
 import { toHiragana } from '../../../util/lang';
 import Pagination from './Pagination';
@@ -24,7 +24,7 @@ export interface ExamplesProps {
 function Examples({ word }: ExamplesProps) {
     const [count, setCount] = useState<number>(0);
     const [numPages, setNumPages] = useState<number | null>(0);
-    const [sentences, setSentences] = useState<CorpusSentence[]>([]);
+    const [sentences, setSentences] = useState<TatoebaSentence[]>([]);
 
     useEffect(() => {
         onPageSelected(0);
