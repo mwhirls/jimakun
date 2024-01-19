@@ -45,11 +45,9 @@ function LoadingScreen({ dbStatus }: LoadingScreenProps) {
             case Operation.UpgradeDatabase:
                 return "Upgrading database...";
             case Operation.LoadData:
-                return `Parsing ${sourceText()} data...`;
+                return `Parsing latest ${sourceText()} data...`;
             case Operation.PutData:
                 return `Updating ${sourceText()} database...`;
-            case Operation.IndexStore:
-                return `Indexing ${sourceText()} database...`;
         }
         throw new Error('unknown database update');
     }
@@ -137,15 +135,13 @@ function Card({ word }: CardProps) {
             }
         };
         chrome.runtime.onMessage.addListener(runtimeListener);
-        (async () => {
-            try {
-                const message: RuntimeMessage = { event: RuntimeEvent.RequestDBStatus, data: undefined };
-                const result = await chrome.runtime.sendMessage(message) as DBStatusResult; // todo: validate
-                setDBStatus(result);
-            } catch (e) {
-                console.error(e);
-            }
-        })();
+
+        const message: RuntimeMessage = {
+            event: RuntimeEvent.RequestDBStatus, data: undefined
+        };
+        chrome.runtime.sendMessage(message)
+            .then(status => setDBStatus(status as DBStatusResult)) // todo: validate
+            .catch(e => console.error(e));
 
         return () => {
             chrome.runtime.onMessage.removeListener(runtimeListener);

@@ -1,26 +1,26 @@
 import { RuntimeMessage, RuntimeEvent, DBStatusResult, Operation, Status, DataSource, Progress } from "./util/events";
 
-const DB_STATUS_KEY = "dbStatus";
+const DB_STATUS_KEY = 'lastDBStatusResult'
 
-export async function setDBStatusReady() {
+export async function notifyDBStatusReady() {
     const result: DBStatusResult = {
         status: {
             type: Status.Ready,
         }
     }
-    updateStatus(result);
+    return updateStatus(result);
 }
 
-export async function setDBStatusBlocked() {
+export async function notifyDBStatusBlocked() {
     const result: DBStatusResult = {
         status: {
             type: Status.Blocked,
         }
     }
-    updateStatus(result);
+    return updateStatus(result);
 }
 
-export async function setDBStatusBusy(operation: Operation, progress?: Progress, source?: DataSource) {
+export async function notifyDBStatusBusy(operation: Operation, progress?: Progress, source?: DataSource) {
     const result: DBStatusResult = {
         status: {
             type: Status.Busy,
@@ -29,7 +29,7 @@ export async function setDBStatusBusy(operation: Operation, progress?: Progress,
             source
         }
     }
-    updateStatus(result);
+    return updateStatus(result);
 }
 
 export async function getDBStatus(): Promise<DBStatusResult> {
@@ -41,8 +41,8 @@ export async function getDBStatus(): Promise<DBStatusResult> {
 async function updateStatus(result: DBStatusResult) {
     const data = { [DB_STATUS_KEY]: result };
     try {
+        await notifyContentScripts(result);
         await chrome.storage.local.set(data);
-        notifyContentScripts(result);
     } catch (e) {
         console.error(e);
     }
@@ -54,10 +54,12 @@ async function notifyContentScripts(result: DBStatusResult) {
         const tabs = await chrome.tabs.query({});
         for (const tab of tabs) {
             if (tab.id) {
-                chrome.tabs.sendMessage(tab.id, message);
+                chrome.tabs.sendMessage(tab.id, message, () => {
+                    console.warn('unable to notify tab of database status change', chrome.runtime.lastError);
+                });
             }
         }
     } catch (e) {
-        console.warn('unable to notify content scripts of database status change', e);
+        console.warn('unable to notify tab of database status change', e);
     }
 }

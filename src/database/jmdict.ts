@@ -1,6 +1,7 @@
-import { JMdict, JMdictWord } from "@scriptin/jmdict-simplified-types";
+import { JMdict, JMdictKana, JMdictKanji, JMdictSense, JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { LookupWordMessage, Operation } from "../util/events";
 import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper, DBStoreUpgradeContext, DBStoreOperation } from "./database";
+import { awaitSequential } from "../util/async";
 
 const INDEX = {
     name: "forms",
@@ -79,25 +80,22 @@ export class JMDictStore {
         return new JMDictStore(db);
     }
 
-    async populate(onProgressTick: (operation: DBStoreOperation, value: number, max: number) => void) {
+    async populate(onProgressTick: (operation: DBStoreOperation, value: number, max: number) => Promise<void>) {
         const dictUrl = chrome.runtime.getURL(DATA_URL);
         const response = await fetch(dictUrl);
         const jmdict = await response.json() as JMdict;
-        const count = await this.db.countRecords(OBJECT_STORE);
-        if (!this.db.upgraded && count === jmdict.words.length) {
-            return;
-        }
         const checkpoints: number[] = [0, 0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((jmdict.words.length - 1) * pct));
-        const entries = Object.entries(jmdict.words).map((entry: [string, JMdictWord], index, arr) => {
+        const promises = Object.entries(jmdict.words).map(async (entry: [string, JMdictWord], index, arr) => {
             if (checkpoints.includes(index)) {
-                onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length);
+                await onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length);
             }
             return {
                 ...entry[1],
                 forms: forms(entry[1]),
             };
         });
-        this.db.putAll(OBJECT_STORE, entries, onProgressTick, checkpoints);
+        const entries = await awaitSequential(promises);
+        await this.db.putAll(OBJECT_STORE, entries, onProgressTick, checkpoints);
     }
 
     async lookupWord(lookup: LookupWordMessage): Promise<JMdictWord | undefined> {

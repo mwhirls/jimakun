@@ -1,3 +1,4 @@
+import { JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { CorpusSentence } from "./tanaka-corpus-types";
 
 export enum RuntimeEvent {
@@ -45,6 +46,23 @@ export interface LookupWordMessage {
     hiragana: string;
 }
 
+export interface Success<T> {
+    type: 'success';
+    data: T;
+}
+
+export interface Error<S> {
+    type: 'error';
+    data: S;
+    message: string;
+}
+
+export interface MessageResponse<T, S> {
+    result: Success<T> | Error<S>
+}
+
+type LookupWordResponse = MessageResponse<JMdictWord | undefined, DBStatusResult>;
+
 export interface LookupSentencesMessage {
     searchTerm: string;
     page: number;
@@ -69,7 +87,6 @@ export enum Operation {
     UpgradeDatabase,
     LoadData,
     PutData,
-    IndexStore,
 }
 
 export enum DataSource {

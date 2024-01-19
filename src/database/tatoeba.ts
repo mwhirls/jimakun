@@ -1,3 +1,4 @@
+import { awaitSequential } from "../util/async";
 import { LookupSentencesMessage, LookupSentencesResult, Operation } from "../util/events";
 import { CorpusSentence } from "../util/tanaka-corpus-types";
 import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, DBStoreOperation } from "./database";
@@ -38,16 +39,12 @@ export class TatoebaStore {
         return { pages, sentences };
     }
 
-    async populate(onProgressTick: (operation: DBStoreOperation, value: number, max: number) => void) {
+    async populate(onProgressTick: (operation: DBStoreOperation, value: number, max: number) => Promise<void>) {
         const dictUrl = chrome.runtime.getURL(DATA_URL);
         const response = await fetch(dictUrl);
         const sentences = await response.json() as CorpusSentence[];
-        const count = await this.db.countRecords(OBJECT_STORE);
-        if (count === sentences.length) {
-            return;
-        }
         const checkpoints: number[] = [0, 0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((sentences.length - 1) * pct));
-        const entries = sentences.map((entry, index, arr) => {
+        const promises = sentences.map(async (entry, index, arr) => {
             if (checkpoints.includes(index)) {
                 onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length);
             }
@@ -59,7 +56,8 @@ export class TatoebaStore {
                 keywords,
             };
         });
-        this.db.putAll(OBJECT_STORE, entries, onProgressTick, checkpoints);
+        const entries = await awaitSequential(promises);
+        return this.db.putAll(OBJECT_STORE, entries, onProgressTick, checkpoints);
     }
 }
 

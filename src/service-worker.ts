@@ -2,7 +2,7 @@ import { IDBUpgradeContext, IDBWrapper, DBStoreOperation, DBStore } from "./data
 import { JMDictStore, JMDictStoreUpgrade } from "./database/jmdict";
 import { TatoebaStore, TatoebaStoreUpgrade } from "./database/tatoeba";
 import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanjidic2";
-import { DataSource, MovieChangedMessage, Operation, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
+import { DBStatusResult, DataSource, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, MovieChangedMessage, Operation, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection, Status } from "./util/events";
 import * as DBStatusNotifier from './dbstatus-notifier'
 
 const DB_NAME = 'jimakun';
@@ -73,62 +73,70 @@ chrome.commands.onCommand.addListener(function (command) {
     });
 });
 
+async function requestDatabaseStatus(sendResponse: (response?: unknown) => void) {
+    try {
+        const status = await DBStatusNotifier.getDBStatus();
+        sendResponse(status);
+    } catch (e) {
+        sendResponse(undefined); // TODO: better error handling
+    }
+}
+
+async function lookupWord(message: LookupWordMessage, sendResponse: (response?: unknown) => void) {
+    try {
+        const dict = await JMDictStore.open(DB_NAME, DB_VERSION, onDBUpgrade);
+        const word = await dict.lookupBestMatch(message);
+        sendResponse(word);
+    } catch (e) {
+        sendResponse(undefined); // TODO: better error handling
+    }
+}
+
+async function lookupKanji(message: LookupKanjiMessage, sendResponse: (response?: unknown) => void) {
+    try {
+        const dict = await KanjiDic2Store.open(DB_NAME, DB_VERSION, onDBUpgrade);
+        const kanji = await dict.lookup(message);
+        sendResponse(kanji);
+    } catch (e) {
+        sendResponse(undefined); // TODO: better error handling
+    }
+}
+
+async function lookupSentences(message: LookupSentencesMessage, sendResponse: (response?: unknown) => void) {
+    try {
+        const store = await TatoebaStore.open(DB_NAME, DB_VERSION, onDBUpgrade);
+        const kanji = await store.lookup(message);
+        sendResponse(kanji);
+    } catch (e) {
+        sendResponse(undefined); // TODO: better error handling
+    }
+}
+
+function playAudio(message: PlayAudioMessage) {
+    if (!message.utterance) {
+        return;
+    }
+    chrome.tts.speak(message.utterance, { lang: 'ja' });
+}
+
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+    const message = request.data; // todo: validate
     switch (request.event) {
-        case RuntimeEvent.RequestDBStatus: {
-            DBStatusNotifier.getDBStatus()
-                .then(status => {
-                    sendResponse(status);
-                })
-                .catch(e => {
-                    sendResponse(e);
-                });
+        case RuntimeEvent.RequestDBStatus:
+            requestDatabaseStatus(sendResponse);
             break;
-        }
-        case RuntimeEvent.LookupWord: {
-            const message = request.data;
-            JMDictStore.open(DB_NAME, DB_VERSION, onDBUpgrade)
-                .then(dict => {
-                    dict.lookupBestMatch(message)
-                        .then(word => sendResponse(word));
-                })
-                .catch(e => {
-                    sendResponse(e);
-                });
+        case RuntimeEvent.LookupWord:
+            lookupWord(message as LookupWordMessage, sendResponse);
             break;
-        }
-        case RuntimeEvent.LookupKanji: {
-            const message = request.data;
-            KanjiDic2Store.open(DB_NAME, DB_VERSION, onDBUpgrade)
-                .then(store => {
-                    store.lookup(message)
-                        .then(kanji => sendResponse(kanji));
-                })
-                .catch(e => {
-                    sendResponse(e);
-                });
+        case RuntimeEvent.LookupKanji:
+            lookupKanji(message as LookupKanjiMessage, sendResponse);
             break;
-        }
-        case RuntimeEvent.LookupSentences: {
-            const message = request.data;
-            TatoebaStore.open(DB_NAME, DB_VERSION, onDBUpgrade)
-                .then(store => {
-                    store.lookup(message)
-                        .then(result => sendResponse(result));
-                })
-                .catch(e => {
-                    sendResponse(e);
-                });
+        case RuntimeEvent.LookupSentences:
+            lookupSentences(message as LookupSentencesMessage, sendResponse);
             break;
-        }
-        case RuntimeEvent.PlayAudio: {
-            const message = request.data;
-            if (!message.utterance) {
-                return;
-            }
-            chrome.tts.speak(message.utterance, { lang: 'ja' });
-            break;
-        }
+        case RuntimeEvent.PlayAudio:
+            playAudio(message as PlayAudioMessage);
+            return false;
         default:
             console.warn("unrecognized request", request);
     }
@@ -143,49 +151,60 @@ async function onDBUpgrade(db: IDBUpgradeContext) {
         new KanjiDic2StoreUpgrade(ctx),
         new TatoebaStoreUpgrade(ctx),
     ];
-    DBStatusNotifier.setDBStatusBusy(Operation.UpgradeDatabase, { value: 0, max: upgrades.length });
+    DBStatusNotifier.notifyDBStatusBusy(Operation.UpgradeDatabase, { value: 0, max: upgrades.length });
     upgrades.map((x, index, arr) => {
         x.apply();
-        DBStatusNotifier.setDBStatusBusy(Operation.UpgradeDatabase, { value: index + 1, max: arr.length });
+        DBStatusNotifier.notifyDBStatusBusy(Operation.UpgradeDatabase, { value: index + 1, max: arr.length });
     });
     return db.commit();
 }
 
-async function openDatabase() {
-    try {
-        DBStatusNotifier.setDBStatusBusy(Operation.Opening);
-        const onProgressTick = (op: DBStoreOperation, value: number, max: number, source: DataSource) => {
-            const progress = { value, max };
-            switch (op) {
+async function populateDatabase(db: IDBWrapper) {
+    const onProgressTick = async (storeOp: DBStoreOperation, value: number, max: number, source: DataSource) => {
+        const progress = { value, max };
+        const operation = () => {
+            switch (storeOp) {
                 case DBStoreOperation.LoadData:
-                    DBStatusNotifier.setDBStatusBusy(Operation.LoadData, progress, source);
-                    break;
+                    return Operation.LoadData;
                 case DBStoreOperation.PutData:
-                    DBStatusNotifier.setDBStatusBusy(Operation.PutData, progress, source);
-                    break;
-                case DBStoreOperation.Index:
-                    DBStatusNotifier.setDBStatusBusy(Operation.IndexStore, progress, source);
-                    break;
+                    return Operation.PutData;
             }
-        };
-        const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
-        // make sure object stores have the latest data
-        const jmdict = await JMDictStore.openWith(db);
-        await jmdict.populate((op, value, max) => onProgressTick(op, value, max, DataSource.Dictionary));
-        const kanjidic2 = await KanjiDic2Store.openWith(db);
-        await kanjidic2.populate((op, value, max) => onProgressTick(op, value, max, DataSource.Kanji));
-        const tatoeba = await TatoebaStore.openWith(db);
-        await tatoeba.populate((op, value, max) => onProgressTick(op, value, max, DataSource.ExampleSentences));
-        DBStatusNotifier.setDBStatusReady();
-    } catch (e) {
-        console.error(e);
+        }
+        return DBStatusNotifier.notifyDBStatusBusy(operation(), progress, source);
+    };
+    // make sure object stores have the latest data
+    const jmdict = await JMDictStore.openWith(db);
+    await jmdict.populate((op, value, max) => onProgressTick(op, value, max, DataSource.Dictionary));
+    const kanjidic2 = await KanjiDic2Store.openWith(db);
+    await kanjidic2.populate((op, value, max) => onProgressTick(op, value, max, DataSource.Kanji));
+    const tatoeba = await TatoebaStore.openWith(db);
+    await tatoeba.populate((op, value, max) => onProgressTick(op, value, max, DataSource.ExampleSentences));
+}
+
+async function openDatabase() {
+    await DBStatusNotifier.notifyDBStatusBusy(Operation.Opening);
+    const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
+    if (db.upgraded) {
+        await populateDatabase(db);
     }
+    await DBStatusNotifier.notifyDBStatusReady();
+    return db;
 }
 
 chrome.runtime.onStartup.addListener(() => {
-    openDatabase();
+    console.debug('onStartup event');
+    try {
+        openDatabase();
+    } catch (e) {
+        console.error(e);
+    }
 });
 
 chrome.runtime.onInstalled.addListener(() => {
-    openDatabase();
+    console.debug('onInstalled event');
+    try {
+        openDatabase();
+    } catch (e) {
+        console.error(e);
+    }
 });

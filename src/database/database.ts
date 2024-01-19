@@ -1,3 +1,5 @@
+import { awaitSequential } from "../util/async";
+
 export enum DBErrorType {
     Blocked = 'BLOCKED',
     UpgradeFailed = 'UPGRADE_FAILED',
@@ -81,7 +83,9 @@ export class IDBUpgradeContext {
     }
 
     async commit() {
-        await Promise.all(this.context.requests);
+        for (const request of this.context.requests) {
+            await request;
+        }
         return this.wrapper;
     }
 }
@@ -89,7 +93,6 @@ export class IDBUpgradeContext {
 export enum DBStoreOperation {
     LoadData,
     PutData,
-    Index,
 }
 
 export interface DBStoreUpgrade {
@@ -164,28 +167,29 @@ export class IDBWrapper {
         }
     }
 
-    putAll(store: DBStore, entries: unknown[], onProgressTick: (op: DBStoreOperation, value: number, max: number) => void, checkpoints: number[]): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(store.name, "readwrite");
-            const objectStore = transaction.objectStore(store.name);
-            for (let i = 0; i < entries.length; i++) {
-                const request = objectStore.put(entries[i]);
+    putAll(store: DBStore, entries: unknown[], onProgressTick: (op: DBStoreOperation, value: number, max: number) => Promise<void>, checkpoints: number[]): Promise<void[]> {
+        const transaction = this.db.transaction(store.name, "readwrite");
+        const objectStore = transaction.objectStore(store.name);
+        const results = entries.map((entry, index, arr) => {
+            return new Promise<void>((resolve, reject) => {
+                const request = objectStore.put(entry);
 
                 // only track progress at certain checkpoints in order to improve performance
-                const checkpoint = checkpoints.includes(i);
+                const checkpoint = checkpoints.includes(index);
                 if (checkpoint) {
-                    onProgressTick(DBStoreOperation.PutData, i + 1, entries.length);
                     request.onerror = () => {
                         reject(new DatabaseError(DBErrorType.TransactionError));
                     };
                     request.onsuccess = () => {
-                        onProgressTick(DBStoreOperation.Index, i + 1, entries.length);
-                        resolve()
+                        resolve(onProgressTick(DBStoreOperation.PutData, index + 1, arr.length))
                     };
+                } else {
+                    resolve();
                 }
-            }
-            transaction.commit();
+            })
         });
+        transaction.commit();
+        return awaitSequential(results);
     }
 
     countRecords(store: DBStore) {
