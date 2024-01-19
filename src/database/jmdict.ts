@@ -1,7 +1,6 @@
 import { JMdict, JMdictKana, JMdictKanji, JMdictSense, JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { LookupWordMessage } from "../util/events";
-import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper, DBStoreUpgradeContext, DBOperation, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
-import { awaitSequential } from "../util/async";
+import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper, DBStoreUpgradeContext, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
 import { JSONDataProvider } from "./data-provider";
 
 const INDEX = {
@@ -119,7 +118,7 @@ export class JMDictStoreUpgrade implements DBStoreUpgrade {
         this.db = db;
     }
 
-    async apply() {
+    apply() {
         this.db.create([OBJECT_STORE]);
     }
 }

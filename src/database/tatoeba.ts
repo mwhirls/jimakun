@@ -71,7 +71,7 @@ export class TatoebaStoreUpgrade implements DBStoreUpgrade {
         this.db = db;
     }
 
-    async apply() {
+    apply() {
         this.db.create([OBJECT_STORE]);
     }
 }

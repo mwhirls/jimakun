@@ -1,18 +1,12 @@
 import { Kanjidic2, Kanjidic2Character } from "@scriptin/jmdict-simplified-types";
 import { LookupKanjiMessage } from "../util/events";
-import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, DBOperation, IDBObjectStoreWrapper, ProgressUpdateCallback } from "./database";
-import { awaitSequential } from "../util/async";
+import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, IDBObjectStoreWrapper, ProgressUpdateCallback } from "./database";
 import { JSONDataProvider } from "./data-provider";
 
-const INDEX = {
-    name: "literal",
-    unique: false,
-    multiEntry: false,
-};
 const OBJECT_STORE = {
     name: "kanji-dic2",
-    keyPath: "id",
-    indexes: [INDEX]
+    keyPath: "literal",
+    indexes: [],
 }
 const DATA_URL = 'jmdict-simplified/kanjidic2-en.json'
 
@@ -29,7 +23,7 @@ export class KanjiDic2Store implements IDBObjectStoreWrapper {
     }
 
     async lookup(lookup: LookupKanjiMessage): Promise<Kanjidic2Character[]> {
-        const results = lookup.kanji.map(query => this.db.getFromIndex<Kanjidic2Character>(OBJECT_STORE, INDEX, query));
+        const results = lookup.kanji.map(query => this.db.get<Kanjidic2Character>(OBJECT_STORE, query));
         const kanji = await Promise.all(results);
         return kanji.flatMap(v => v ? [v] : []); // filter undefineds
     }
@@ -54,7 +48,7 @@ export class KanjiDic2StoreUpgrade implements DBStoreUpgrade {
         this.db = db;
     }
 
-    async apply() {
-        await this.db.create([OBJECT_STORE]);
+    apply() {
+        this.db.create([OBJECT_STORE]);
     }
 }

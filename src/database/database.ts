@@ -132,11 +132,8 @@ function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgrade
             db.onversionchange = () => {
                 db.close(); // close to allow new database instances in other tabs to upgrade
             };
-            onUpgrade(new IDBUpgradeContext(new IDBWrapper(db, true)))
-                .then(wrapper => {
-                    resolve(wrapper);
-                })
-                .catch(e => reject(e));
+            const context = new IDBUpgradeContext(new IDBWrapper(db, true));
+            resolve(onUpgrade(context));
         };
     });
 }
@@ -177,7 +174,7 @@ export class IDBWrapper {
         }
     }
 
-    putAll(store: DBStore, entries: unknown[], onProgressUpdate: (op: DBOperation, value: number, max: number) => Promise<void>): Promise<void[]> {
+    putAll(store: DBStore, entries: unknown[], onProgressUpdate: ProgressUpdateCallback): Promise<void[]> {
         const checkpoints: number[] = [0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((entries.length - 1) * pct));
         const transaction = this.db.transaction(store.name, "readwrite");
         const objectStore = transaction.objectStore(store.name);
@@ -232,6 +229,20 @@ export class IDBWrapper {
                 resolve(request.result)
             };
             transaction.commit();
+        });
+    }
+
+    get<T>(store: DBStore, query: IDBValidKey): Promise<T | undefined> {
+        return new Promise((resolve, reject) => {
+            const request = this.db.transaction(store.name)
+                .objectStore(store.name)
+                .get(query);
+            request.onerror = () => {
+                reject(new DatabaseError(DBErrorType.TransactionError));
+            };
+            request.onsuccess = () => {
+                resolve(request.result)
+            };
         });
     }
 
