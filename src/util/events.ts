@@ -83,7 +83,7 @@ export interface PlayAudioMessage {
 
 export enum DataSource {
     JMDict = 'jmdict',
-    KanjiDic2 = 'kanjidic2',
+    KanjiDic2 = 'kanji-dic2',
     Tatoeba = 'tatoeba',
     Unknown = '',
 }

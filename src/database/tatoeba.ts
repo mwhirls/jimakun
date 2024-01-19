@@ -9,7 +9,7 @@ const INDEX = {
     multiEntry: true,
 };
 const OBJECT_STORE = {
-    name: "tanaka-corpus",
+    name: "tatoeba",
     keyPath: "id",
     indexes: [INDEX]
 }
