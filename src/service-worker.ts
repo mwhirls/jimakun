@@ -151,11 +151,7 @@ async function onDBUpgrade(db: IDBUpgradeContext) {
         new KanjiDic2StoreUpgrade(ctx),
         new TatoebaStoreUpgrade(ctx),
     ];
-    DBStatusNotifier.notifyDBStatusBusy(Operation.UpgradeDatabase, { value: 0, max: upgrades.length });
-    upgrades.map((x, index, arr) => {
-        x.apply();
-        DBStatusNotifier.notifyDBStatusBusy(Operation.UpgradeDatabase, { value: index + 1, max: arr.length });
-    });
+    upgrades.map(x => x.apply());
     return db.commit();
 }
 
