@@ -52,6 +52,20 @@ export async function notifyDBStatusBusyIndeterminate(operation: DBOperation, so
     return updateStatus(result);
 }
 
+export async function notifyDBStatusError(e?: Error) {
+    const result: DBStatusResult = {
+        status: {
+            type: Status.ErrorOccurred,
+            message: e?.message,
+        }
+    }
+    return updateStatus(result);
+}
+
+export async function clearStatus() {
+    return chrome.storage.local.remove(DB_STATUS_KEY);
+}
+
 export async function getDBStatus(): Promise<DBStatusResult> {
     const kv = await chrome.storage.local.get(DB_STATUS_KEY);
     const value = kv[DB_STATUS_KEY];

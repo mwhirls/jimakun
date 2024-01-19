@@ -92,6 +92,7 @@ export enum Status {
     Ready = 'ready',
     Blocked = 'blocked',
     Busy = 'busy',
+    ErrorOccurred = 'error-occurred',
 }
 
 export interface Ready {
@@ -109,6 +110,11 @@ export interface Busy {
     source?: DataSource;
 }
 
+export interface ErrorOccurred {
+    type: Status.ErrorOccurred;
+    message?: string;
+}
+
 export interface DBStatusResult {
-    status: Ready | Blocked | Busy;
+    status: Ready | Blocked | Busy | ErrorOccurred;
 }

@@ -179,29 +179,37 @@ async function populateDatabase(db: IDBWrapper) {
 }
 
 async function openDatabase() {
-    await DBStatusNotifier.notifyDBStatusBusyIndeterminate(DBOperation.Open);
-    const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
-    if (db.upgraded) {
-        await populateDatabase(db);
+    try {
+        await DBStatusNotifier.notifyDBStatusBusyIndeterminate(DBOperation.Open);
+        const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
+        if (db.upgraded) {
+            await populateDatabase(db);
+        }
+        await DBStatusNotifier.notifyDBStatusReady();
+    } catch (e: unknown) {
+        if (e instanceof Error) {
+            DBStatusNotifier.notifyDBStatusError(e);
+        } else {
+            DBStatusNotifier.notifyDBStatusError();
+        }
     }
-    await DBStatusNotifier.notifyDBStatusReady();
-    return db;
+}
+
+async function initializeApp() {
+    try {
+        await DBStatusNotifier.clearStatus()
+        openDatabase();
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 chrome.runtime.onStartup.addListener(() => {
     console.debug('onStartup event');
-    try {
-        openDatabase();
-    } catch (e) {
-        console.error(e);
-    }
+    initializeApp();
 });
 
 chrome.runtime.onInstalled.addListener(() => {
     console.debug('onInstalled event');
-    try {
-        openDatabase();
-    } catch (e) {
-        console.error(e);
-    }
+    initializeApp();
 });
