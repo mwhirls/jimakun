@@ -1,6 +1,7 @@
 import { DBOperation } from "./database/database";
 import { RuntimeMessage, RuntimeEvent, DBStatusResult, Status, DataSource } from "./util/events";
 import { ProgressType } from "./util/progress";
+import * as tabs from './tabs';
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
@@ -84,16 +85,5 @@ async function updateStatus(result: DBStatusResult) {
 
 async function notifyContentScripts(result: DBStatusResult) {
     const message: RuntimeMessage = { event: RuntimeEvent.ReportDBStatus, data: result };
-    try {
-        const tabs = await chrome.tabs.query({});
-        for (const tab of tabs) {
-            if (tab.id) {
-                chrome.tabs.sendMessage(tab.id, message, () => {
-                    console.warn('unable to notify tab of database status change', chrome.runtime.lastError);
-                });
-            }
-        }
-    } catch (e) {
-        console.warn('unable to notify tab of database status change', e);
-    }
+    return tabs.sendMessageToAll(message);
 }

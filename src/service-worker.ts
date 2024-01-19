@@ -4,6 +4,7 @@ import { TatoebaStore, TatoebaStoreUpgrade } from "./database/tatoeba";
 import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanjidic2";
 import { DataSource, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, MovieChangedMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
 import * as DBStatusNotifier from './dbstatus-notifier'
+import * as tabs from './tabs'
 
 const DB_NAME = 'jimakun';
 const DB_VERSION = 1; // todo
@@ -36,41 +37,32 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
 });
 
-chrome.commands.onCommand.addListener(function (command) {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        if (!tabs) {
-            return;
+chrome.commands.onCommand.addListener(command => {
+    switch (command) {
+        case NEXT_CUE_ID: {
+            const data: SeekCueMessage = { direction: SeekDirection.Next };
+            const message: RuntimeMessage = { event: RuntimeEvent.SeekCue, data: data };
+            tabs.sendMessageToActive(message);
+            break;
         }
-        const tabId = tabs[0].id;
-        if (!tabId) {
-            return;
+        case REPEAT_CUE_ID: {
+            const data: SeekCueMessage = { direction: SeekDirection.Repeat };
+            const message: RuntimeMessage = { event: RuntimeEvent.SeekCue, data: data };
+            tabs.sendMessageToActive(message);
+            break;
         }
-        switch (command) {
-            case NEXT_CUE_ID: {
-                const data: SeekCueMessage = { direction: SeekDirection.Next };
-                const message: RuntimeMessage = { event: RuntimeEvent.SeekCue, data: data };
-                chrome.tabs.sendMessage(tabId, message);
-                break;
-            }
-            case REPEAT_CUE_ID: {
-                const data: SeekCueMessage = { direction: SeekDirection.Repeat };
-                const message: RuntimeMessage = { event: RuntimeEvent.SeekCue, data: data };
-                chrome.tabs.sendMessage(tabId, message);
-                break;
-            }
-            case PREV_CUE_ID: {
-                const data: SeekCueMessage = { direction: SeekDirection.Previous };
-                const message: RuntimeMessage = { event: RuntimeEvent.SeekCue, data: data };
-                chrome.tabs.sendMessage(tabId, message);
-                break;
-            }
-            case TOGGLE_SUBS_ID: {
-                const message: RuntimeMessage = { event: RuntimeEvent.ToggleSubs, data: null };
-                chrome.tabs.sendMessage(tabId, message);
-                break;
-            }
+        case PREV_CUE_ID: {
+            const data: SeekCueMessage = { direction: SeekDirection.Previous };
+            const message: RuntimeMessage = { event: RuntimeEvent.SeekCue, data: data };
+            tabs.sendMessageToActive(message);
+            break;
         }
-    });
+        case TOGGLE_SUBS_ID: {
+            const message: RuntimeMessage = { event: RuntimeEvent.ToggleSubs, data: null };
+            tabs.sendMessageToActive(message);
+            break;
+        }
+    }
 });
 
 async function requestDatabaseStatus(sendResponse: (response?: unknown) => void) {
