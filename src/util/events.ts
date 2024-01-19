@@ -1,4 +1,5 @@
 import { DBOperation } from "../database/database";
+import { Progress } from "./progress";
 import { TatoebaSentence } from "./tatoeba-types";
 
 export enum RuntimeEvent {
@@ -100,23 +101,6 @@ export interface Ready {
 export interface Blocked {
     type: Status.Blocked;
 }
-
-export enum ProgressType {
-    Determinate = 'determinate',
-    Indeterminate = 'indeterminate',
-}
-
-export interface Determinate {
-    type: ProgressType.Determinate;
-    value: number;
-    max: number;
-}
-
-export interface Indeterminate {
-    type: ProgressType.Indeterminate;
-}
-
-export type Progress = Determinate | Indeterminate;
 
 export interface Busy {
     type: Status.Busy;

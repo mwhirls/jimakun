@@ -1,4 +1,5 @@
 import { awaitSequential } from "../util/async";
+import { Checkpoints } from "../util/progress";
 
 export enum DBErrorType {
     Blocked = 'BLOCKED',
@@ -175,7 +176,7 @@ export class IDBWrapper {
     }
 
     putAll(store: DBStore, entries: unknown[], onProgressUpdate: ProgressUpdateCallback): Promise<void[]> {
-        const checkpoints: number[] = [0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((entries.length - 1) * pct));
+        const checkpoints = Checkpoints.generate(entries.length - 1);
         const transaction = this.db.transaction(store.name, "readwrite");
         const objectStore = transaction.objectStore(store.name);
         const results = entries.map((entry, index, arr) => {
@@ -183,8 +184,7 @@ export class IDBWrapper {
                 const request = objectStore.put(entry);
 
                 // only track progress at certain checkpoints in order to improve performance
-                const checkpoint = checkpoints.includes(index);
-                if (checkpoint) {
+                if (checkpoints.includes(index)) {
                     request.onerror = () => {
                         reject(new DatabaseError(DBErrorType.TransactionError));
                     };

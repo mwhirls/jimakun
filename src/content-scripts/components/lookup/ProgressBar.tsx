@@ -1,6 +1,6 @@
 import React from 'react';
 import './ProgressBar.css'
-import { Determinate, Progress, ProgressType } from '../../../util/events';
+import { Determinate, Progress, ProgressType } from '../../../util/progress';
 
 function IndeterminateProgress({ id }: { id: string }) {
     return <>

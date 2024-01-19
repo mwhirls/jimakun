@@ -8,7 +8,7 @@ import Examples from './Examples';
 import Kanji from './Kanji';
 import Notes from './Notes';
 import type { JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { Busy, DBStatusResult, DataSource, LookupWordMessage, ProgressType, RuntimeEvent, RuntimeMessage, Status } from '../../../util/events';
+import { Busy, DBStatusResult, DataSource, LookupWordMessage, RuntimeEvent, RuntimeMessage, Status } from '../../../util/events';
 import { toHiragana } from '../../../util/lang';
 import ProgressBar from './ProgressBar';
 import { DBOperation } from '../../../database/database';

@@ -1,5 +1,6 @@
 import { DBOperation } from "./database/database";
-import { RuntimeMessage, RuntimeEvent, DBStatusResult, Status, DataSource, ProgressType } from "./util/events";
+import { RuntimeMessage, RuntimeEvent, DBStatusResult, Status, DataSource } from "./util/events";
+import { ProgressType } from "./util/progress";
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 

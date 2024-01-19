@@ -1,4 +1,5 @@
 import { awaitSequential } from "../util/async";
+import { Checkpoints } from "../util/progress";
 import { ProgressUpdateCallback, DBOperation } from "./database";
 
 type ReadEntriesCallback<Data, Entry> = (data: Data) => Entry[];
@@ -22,7 +23,7 @@ export class JSONDataProvider<Data, Entry, Parsed> {
     async parse(readEntries: ReadEntriesCallback<Data, Entry>, parseEntry: ParseEntryCallback<Entry, Parsed>, onProgressUpdate: ProgressUpdateCallback) {
         const entries = readEntries(this.data);
         await onProgressUpdate(DBOperation.ParseData, 0, entries.length);
-        const checkpoints: number[] = [0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((entries.length - 1) * pct));
+        const checkpoints = Checkpoints.generate(entries.length - 1);
         const promises = entries.map(async (entry, index, arr) => {
             const parsed = parseEntry(entry);
             if (checkpoints.includes(index)) {
