@@ -10,10 +10,12 @@ const DB_NAME = 'jimakun';
 const DB_VERSION = 1; // todo
 const DB_OPEN_MAX_ATTEMPTS = 5;
 
-const NEXT_CUE_ID = 'next-cue';
-const PREV_CUE_ID = 'prev-cue';
-const REPEAT_CUE_ID = 'repeat-cue';
-const TOGGLE_SUBS_ID = 'toggle-subs';
+enum Command {
+    NextCue = 'next-cue',
+    PrevCue = 'prev-cue',
+    RepeatCue = 'repeat-cue',
+    ToggleSubs = 'toggle-subs',
+}
 
 function extractMovieId(url: string) {
     const regex = new RegExp('netflix.com/watch/([0-9]+)');
@@ -39,25 +41,25 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 chrome.commands.onCommand.addListener(command => {
     switch (command) {
-        case NEXT_CUE_ID: {
+        case Command.NextCue: {
             const data: SeekCueMessage = { direction: SeekDirection.Next };
             const message: RuntimeMessage = { event: RuntimeEvent.SeekCue, data: data };
             tabs.sendMessageToActive(message);
             break;
         }
-        case REPEAT_CUE_ID: {
+        case Command.RepeatCue: {
             const data: SeekCueMessage = { direction: SeekDirection.Repeat };
             const message: RuntimeMessage = { event: RuntimeEvent.SeekCue, data: data };
             tabs.sendMessageToActive(message);
             break;
         }
-        case PREV_CUE_ID: {
+        case Command.PrevCue: {
             const data: SeekCueMessage = { direction: SeekDirection.Previous };
             const message: RuntimeMessage = { event: RuntimeEvent.SeekCue, data: data };
             tabs.sendMessageToActive(message);
             break;
         }
-        case TOGGLE_SUBS_ID: {
+        case Command.ToggleSubs: {
             const message: RuntimeMessage = { event: RuntimeEvent.ToggleSubs, data: null };
             tabs.sendMessageToActive(message);
             break;
