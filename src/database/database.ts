@@ -177,7 +177,8 @@ export class IDBWrapper {
         }
     }
 
-    putAll(store: DBStore, entries: unknown[], onProgressUpdate: (op: DBOperation, value: number, max: number) => Promise<void>, checkpoints: number[]): Promise<void[]> {
+    putAll(store: DBStore, entries: unknown[], onProgressUpdate: (op: DBOperation, value: number, max: number) => Promise<void>): Promise<void[]> {
+        const checkpoints: number[] = [0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((entries.length - 1) * pct));
         const transaction = this.db.transaction(store.name, "readwrite");
         const objectStore = transaction.objectStore(store.name);
         const results = entries.map((entry, index, arr) => {

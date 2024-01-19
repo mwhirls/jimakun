@@ -1,6 +1,6 @@
-import { awaitSequential } from "../util/async";
 import { LookupSentencesMessage, LookupSentencesResult } from "../util/events";
-import { CorpusSentence } from "../util/tanaka-corpus-types";
+import { CorpusSentence, CorpusWord } from "../util/tanaka-corpus-types";
+import { JSONDataProvider } from "./data-provider";
 import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, DBOperation, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
 
 const INDEX = {
@@ -14,6 +14,14 @@ const OBJECT_STORE = {
     indexes: [INDEX]
 }
 const DATA_URL = 'tanaka-corpus-json/jpn-eng-examples.json';
+
+interface TatoebaEntry {
+    keywords: string[];
+    id: string;
+    text: string;
+    translation: string;
+    words: CorpusWord[];
+}
 
 export class TatoebaStore implements IDBObjectStoreWrapper {
     readonly db: IDBWrapper;
@@ -40,15 +48,9 @@ export class TatoebaStore implements IDBObjectStoreWrapper {
     }
 
     async populate(onProgressUpdate: ProgressUpdateCallback) {
-        onProgressUpdate(DBOperation.FetchData);
-        const dictUrl = chrome.runtime.getURL(DATA_URL);
-        const response = await fetch(dictUrl);
-        const sentences = await response.json() as CorpusSentence[];
-        const checkpoints: number[] = [0, 0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((sentences.length - 1) * pct));
-        const promises = sentences.map(async (entry, index, arr) => {
-            if (checkpoints.includes(index)) {
-                onProgressUpdate(DBOperation.ParseData, index + 1, arr.length);
-            }
+        const data = await JSONDataProvider.fetch<CorpusSentence[], CorpusSentence, TatoebaEntry>(DATA_URL, onProgressUpdate);
+        const readEntries = (data: CorpusSentence[]) => data;
+        const parseEntry = ((entry: CorpusSentence) => {
             const keywords: string[] = entry.words.flatMap(word => {
                 return [word.headword, ...word.reading ?? [], ...word.surfaceForm ?? []]
             });
@@ -56,9 +58,9 @@ export class TatoebaStore implements IDBObjectStoreWrapper {
                 ...entry,
                 keywords,
             };
-        });
-        const entries = await awaitSequential(promises);
-        await this.db.putAll(OBJECT_STORE, entries, onProgressUpdate, checkpoints);
+        })
+        const entries = await data.parse(readEntries, parseEntry, onProgressUpdate);
+        await this.db.putAll(OBJECT_STORE, entries, onProgressUpdate);
     }
 }
 

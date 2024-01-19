@@ -1,7 +1,8 @@
-import { JMdict, JMdictWord } from "@scriptin/jmdict-simplified-types";
+import { JMdict, JMdictKana, JMdictKanji, JMdictSense, JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { LookupWordMessage } from "../util/events";
 import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper, DBStoreUpgradeContext, DBOperation, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
 import { awaitSequential } from "../util/async";
+import { JSONDataProvider } from "./data-provider";
 
 const INDEX = {
     name: "forms",
@@ -64,6 +65,14 @@ function findBestMatch(matches: JMdictWord[], lookup: LookupWordMessage): JMdict
     return bestMatch;
 }
 
+interface JMDictEntry {
+    id: string;
+    kanji: JMdictKanji[];
+    kana: JMdictKana[];
+    sense: JMdictSense[];
+    forms: string[];
+}
+
 export class JMDictStore implements IDBObjectStoreWrapper {
     readonly db: IDBWrapper;
 
@@ -81,22 +90,16 @@ export class JMDictStore implements IDBObjectStoreWrapper {
     }
 
     async populate(onProgressUpdate: ProgressUpdateCallback) {
-        await onProgressUpdate(DBOperation.FetchData);
-        const dictUrl = chrome.runtime.getURL(DATA_URL);
-        const response = await fetch(dictUrl);
-        const jmdict = await response.json() as JMdict;
-        const checkpoints: number[] = [0, 0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((jmdict.words.length - 1) * pct));
-        const promises = Object.entries(jmdict.words).map(async (entry: [string, JMdictWord], index, arr) => {
-            if (checkpoints.includes(index)) {
-                await onProgressUpdate(DBOperation.ParseData, index + 1, arr.length);
-            }
+        const data = await JSONDataProvider.fetch<JMdict, JMdictWord, JMDictEntry>(DATA_URL, onProgressUpdate);
+        const readEntries = (data: JMdict) => data.words;
+        const parseEntry = ((entry: JMdictWord) => {
             return {
-                ...entry[1],
-                forms: forms(entry[1]),
+                ...entry,
+                forms: forms(entry),
             };
-        });
-        const entries = await awaitSequential(promises);
-        await this.db.putAll(OBJECT_STORE, entries, onProgressUpdate, checkpoints);
+        })
+        const entries = await data.parse(readEntries, parseEntry, onProgressUpdate);
+        await this.db.putAll(OBJECT_STORE, entries, onProgressUpdate);
     }
 
     async lookupWord(lookup: LookupWordMessage): Promise<JMdictWord | undefined> {

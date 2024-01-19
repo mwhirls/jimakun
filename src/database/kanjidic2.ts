@@ -2,6 +2,7 @@ import { Kanjidic2, Kanjidic2Character } from "@scriptin/jmdict-simplified-types
 import { LookupKanjiMessage } from "../util/events";
 import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, DBOperation, IDBObjectStoreWrapper, ProgressUpdateCallback } from "./database";
 import { awaitSequential } from "../util/async";
+import { JSONDataProvider } from "./data-provider";
 
 const INDEX = {
     name: "literal",
@@ -38,22 +39,11 @@ export class KanjiDic2Store implements IDBObjectStoreWrapper {
     }
 
     async populate(onProgressUpdate: ProgressUpdateCallback) {
-        await onProgressUpdate(DBOperation.FetchData);
-        const dataUrl = chrome.runtime.getURL(DATA_URL);
-        const response = await fetch(dataUrl);
-        const kanjidic2 = await response.json() as Kanjidic2;
-        const checkpoints: number[] = [0, 0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((kanjidic2.characters.length - 1) * pct));
-        const promises = kanjidic2.characters.map(async (entry, index, arr) => {
-            if (checkpoints.includes(index)) {
-                await onProgressUpdate(DBOperation.ParseData, index + 1, arr.length);
-            }
-            return {
-                ...entry,
-                id: index,
-            };
-        });
-        const entries = await awaitSequential(promises);
-        await this.db.putAll(OBJECT_STORE, entries, onProgressUpdate, checkpoints);
+        const data = await JSONDataProvider.fetch<Kanjidic2, Kanjidic2Character, Kanjidic2Character>(DATA_URL, onProgressUpdate);
+        const readEntries = (data: Kanjidic2) => data.characters;
+        const parseEntry = (entry: Kanjidic2Character) => entry;
+        const entries = await data.parse(readEntries, parseEntry, onProgressUpdate);
+        await this.db.putAll(OBJECT_STORE, entries, onProgressUpdate);
     }
 }
 
