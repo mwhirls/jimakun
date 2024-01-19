@@ -1,6 +1,6 @@
-import { LookupSentencesMessage, LookupSentencesResult } from "../util/events";
+import { LookupSentencesMessage, LookupSentencesResult, Operation } from "../util/events";
 import { CorpusSentence } from "../util/tanaka-corpus-types";
-import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext } from "./database";
+import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, DBStoreOperation } from "./database";
 
 const INDEX = {
     name: "keywords",
@@ -14,7 +14,7 @@ const OBJECT_STORE = {
 }
 const DATA_URL = 'tanaka-corpus-json/jpn-eng-examples.json';
 
-export class ExamplesStore {
+export class TatoebaStore {
     readonly db: IDBWrapper;
 
     private constructor(db: IDBWrapper) {
@@ -23,7 +23,11 @@ export class ExamplesStore {
 
     static async open(name: string, version: number, onDBUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>) {
         const db = await IDBWrapper.open(name, version, onDBUpgrade);
-        return new ExamplesStore(db);
+        return new TatoebaStore(db);
+    }
+
+    static async openWith(db: IDBWrapper) {
+        return new TatoebaStore(db);
     }
 
     async lookup(lookup: LookupSentencesMessage): Promise<LookupSentencesResult> {
@@ -34,7 +38,7 @@ export class ExamplesStore {
         return { pages, sentences };
     }
 
-    async populate() {
+    async populate(onProgressTick: (operation: DBStoreOperation, value: number, max: number) => void) {
         const dictUrl = chrome.runtime.getURL(DATA_URL);
         const response = await fetch(dictUrl);
         const sentences = await response.json() as CorpusSentence[];
@@ -43,7 +47,8 @@ export class ExamplesStore {
             return;
         }
         const entries = sentences.map(entry => {
-            const keywords: string[] = entry.words.flatMap(word => {
+            const keywords: string[] = entry.words.flatMap((word, index, arr) => {
+                onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length)
                 return [word.headword, ...word.reading ?? [], ...word.surfaceForm ?? []]
             });
             return {
@@ -51,11 +56,11 @@ export class ExamplesStore {
                 keywords,
             };
         });
-        this.db.putAll(OBJECT_STORE, entries);
+        this.db.putAll(OBJECT_STORE, entries, onProgressTick);
     }
 }
 
-export class ExamplesStoreUpgrade implements DBStoreUpgrade {
+export class TatoebaStoreUpgrade implements DBStoreUpgrade {
     readonly db: DBStoreUpgradeContext;
 
     constructor(db: DBStoreUpgradeContext) {

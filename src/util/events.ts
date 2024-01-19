@@ -11,6 +11,8 @@ export enum RuntimeEvent {
     SeekTime = 'seek-time',
     ToggleSubs = 'toggle-subs',
     PlayAudio = 'play-audio',
+    RequestDBStatus = 'request-db-status',
+    ReportDBStatus = 'report-db-status',
 }
 
 export interface RuntimeMessage {
@@ -60,4 +62,47 @@ export interface LookupKanjiMessage {
 
 export interface PlayAudioMessage {
     utterance: string;
+}
+
+export enum Operation {
+    UpgradeDatabase,
+    LoadData,
+    PutData,
+    IndexStore,
+}
+
+export enum DataSource {
+    Dictionary,
+    Kanji,
+    ExampleSentences,
+}
+
+export enum Status {
+    Ready = 'ready',
+    Blocked = 'blocked',
+    Busy = 'busy',
+}
+
+export interface Ready {
+    type: Status.Ready;
+}
+
+export interface Blocked {
+    type: Status.Blocked;
+}
+
+export interface Progress {
+    value: number;
+    max: number;
+}
+
+export interface Busy {
+    type: Status.Busy;
+    operation: Operation;
+    progress: Progress;
+    source?: DataSource;
+}
+
+export interface DBStatusResult {
+    status: Ready | Blocked | Busy;
 }

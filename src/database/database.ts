@@ -86,6 +86,12 @@ export class IDBUpgradeContext {
     }
 }
 
+export enum DBStoreOperation {
+    LoadData,
+    PutData,
+    Index,
+}
+
 export interface DBStoreUpgrade {
     db: DBStoreUpgradeContext;
     apply(): void;
@@ -102,7 +108,7 @@ function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgrade
         };
         request.onsuccess = () => {
             const db = request.result;
-            resolve(new IDBWrapper(db));
+            resolve(new IDBWrapper(db, false));
         };
         request.onupgradeneeded = () => {
             if (!request.result) {
@@ -113,7 +119,7 @@ function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgrade
             db.onversionchange = () => {
                 db.close(); // close to allow new database instances in other tabs to upgrade
             };
-            onUpgrade(new IDBUpgradeContext(new IDBWrapper(db)))
+            onUpgrade(new IDBUpgradeContext(new IDBWrapper(db, true)))
                 .then(wrapper => {
                     resolve(wrapper);
                 })
@@ -129,9 +135,11 @@ export interface Pagination {
 
 export class IDBWrapper {
     readonly db: IDBDatabase;
+    readonly upgraded: boolean;
 
-    constructor(db: IDBDatabase) {
+    constructor(db: IDBDatabase, upgraded: boolean) {
         this.db = db;
+        this.upgraded = upgraded;
     }
 
     static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>): Promise<IDBWrapper>;
@@ -156,22 +164,24 @@ export class IDBWrapper {
         }
     }
 
-    putAll(store: DBStore, entries: unknown[]) {
-        const transaction = this.db.transaction(store.name, "readwrite");
-        const objectStore = transaction.objectStore(store.name);
-        for (const entry of entries) {
-            objectStore.put(entry);
-        }
-        transaction.commit();
-    }
-
-    addAll(store: DBStore, entries: unknown[]) {
-        const transaction = this.db.transaction(store.name, "readwrite");
-        const objectStore = transaction.objectStore(store.name);
-        for (const entry of entries) {
-            objectStore.add(entry);
-        }
-        transaction.commit();
+    putAll(store: DBStore, entries: unknown[], onProgressTick: (op: DBStoreOperation, value: number, max: number) => void): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(store.name, "readwrite");
+            const objectStore = transaction.objectStore(store.name);
+            for (let i = 0; i < entries.length; i++) {
+                const request = objectStore.put(entries[i]);
+                onProgressTick(DBStoreOperation.PutData, i + 1, entries.length);
+                request.onerror = () => {
+                    reject(new DatabaseError(DBErrorType.TransactionError));
+                };
+                request.onsuccess = () => {
+                    onProgressTick(DBStoreOperation.Index, i + 1, entries.length);
+                    resolve()
+                };
+            }
+            // TODO: maybe only set onsuccess for last request to improve performance
+            transaction.commit();
+        });
     }
 
     countRecords(store: DBStore) {

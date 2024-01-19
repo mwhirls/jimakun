@@ -8,7 +8,7 @@ import Examples from './Examples';
 import Kanji from './Kanji';
 import Notes from './Notes';
 import type { JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { LookupWordMessage, RuntimeEvent, RuntimeMessage } from '../../../util/events';
+import { DBStatusResult, LookupWordMessage, RuntimeEvent, RuntimeMessage, Status } from '../../../util/events';
 import { toHiragana } from '../../../util/lang';
 import ProgressBar from './ProgressBar';
 
@@ -79,19 +79,46 @@ export interface CardProps {
 }
 
 function Card({ word }: CardProps) {
-
     const [entry, setEntry] = useState<JMdictWord | null>(null);
+    const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
 
     useEffect(() => {
-        (async () => {
-            const entry = await lookupWord(word);
-            if (!entry) {
-                // todo: how to display this to the user?
-                return;
+        const runtimeListener = (message: RuntimeMessage) => {
+            if (message.event === RuntimeEvent.ReportDBStatus) {
+                const result = message.data as DBStatusResult; // TODO: validate
+                setDBStatus(result);
             }
-            setEntry(entry);
-        })();
+        };
+        chrome.runtime.onMessage.addListener(runtimeListener);
+        return () => {
+            chrome.runtime.onMessage.removeListener(runtimeListener);
+        }
     }, []);
+
+    useEffect(() => {
+        if (!dbStatus) {
+            setEntry(null);
+            return;
+        }
+        switch (dbStatus.status.type) {
+            case Status.Ready:
+                (async () => {
+                    const entry = await lookupWord(word);
+                    if (!entry) {
+                        // todo: how to display this to the user?
+                        return;
+                    }
+                    setEntry(entry);
+                })();
+                break;
+            case Status.Blocked:
+                console.log('database blocked'); // TODO
+                break;
+            case Status.Busy:
+                console.log('database busy'); // TODO
+                break;
+        }
+    }, [dbStatus]);
 
     const showEntry = false; // TEMP FOR TESTING
 

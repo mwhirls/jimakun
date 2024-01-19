@@ -1,6 +1,6 @@
 import { JMdict, JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { LookupWordMessage } from "../util/events";
-import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper, DBStoreUpgradeContext } from "./database";
+import { LookupWordMessage, Operation } from "../util/events";
+import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper, DBStoreUpgradeContext, DBStoreOperation } from "./database";
 
 const INDEX = {
     name: "forms",
@@ -63,7 +63,7 @@ function findBestMatch(matches: JMdictWord[], lookup: LookupWordMessage): JMdict
     return bestMatch;
 }
 
-export class Dictionary {
+export class JMDictStore {
     readonly db: IDBWrapper;
 
     private constructor(db: IDBWrapper) {
@@ -72,24 +72,29 @@ export class Dictionary {
 
     static async open(name: string, version: number, onDBUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>) {
         const db = await IDBWrapper.open(name, version, onDBUpgrade);
-        return new Dictionary(db);
+        return new JMDictStore(db);
     }
 
-    async populate() {
+    static async openWith(db: IDBWrapper) {
+        return new JMDictStore(db);
+    }
+
+    async populate(onProgressTick: (operation: DBStoreOperation, value: number, max: number) => void) {
         const dictUrl = chrome.runtime.getURL(DATA_URL);
         const response = await fetch(dictUrl);
         const jmdict = await response.json() as JMdict;
         const count = await this.db.countRecords(OBJECT_STORE);
-        if (count === jmdict.words.length) {
+        if (!this.db.upgraded && count === jmdict.words.length) {
             return;
         }
-        const entries = Object.entries(jmdict.words).map((entry: [string, JMdictWord]) => {
+        const entries = Object.entries(jmdict.words).map((entry: [string, JMdictWord], index, arr) => {
+            onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length)
             return {
                 ...entry[1],
                 forms: forms(entry[1]),
             };
         });
-        this.db.putAll(OBJECT_STORE, entries);
+        this.db.putAll(OBJECT_STORE, entries, onProgressTick);
     }
 
     async lookupWord(lookup: LookupWordMessage): Promise<JMdictWord | undefined> {
@@ -102,7 +107,7 @@ export class Dictionary {
     }
 }
 
-export class DictionaryUpgrade implements DBStoreUpgrade {
+export class JMDictStoreUpgrade implements DBStoreUpgrade {
     readonly db: DBStoreUpgradeContext;
 
     constructor(db: DBStoreUpgradeContext) {
