@@ -1,6 +1,6 @@
-import { JMdict, JMdictKana, JMdictKanji, JMdictSense, JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { LookupWordMessage, Operation } from "../util/events";
-import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper, DBStoreUpgradeContext, DBStoreOperation } from "./database";
+import { JMdict, JMdictWord } from "@scriptin/jmdict-simplified-types";
+import { LookupWordMessage } from "../util/events";
+import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper, DBStoreUpgradeContext, DBOperation, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
 import { awaitSequential } from "../util/async";
 
 const INDEX = {
@@ -64,10 +64,10 @@ function findBestMatch(matches: JMdictWord[], lookup: LookupWordMessage): JMdict
     return bestMatch;
 }
 
-export class JMDictStore {
+export class JMDictStore implements IDBObjectStoreWrapper {
     readonly db: IDBWrapper;
 
-    private constructor(db: IDBWrapper) {
+    constructor(db: IDBWrapper) {
         this.db = db;
     }
 
@@ -76,18 +76,19 @@ export class JMDictStore {
         return new JMDictStore(db);
     }
 
-    static async openWith(db: IDBWrapper) {
-        return new JMDictStore(db);
+    name(): string {
+        return OBJECT_STORE.name;
     }
 
-    async populate(onProgressTick: (operation: DBStoreOperation, value: number, max: number) => Promise<void>) {
+    async populate(onProgressUpdate: ProgressUpdateCallback) {
+        await onProgressUpdate(DBOperation.FetchData);
         const dictUrl = chrome.runtime.getURL(DATA_URL);
         const response = await fetch(dictUrl);
         const jmdict = await response.json() as JMdict;
         const checkpoints: number[] = [0, 0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((jmdict.words.length - 1) * pct));
         const promises = Object.entries(jmdict.words).map(async (entry: [string, JMdictWord], index, arr) => {
             if (checkpoints.includes(index)) {
-                await onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length);
+                await onProgressUpdate(DBOperation.ParseData, index + 1, arr.length);
             }
             return {
                 ...entry[1],
@@ -95,7 +96,7 @@ export class JMDictStore {
             };
         });
         const entries = await awaitSequential(promises);
-        await this.db.putAll(OBJECT_STORE, entries, onProgressTick, checkpoints);
+        await this.db.putAll(OBJECT_STORE, entries, onProgressUpdate, checkpoints);
     }
 
     async lookupWord(lookup: LookupWordMessage): Promise<JMdictWord | undefined> {

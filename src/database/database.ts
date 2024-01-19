@@ -90,9 +90,19 @@ export class IDBUpgradeContext {
     }
 }
 
-export enum DBStoreOperation {
-    LoadData,
+export enum DBOperation {
+    Open,
+    Upgrade,
+    FetchData,
+    ParseData,
     PutData,
+}
+
+export type ProgressUpdateCallback = (operation: DBOperation, value?: number, max?: number) => Promise<void>;
+
+export interface IDBObjectStoreWrapper {
+    name(): string;
+    populate(onProgressUpdate: ProgressUpdateCallback): Promise<void>;
 }
 
 export interface DBStoreUpgrade {
@@ -167,7 +177,7 @@ export class IDBWrapper {
         }
     }
 
-    putAll(store: DBStore, entries: unknown[], onProgressTick: (op: DBStoreOperation, value: number, max: number) => Promise<void>, checkpoints: number[]): Promise<void[]> {
+    putAll(store: DBStore, entries: unknown[], onProgressUpdate: (op: DBOperation, value: number, max: number) => Promise<void>, checkpoints: number[]): Promise<void[]> {
         const transaction = this.db.transaction(store.name, "readwrite");
         const objectStore = transaction.objectStore(store.name);
         const results = entries.map((entry, index, arr) => {
@@ -181,7 +191,7 @@ export class IDBWrapper {
                         reject(new DatabaseError(DBErrorType.TransactionError));
                     };
                     request.onsuccess = () => {
-                        resolve(onProgressTick(DBStoreOperation.PutData, index + 1, arr.length))
+                        resolve(onProgressUpdate(DBOperation.PutData, index + 1, arr.length))
                     };
                 } else {
                     resolve();

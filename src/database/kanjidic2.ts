@@ -1,6 +1,6 @@
 import { Kanjidic2, Kanjidic2Character } from "@scriptin/jmdict-simplified-types";
-import { LookupKanjiMessage, Operation } from "../util/events";
-import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, DBStoreOperation } from "./database";
+import { LookupKanjiMessage } from "../util/events";
+import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, DBOperation, IDBObjectStoreWrapper, ProgressUpdateCallback } from "./database";
 import { awaitSequential } from "../util/async";
 
 const INDEX = {
@@ -15,19 +15,15 @@ const OBJECT_STORE = {
 }
 const DATA_URL = 'jmdict-simplified/kanjidic2-en.json'
 
-export class KanjiDic2Store {
+export class KanjiDic2Store implements IDBObjectStoreWrapper {
     readonly db: IDBWrapper;
 
-    private constructor(db: IDBWrapper) {
+    constructor(db: IDBWrapper) {
         this.db = db;
     }
 
     static async open(name: string, version: number, onDBUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>) {
         const db = await IDBWrapper.open(name, version, onDBUpgrade);
-        return new KanjiDic2Store(db);
-    }
-
-    static async openWith(db: IDBWrapper) {
         return new KanjiDic2Store(db);
     }
 
@@ -37,14 +33,19 @@ export class KanjiDic2Store {
         return kanji.flatMap(v => v ? [v] : []); // filter undefineds
     }
 
-    async populate(onProgressTick: (operation: DBStoreOperation, value: number, max: number) => Promise<void>) {
+    name(): string {
+        return OBJECT_STORE.name;
+    }
+
+    async populate(onProgressUpdate: ProgressUpdateCallback) {
+        await onProgressUpdate(DBOperation.FetchData);
         const dataUrl = chrome.runtime.getURL(DATA_URL);
         const response = await fetch(dataUrl);
         const kanjidic2 = await response.json() as Kanjidic2;
         const checkpoints: number[] = [0, 0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((kanjidic2.characters.length - 1) * pct));
         const promises = kanjidic2.characters.map(async (entry, index, arr) => {
             if (checkpoints.includes(index)) {
-                await onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length);
+                await onProgressUpdate(DBOperation.ParseData, index + 1, arr.length);
             }
             return {
                 ...entry,
@@ -52,7 +53,7 @@ export class KanjiDic2Store {
             };
         });
         const entries = await awaitSequential(promises);
-        await this.db.putAll(OBJECT_STORE, entries, onProgressTick, checkpoints);
+        await this.db.putAll(OBJECT_STORE, entries, onProgressUpdate, checkpoints);
     }
 }
 

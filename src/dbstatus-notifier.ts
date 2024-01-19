@@ -1,4 +1,5 @@
-import { RuntimeMessage, RuntimeEvent, DBStatusResult, Operation, Status, DataSource, Progress } from "./util/events";
+import { DBOperation } from "./database/database";
+import { RuntimeMessage, RuntimeEvent, DBStatusResult, Status, DataSource, ProgressType } from "./util/events";
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
@@ -20,12 +21,30 @@ export async function notifyDBStatusBlocked() {
     return updateStatus(result);
 }
 
-export async function notifyDBStatusBusy(operation: Operation, progress?: Progress, source?: DataSource) {
+export async function notifyDBStatusBusyDeterminate(operation: DBOperation, value: number, max: number, source?: DataSource) {
     const result: DBStatusResult = {
         status: {
             type: Status.Busy,
             operation,
-            progress,
+            progress: {
+                type: ProgressType.Determinate,
+                value,
+                max
+            },
+            source
+        }
+    }
+    return updateStatus(result);
+}
+
+export async function notifyDBStatusBusyIndeterminate(operation: DBOperation, source?: DataSource) {
+    const result: DBStatusResult = {
+        status: {
+            type: Status.Busy,
+            operation,
+            progress: {
+                type: ProgressType.Indeterminate
+            },
             source
         }
     }

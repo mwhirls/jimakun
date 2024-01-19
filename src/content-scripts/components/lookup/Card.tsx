@@ -8,9 +8,10 @@ import Examples from './Examples';
 import Kanji from './Kanji';
 import Notes from './Notes';
 import type { JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { Blocked, Busy, DBStatusResult, DataSource, LookupWordMessage, Operation, Ready, RuntimeEvent, RuntimeMessage, Status } from '../../../util/events';
+import { Busy, DBStatusResult, DataSource, LookupWordMessage, ProgressType, RuntimeEvent, RuntimeMessage, Status } from '../../../util/events';
 import { toHiragana } from '../../../util/lang';
 import ProgressBar from './ProgressBar';
+import { DBOperation } from '../../../database/database';
 
 async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> {
     const data: LookupWordMessage = {
@@ -31,35 +32,33 @@ function LoadingScreen({ dbStatus }: LoadingScreenProps) {
     const text = () => {
         const sourceText = () => {
             switch (dbStatus.source) {
-                case DataSource.Dictionary:
+                case DataSource.JMDict:
                     return "dictionary"
-                case DataSource.Kanji:
-                    return "kanji";
-                case DataSource.ExampleSentences:
+                case DataSource.KanjiDic2:
+                    return "kanji data";
+                case DataSource.Tatoeba:
                     return "example sentences";
             }
         }
         switch (dbStatus.operation) {
-            case Operation.Opening:
+            case DBOperation.Open:
                 return `Establishing connection...`;
-            case Operation.UpgradeDatabase:
+            case DBOperation.Upgrade:
                 return "Upgrading database...";
-            case Operation.LoadData:
-                return `Parsing latest ${sourceText()} data...`;
-            case Operation.PutData:
-                return `Updating ${sourceText()} database...`;
+            case DBOperation.FetchData:
+                return `Fetch latest ${sourceText()}...`;
+            case DBOperation.ParseData:
+                return `Parsing latest ${sourceText()}...`;
+            case DBOperation.PutData:
+                return `Adding ${sourceText()} to database...`;
+            default:
+                return 'Loading...';
         }
-        throw new Error('unknown database update');
-    }
-    if (dbStatus.progress) {
-        return (
-            <div className='p-8'>
-                <ProgressBar id={"database-progress"} label={text()} value={dbStatus.progress.value} maxValue={dbStatus.progress.max} units={'entries'} ></ProgressBar>
-            </div>
-        )
     }
     return (
-        <></>
+        <div className='p-8'>
+            <ProgressBar id={"database-progress"} label={text()} progress={dbStatus.progress} units={'entries'} ></ProgressBar>
+        </div>
     )
 }
 

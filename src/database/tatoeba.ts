@@ -1,7 +1,7 @@
 import { awaitSequential } from "../util/async";
-import { LookupSentencesMessage, LookupSentencesResult, Operation } from "../util/events";
+import { LookupSentencesMessage, LookupSentencesResult } from "../util/events";
 import { CorpusSentence } from "../util/tanaka-corpus-types";
-import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, DBStoreOperation } from "./database";
+import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, DBOperation, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
 
 const INDEX = {
     name: "keywords",
@@ -15,19 +15,15 @@ const OBJECT_STORE = {
 }
 const DATA_URL = 'tanaka-corpus-json/jpn-eng-examples.json';
 
-export class TatoebaStore {
+export class TatoebaStore implements IDBObjectStoreWrapper {
     readonly db: IDBWrapper;
 
-    private constructor(db: IDBWrapper) {
+    constructor(db: IDBWrapper) {
         this.db = db;
     }
 
     static async open(name: string, version: number, onDBUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>) {
         const db = await IDBWrapper.open(name, version, onDBUpgrade);
-        return new TatoebaStore(db);
-    }
-
-    static async openWith(db: IDBWrapper) {
         return new TatoebaStore(db);
     }
 
@@ -39,14 +35,19 @@ export class TatoebaStore {
         return { pages, sentences };
     }
 
-    async populate(onProgressTick: (operation: DBStoreOperation, value: number, max: number) => Promise<void>) {
+    name(): string {
+        return OBJECT_STORE.name;
+    }
+
+    async populate(onProgressUpdate: ProgressUpdateCallback) {
+        onProgressUpdate(DBOperation.FetchData);
         const dictUrl = chrome.runtime.getURL(DATA_URL);
         const response = await fetch(dictUrl);
         const sentences = await response.json() as CorpusSentence[];
         const checkpoints: number[] = [0, 0.25, 0.5, 0.75, 0.9, 1.0].map(pct => Math.floor((sentences.length - 1) * pct));
         const promises = sentences.map(async (entry, index, arr) => {
             if (checkpoints.includes(index)) {
-                onProgressTick(DBStoreOperation.LoadData, index + 1, arr.length);
+                onProgressUpdate(DBOperation.ParseData, index + 1, arr.length);
             }
             const keywords: string[] = entry.words.flatMap(word => {
                 return [word.headword, ...word.reading ?? [], ...word.surfaceForm ?? []]
@@ -57,7 +58,7 @@ export class TatoebaStore {
             };
         });
         const entries = await awaitSequential(promises);
-        return this.db.putAll(OBJECT_STORE, entries, onProgressTick, checkpoints);
+        await this.db.putAll(OBJECT_STORE, entries, onProgressUpdate, checkpoints);
     }
 }
 

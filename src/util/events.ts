@@ -1,4 +1,4 @@
-import { JMdictWord } from "@scriptin/jmdict-simplified-types";
+import { DBOperation } from "../database/database";
 import { CorpusSentence } from "./tanaka-corpus-types";
 
 export enum RuntimeEvent {
@@ -61,8 +61,6 @@ export interface MessageResponse<T, S> {
     result: Success<T> | Error<S>
 }
 
-type LookupWordResponse = MessageResponse<JMdictWord | undefined, DBStatusResult>;
-
 export interface LookupSentencesMessage {
     searchTerm: string;
     page: number;
@@ -82,17 +80,11 @@ export interface PlayAudioMessage {
     utterance: string;
 }
 
-export enum Operation {
-    Opening,
-    UpgradeDatabase,
-    LoadData,
-    PutData,
-}
-
 export enum DataSource {
-    Dictionary,
-    Kanji,
-    ExampleSentences,
+    JMDict = 'jmdict',
+    KanjiDic2 = 'kanjidic2',
+    Tatoeba = 'tatoeba',
+    Unknown = '',
 }
 
 export enum Status {
@@ -109,15 +101,27 @@ export interface Blocked {
     type: Status.Blocked;
 }
 
-export interface Progress {
+export enum ProgressType {
+    Determinate = 'determinate',
+    Indeterminate = 'indeterminate',
+}
+
+export interface Determinate {
+    type: ProgressType.Determinate;
     value: number;
     max: number;
 }
 
+export interface Indeterminate {
+    type: ProgressType.Indeterminate;
+}
+
+export type Progress = Determinate | Indeterminate;
+
 export interface Busy {
     type: Status.Busy;
-    operation: Operation;
-    progress?: Progress;
+    operation: DBOperation;
+    progress: Progress;
     source?: DataSource;
 }
 

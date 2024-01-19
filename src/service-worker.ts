@@ -1,8 +1,8 @@
-import { IDBUpgradeContext, IDBWrapper, DBStoreOperation, DBStore } from "./database/database";
+import { IDBUpgradeContext, IDBWrapper, DBOperation, IDBObjectStoreWrapper } from "./database/database";
 import { JMDictStore, JMDictStoreUpgrade } from "./database/jmdict";
 import { TatoebaStore, TatoebaStoreUpgrade } from "./database/tatoeba";
 import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanjidic2";
-import { DBStatusResult, DataSource, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, MovieChangedMessage, Operation, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection, Status } from "./util/events";
+import { DataSource, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, MovieChangedMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
 import * as DBStatusNotifier from './dbstatus-notifier'
 
 const DB_NAME = 'jimakun';
@@ -155,30 +155,31 @@ async function onDBUpgrade(db: IDBUpgradeContext) {
     return db.commit();
 }
 
-async function populateDatabase(db: IDBWrapper) {
-    const onProgressTick = async (storeOp: DBStoreOperation, value: number, max: number, source: DataSource) => {
-        const progress = { value, max };
-        const operation = () => {
-            switch (storeOp) {
-                case DBStoreOperation.LoadData:
-                    return Operation.LoadData;
-                case DBStoreOperation.PutData:
-                    return Operation.PutData;
-            }
+async function populateObjectStore(store: IDBObjectStoreWrapper) {
+    const source = Object.values(DataSource).find(x => x === store.name());
+    await DBStatusNotifier.notifyDBStatusBusyIndeterminate(DBOperation.Open);
+    await store.populate(async (operation: DBOperation, value?: number, max?: number) => {
+        if (value && max) {
+            return DBStatusNotifier.notifyDBStatusBusyDeterminate(operation, value, max, source);
         }
-        return DBStatusNotifier.notifyDBStatusBusy(operation(), progress, source);
-    };
+        return DBStatusNotifier.notifyDBStatusBusyIndeterminate(operation, source);
+    });
+}
+
+async function populateDatabase(db: IDBWrapper) {
     // make sure object stores have the latest data
-    const jmdict = await JMDictStore.openWith(db);
-    await jmdict.populate((op, value, max) => onProgressTick(op, value, max, DataSource.Dictionary));
-    const kanjidic2 = await KanjiDic2Store.openWith(db);
-    await kanjidic2.populate((op, value, max) => onProgressTick(op, value, max, DataSource.Kanji));
-    const tatoeba = await TatoebaStore.openWith(db);
-    await tatoeba.populate((op, value, max) => onProgressTick(op, value, max, DataSource.ExampleSentences));
+    const objectStores = [
+        new JMDictStore(db),
+        new KanjiDic2Store(db),
+        new TatoebaStore(db),
+    ];
+    for (const store of objectStores) {
+        await populateObjectStore(store)
+    }
 }
 
 async function openDatabase() {
-    await DBStatusNotifier.notifyDBStatusBusy(Operation.Opening);
+    await DBStatusNotifier.notifyDBStatusBusyIndeterminate(DBOperation.Open);
     const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
     if (db.upgraded) {
         await populateDatabase(db);
