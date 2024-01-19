@@ -8,7 +8,7 @@ import Examples from './Examples';
 import Kanji from './Kanji';
 import Notes from './Notes';
 import type { JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { DBStatusResult, LookupWordMessage, RuntimeEvent, RuntimeMessage, Status } from '../../../util/events';
+import { Blocked, Busy, DBStatusResult, DataSource, LookupWordMessage, Operation, Ready, RuntimeEvent, RuntimeMessage, Status } from '../../../util/events';
 import { toHiragana } from '../../../util/lang';
 import ProgressBar from './ProgressBar';
 
@@ -23,22 +23,61 @@ async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> 
     return await chrome.runtime.sendMessage(message);
 }
 
-function LoadingScreen() {
+interface LoadingScreenProps {
+    dbStatus: Busy;
+}
+
+function LoadingScreen({ dbStatus }: LoadingScreenProps) {
+    const text = () => {
+        const sourceText = () => {
+            switch (dbStatus.source) {
+                case DataSource.Dictionary:
+                    return "dictionary"
+                case DataSource.Kanji:
+                    return "kanji";
+                case DataSource.ExampleSentences:
+                    return "example sentences";
+            }
+        }
+        switch (dbStatus.operation) {
+            case Operation.UpgradeDatabase:
+                return "Upgrading database...";
+            case Operation.LoadData:
+                return `Parsing ${sourceText()} data...`;
+            case Operation.PutData:
+                return `Updating ${sourceText()} database...`;
+        }
+        throw new Error('unknown database update');
+    }
     return (
-        <>
-            <ProgressBar id={"database-update-progress"} label={"Updating database..."} maxValue={100} units={'%'} ></ProgressBar>
-            <ProgressBar id={"dictionary-initialization-progress"} label={"Initializing dictionary..."} maxValue={100} units={'%'} ></ProgressBar>
-        </>
+        <div className='p-8'>
+            <ProgressBar id={"database-progress"} label={text()} value={dbStatus.progress.value} maxValue={dbStatus.progress.max} units={'entries'} ></ProgressBar>
+        </div>
     )
 }
 
 interface EntryDetailsProps {
     word: bunsetsu.Word;
-    entry: JMdictWord;
 }
 
-function EntryDetails({ word, entry }: EntryDetailsProps) {
+function EntryDetails({ word }: EntryDetailsProps) {
+    const [entry, setEntry] = useState<JMdictWord | null>(null);
     const [selectedTab, setSelectedTab] = useState(0);
+
+    useEffect(() => {
+        (async () => {
+            const entry = await lookupWord(word);
+            if (!entry) {
+                // todo: how to display this to the user?
+                return;
+            }
+            setEntry(entry);
+        })();
+    }, []);
+
+    if (!entry) {
+        return <></>; // TODO: better loading indicator
+    }
 
     const tabs = [
         {
@@ -79,7 +118,6 @@ export interface CardProps {
 }
 
 function Card({ word }: CardProps) {
-    const [entry, setEntry] = useState<JMdictWord | null>(null);
     const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
 
     useEffect(() => {
@@ -95,36 +133,25 @@ function Card({ word }: CardProps) {
         }
     }, []);
 
-    useEffect(() => {
+    const content = () => {
         if (!dbStatus) {
-            setEntry(null);
-            return;
+            return <></>; // TODO
         }
         switch (dbStatus.status.type) {
             case Status.Ready:
-                (async () => {
-                    const entry = await lookupWord(word);
-                    if (!entry) {
-                        // todo: how to display this to the user?
-                        return;
-                    }
-                    setEntry(entry);
-                })();
-                break;
+                return <EntryDetails word={word}></EntryDetails>;
             case Status.Blocked:
-                console.log('database blocked'); // TODO
-                break;
+                return <></>; // TODO
             case Status.Busy:
-                console.log('database busy'); // TODO
-                break;
+                return <LoadingScreen dbStatus={dbStatus.status}></LoadingScreen>;
+            default:
+                return <></>; // TODO
         }
-    }, [dbStatus]);
-
-    const showEntry = false; // TEMP FOR TESTING
+    }
 
     return (
         <div className="flex flex-col gap-y-6 bg-white rounded-lg text-black max-w-[40vw] max-h-[60vh] px-12 py-6">
-            {showEntry && entry ? <EntryDetails word={word} entry={entry}></EntryDetails> : <LoadingScreen></LoadingScreen>}
+            {content()}
         </div>
     );
 }
