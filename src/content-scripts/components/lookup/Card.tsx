@@ -12,6 +12,7 @@ import { Busy, DBStatusResult, DataSource, LookupWordMessage, RuntimeEvent, Runt
 import { toHiragana } from '../../../util/lang';
 import ProgressBar from './ProgressBar';
 import { DBOperation } from '../../../database/database';
+import Spinner from './Spinner';
 
 async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> {
     const data: LookupWordMessage = {
@@ -24,11 +25,17 @@ async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> 
     return await chrome.runtime.sendMessage(message);
 }
 
-interface LoadingScreenProps {
+function LoadingScreen() {
+    return (
+        <Spinner></Spinner>
+    )
+}
+
+interface DatabaseLoadingScreenProps {
     dbStatus: Busy;
 }
 
-function LoadingScreen({ dbStatus }: LoadingScreenProps) {
+function DatabaseLoadingScreen({ dbStatus }: DatabaseLoadingScreenProps) {
     const text = () => {
         const sourceText = () => {
             switch (dbStatus.source) {
@@ -148,18 +155,17 @@ function Card({ word }: CardProps) {
     }, []);
 
     const content = () => {
-        if (!dbStatus) {
-            return <></>; // TODO
-        }
-        switch (dbStatus.status.type) {
+        switch (dbStatus?.status.type) {
             case Status.Ready:
                 return <EntryDetails word={word}></EntryDetails>;
             case Status.Blocked:
                 return <></>; // TODO
             case Status.Busy:
-                return <LoadingScreen dbStatus={dbStatus.status}></LoadingScreen>;
-            default:
+                return <DatabaseLoadingScreen dbStatus={dbStatus.status}></DatabaseLoadingScreen>;
+            case Status.ErrorOccurred:
                 return <></>; // TODO
+            default:
+                return <LoadingScreen></LoadingScreen>;
         }
     }
 
