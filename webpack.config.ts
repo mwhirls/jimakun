@@ -96,12 +96,16 @@ module.exports = (
             new HtmlWebpackPlugin({
                 template: path.resolve(__dirname, "src/popup/popup.html"),
                 inject: true,
-                filename: "popup.html"
+                scriptLoading: 'module',
+                filename: "popup.html",
+                chunks: ["popup"]
             }),
             new HtmlWebpackPlugin({
                 template: path.resolve(__dirname, "src/options/options.html"),
                 inject: true,
-                filename: "options.html"
+                scriptLoading: 'module',
+                filename: "options.html",
+                chunks: ["options"]
             }),
             new CopyPlugin({
                 patterns: [

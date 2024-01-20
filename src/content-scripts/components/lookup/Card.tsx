@@ -125,7 +125,7 @@ function Card({ word }: CardProps) {
             case Status.Blocked:
                 return <DatabaseBlocked dbStatus={dbStatus.status}></DatabaseBlocked>
             case Status.Busy:
-                return <DatabaseBusy dbStatus={dbStatus.status}></DatabaseBusy>
+                return <DatabaseBusy dbStatus={dbStatus.status} className='w-[40rem] h-[30rem]' titleClassName='text-4xl' infoTextClassName='text-2xl'></DatabaseBusy>
             case Status.ErrorOccurred:
                 return <DatabaseError dbStatus={dbStatus.status}></DatabaseError>
             default:
