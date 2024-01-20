@@ -26,17 +26,15 @@ async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> 
     return chrome.runtime.sendMessage(message);
 }
 
-function LoadingScreen() {
-    return (
-        <Spinner></Spinner>
-    )
+function Blocked() {
+    return <>Database is blocked!</>;
 }
 
-interface DatabaseLoadingScreenProps {
+interface BusyScreenProps {
     dbStatus: Busy;
 }
 
-function DatabaseLoadingScreen({ dbStatus }: DatabaseLoadingScreenProps) {
+function BusyScreen({ dbStatus }: BusyScreenProps) {
     const text = () => {
         const sourceText = () => {
             switch (dbStatus.source) {
@@ -68,6 +66,10 @@ function DatabaseLoadingScreen({ dbStatus }: DatabaseLoadingScreenProps) {
             <ProgressBar id={"database-progress"} label={text()} progress={dbStatus.progress} units={'entries'} ></ProgressBar>
         </div>
     )
+}
+
+function ErrorOccurred() {
+    return <>A database error occurred!</>;
 }
 
 interface EntryDetailsProps {
@@ -113,7 +115,7 @@ function EntryDetails({ word }: EntryDetailsProps) {
     ];
 
     return (
-        <>
+        <div className='flex flex-col gap-y-6 h-full'>
             <div className='flex-none'>
                 <Header word={word} entry={entry}></Header>
             </div>
@@ -123,7 +125,7 @@ function EntryDetails({ word }: EntryDetailsProps) {
             <div className='flex-none'>
                 <Footer></Footer>
             </div>
-        </>
+        </div>
     )
 }
 
@@ -154,18 +156,18 @@ function Card({ word }: CardProps) {
             case Status.Ready:
                 return <EntryDetails word={word}></EntryDetails>;
             case Status.Blocked:
-                return <div>Database blocked</div>; // TODO
+                return <Blocked></Blocked>
             case Status.Busy:
-                return <DatabaseLoadingScreen dbStatus={dbStatus.status}></DatabaseLoadingScreen>;
+                return <BusyScreen dbStatus={dbStatus.status}></BusyScreen>
             case Status.ErrorOccurred:
-                return <div>Database error occurred</div>; // TODO
+                return <ErrorOccurred></ErrorOccurred>
             default:
-                return <LoadingScreen></LoadingScreen>;
+                return <Spinner></Spinner>;
         }
     }
 
     return (
-        <div className="flex flex-col gap-y-6 bg-white rounded-lg text-black max-w-[40vw] max-h-[60vh] px-12 py-6">
+        <div className="bg-white rounded-lg text-black min-w-fit w-[45rem] max-w-[40vw] min-h-fit h-[40rem] max-h-[60vh] px-12 py-6 overflow-hidden">
             {content()}
         </div>
     );
