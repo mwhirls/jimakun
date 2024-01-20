@@ -177,7 +177,7 @@ function Card({ word }: CardProps) {
     }
 
     return (
-        <div className="bg-white rounded-lg text-black min-w-fit w-[45rem] max-w-[40vw] min-h-fit h-[40rem] max-h-[60vh] px-12 py-6 overflow-hidden">
+        <div className="bg-white rounded-lg text-black min-w-fit max-w-[40vw] min-h-fit max-h-[60vh] px-12 py-6">
             {content()}
         </div>
     );
