@@ -5,12 +5,14 @@ import Video from './Video'
 
 import { ChildMutationType, WEBVTT_FORMAT, querySelectorMutation } from "../util/util"
 import { TimedTextTrack, NetflixMetadata, TimedTextSwitch } from "../../util/netflix-types";
-import { RuntimeEvent, MovieChangedMessage, RuntimeMessage } from '../../util/events';
+import { RuntimeEvent, RuntimeMessage } from '../../util/events';
 import { SegmenterContext } from '../contexts/SegmenterContext';
 import { Segmenter, build } from 'bunsetsu';
+import { LocalStorageChangedListener, LocalStorageObject } from '../../local-storage';
 
 const NETFLIX_PLAYER_CLASS = "watch-video--player-view";
 const NETFLIX_VIDEO_CLASS = `${NETFLIX_PLAYER_CLASS} video`
+const MOVIE_KEY = 'lastMovieId';
 
 class SubtitleData implements WebvttSubtitles {
     webvttUrl: string;
@@ -47,9 +49,9 @@ async function downloadSubtitles(track: TimedTextTrack): Promise<SubtitleData | 
 }
 
 function App() {
-    const [moviesMetadata, setMoviesMetadata] = useState(new Map<string, NetflixMetadata>);
+    const [moviesMetadata, setMoviesMetadata] = useState(new Map<number, NetflixMetadata>);
     const [subtitleData, setSubtitleData] = useState(new Map<string, SubtitleData>);
-    const [currMovie, setCurrMovie] = useState("");
+    const [currMovie, setCurrMovie] = useState<number | null>(null);
     const [currTrack, setCurrTrack] = useState("");
     const [netflixPlayer, setNetflixPlayer] = useState<Element | null>(document.querySelector(`.${NETFLIX_PLAYER_CLASS}`));
     const [videoElem, setVideoElem] = useState<HTMLVideoElement | null>(document.querySelector(`.${NETFLIX_VIDEO_CLASS}`) as HTMLVideoElement | null);
@@ -59,7 +61,7 @@ function App() {
         const metadataListener = async (event: Event) => {
             const data = (event as CustomEvent).detail as NetflixMetadata;
             const metadata = data;
-            setMoviesMetadata(prev => new Map([...prev, [metadata.movieId.toString(), metadata]]));
+            setMoviesMetadata(prev => new Map([...prev, [metadata.movieId, metadata]]));
             for (const track of metadata.timedtexttracks) {
                 try {
                     const subtitles = await downloadSubtitles(track);
@@ -76,15 +78,13 @@ function App() {
             const data = (event as CustomEvent).detail as TimedTextSwitch;
             setCurrTrack(data.track.trackId);
         };
-        const runtimeListener = (message: RuntimeMessage) => {
-            if (message.event === RuntimeEvent.MovieUpdated) {
-                const data = message.data as MovieChangedMessage;
-                setCurrMovie(data.movieId);
-            }
-        };
         window.addEventListener(RuntimeEvent.MetadataDetected, metadataListener);
         window.addEventListener(RuntimeEvent.SubtitleTrackSwitched, trackSwitchedListener);
-        chrome.runtime.onMessage.addListener(runtimeListener);
+
+        const storage = new LocalStorageObject<number>(MOVIE_KEY);
+        const onMovieIdChanged = LocalStorageChangedListener.create(storage, (movieId => setCurrMovie(movieId)));
+        storage.get().then(movieId => setCurrMovie(movieId));
+        storage.addOnChangedListener(onMovieIdChanged);
 
         // We insert our components into the Netflix DOM, but they constantly
         // mutate it.  Watch for changes so we know when to re-render.
@@ -111,7 +111,7 @@ function App() {
         return () => {
             window.removeEventListener(RuntimeEvent.MetadataDetected, metadataListener);
             window.removeEventListener(RuntimeEvent.MetadataDetected, trackSwitchedListener);
-            chrome.runtime.onMessage.removeListener(runtimeListener);
+            storage.removeOnChangedListener(onMovieIdChanged);
             netflixObserver.disconnect();
         };
     }, []);

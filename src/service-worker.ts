@@ -2,7 +2,7 @@ import { IDBUpgradeContext, IDBWrapper, DBOperation, IDBObjectStoreWrapper } fro
 import { JMDictStore, JMDictStoreUpgrade } from "./database/jmdict";
 import { TatoebaStore, TatoebaStoreUpgrade } from "./database/tatoeba";
 import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanjidic2";
-import { DataSource, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, MovieChangedMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
+import { DataSource, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
 import * as DBStatusNotifier from './dbstatus-notifier'
 import * as tabs from './tabs'
 import { LocalStorageObject } from "./local-storage";
@@ -20,10 +20,14 @@ enum Command {
     ToggleSubs = 'toggle-subs',
 }
 
-function extractMovieId(url: string) {
+function extractMovieId(url: string): number | undefined {
     const regex = new RegExp('netflix.com/watch/([0-9]+)');
     const match = regex.exec(url);
-    return match ? match[1] : null;
+    if (!match) {
+        return undefined;
+    }
+    const movie = match[1];
+    return Number.isNaN(movie) ? undefined : Number.parseInt(movie);
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -36,11 +40,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
     const movieId = extractMovieId(url);
     if (movieId) {
-        const storage = new LocalStorageObject<string>(MOVIE_KEY);
+        const storage = new LocalStorageObject<number>(MOVIE_KEY);
         storage.set(movieId);
-        const data: MovieChangedMessage = { movieId };
-        const message: RuntimeMessage = { event: RuntimeEvent.MovieUpdated, data };
-        tabs.sendMessageTo(tabId, message);
     }
 });
 

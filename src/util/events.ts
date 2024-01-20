@@ -7,7 +7,6 @@ export enum RuntimeEvent {
     LookupSentences = 'lookup-sentences',
     LookupWord = 'lookup-word',
     MetadataDetected = 'metadata-detected',
-    MovieUpdated = 'movie-updated',
     SubtitleTrackSwitched = 'subtitle-track-switched',
     SeekCue = 'seek-cue',
     SeekTime = 'seek-time',
@@ -19,10 +18,6 @@ export enum RuntimeEvent {
 export interface RuntimeMessage {
     event: RuntimeEvent,
     data: unknown
-}
-
-export interface MovieChangedMessage {
-    movieId: string
 }
 
 export enum SeekDirection {
