@@ -14,6 +14,7 @@ import ProgressBar from './ProgressBar';
 import { DBOperation } from '../../../database/database';
 import Spinner from './Spinner';
 import * as DBStatusNotifier from './../../../dbstatus-notifier';
+import { ProgressType } from '../../../util/progress';
 
 async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> {
     const data: LookupWordMessage = {
@@ -62,10 +63,14 @@ function BusyScreen({ dbStatus }: BusyScreenProps) {
         }
     }
     return (
-        <div className='flex flex-col justify-center items-center w-4/5 m-auto text-3xl font-normal h-full gap-4'>
-            <div>Please wait for the dictionaries to initialize...</div>
-            <div>This may take a few minutes after installing or updating Jimakun.</div>
-            <ProgressBar id={"database-progress"} label={text()} progress={dbStatus.progress} units={'entries'} ></ProgressBar>
+        <div className='flex flex-col justify-center items-center m-auto gap-8 w-[40rem] max-w-full h-[30rem] max-h-full'>
+            <div>
+                <div className='font-bold text-4xl mb-6 text-center'>{text()}</div>
+                <div className='w-4/5 mx-auto'>
+                    <ProgressBar progress={dbStatus.progress} units={'entries'} ></ProgressBar>
+                </div>
+            </div>
+            <div className='text-2xl font-light text-center text-slate-400 w-11/12'>Please wait for the dictionaries to initialize... This may take a few minutes after installing or updating Jimakun.</div>
         </div>
     )
 }
@@ -161,8 +166,12 @@ function Card({ word }: CardProps) {
         }
     }, []);
 
+    if (!dbStatus) {
+        return <></>;
+    }
+
     const content = () => {
-        switch (dbStatus?.status.type) {
+        switch (dbStatus.status.type) {
             case Status.Ready:
                 return <EntryDetails word={word}></EntryDetails>;
             case Status.Blocked:
