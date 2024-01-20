@@ -157,13 +157,13 @@ export class IDBWrapper {
     static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, attempts?: number): Promise<IDBWrapper>;
     static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, attempts?: number): Promise<IDBWrapper> {
         if (!attempts) {
-            return await openIndexedDB(name, version, onUpgrade);
+            return openIndexedDB(name, version, onUpgrade);
         }
         if (attempts <= 0) {
             throw new Error('unable to open database after multiple attempts; aborting');
         }
         try {
-            return await openIndexedDB(name, version, onUpgrade);
+            return openIndexedDB(name, version, onUpgrade);
         } catch (e: unknown) {
             if (e instanceof DatabaseError && e.type === DBErrorType.Blocked) {
                 // re-attempt

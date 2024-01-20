@@ -13,6 +13,7 @@ import { toHiragana } from '../../../util/lang';
 import ProgressBar from './ProgressBar';
 import { DBOperation } from '../../../database/database';
 import Spinner from './Spinner';
+import * as DBStatusNotifier from './../../../dbstatus-notifier';
 
 async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> {
     const data: LookupWordMessage = {
@@ -22,7 +23,7 @@ async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> 
         hiragana: toHiragana(word.reading()),
     };
     const message: RuntimeMessage = { event: RuntimeEvent.LookupWord, data: data };
-    return await chrome.runtime.sendMessage(message);
+    return chrome.runtime.sendMessage(message);
 }
 
 function LoadingScreen() {
@@ -141,13 +142,7 @@ function Card({ word }: CardProps) {
             }
         };
         chrome.runtime.onMessage.addListener(runtimeListener);
-
-        const message: RuntimeMessage = {
-            event: RuntimeEvent.RequestDBStatus, data: undefined
-        };
-        chrome.runtime.sendMessage(message)
-            .then(status => setDBStatus(status as DBStatusResult)) // todo: validate
-            .catch(e => console.error(e));
+        DBStatusNotifier.getDBStatus().then(result => setDBStatus(result));
 
         return () => {
             chrome.runtime.onMessage.removeListener(runtimeListener);
@@ -159,11 +154,11 @@ function Card({ word }: CardProps) {
             case Status.Ready:
                 return <EntryDetails word={word}></EntryDetails>;
             case Status.Blocked:
-                return <></>; // TODO
+                return <div>Database blocked</div>; // TODO
             case Status.Busy:
                 return <DatabaseLoadingScreen dbStatus={dbStatus.status}></DatabaseLoadingScreen>;
             case Status.ErrorOccurred:
-                return <></>; // TODO
+                return <div>Database error occurred</div>; // TODO
             default:
                 return <LoadingScreen></LoadingScreen>;
         }

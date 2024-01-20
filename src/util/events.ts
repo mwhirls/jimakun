@@ -13,7 +13,6 @@ export enum RuntimeEvent {
     SeekTime = 'seek-time',
     ToggleSubs = 'toggle-subs',
     PlayAudio = 'play-audio',
-    RequestDBStatus = 'request-db-status',
     ReportDBStatus = 'report-db-status',
 }
 

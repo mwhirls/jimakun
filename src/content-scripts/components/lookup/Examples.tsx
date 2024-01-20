@@ -14,7 +14,7 @@ async function lookupSentences(word: bunsetsu.Word, page: number): Promise<Looku
         perPage: SENTENCES_PER_PAGE,
     };
     const message: RuntimeMessage = { event: RuntimeEvent.LookupSentences, data: data };
-    return await chrome.runtime.sendMessage(message);
+    return chrome.runtime.sendMessage(message);
 }
 
 export interface ExamplesProps {

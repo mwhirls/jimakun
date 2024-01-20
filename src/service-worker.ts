@@ -72,15 +72,6 @@ chrome.commands.onCommand.addListener(command => {
     }
 });
 
-async function requestDatabaseStatus(sendResponse: (response?: unknown) => void) {
-    try {
-        const status = await DBStatusNotifier.getDBStatus();
-        sendResponse(status);
-    } catch (e) {
-        sendResponse(undefined); // TODO: better error handling
-    }
-}
-
 async function lookupWord(message: LookupWordMessage, sendResponse: (response?: unknown) => void) {
     try {
         const dict = await JMDictStore.open(DB_NAME, DB_VERSION, onDBUpgrade);
@@ -121,9 +112,6 @@ function playAudio(message: PlayAudioMessage) {
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     const message = request.data; // todo: validate
     switch (request.event) {
-        case RuntimeEvent.RequestDBStatus:
-            requestDatabaseStatus(sendResponse);
-            break;
         case RuntimeEvent.LookupWord:
             lookupWord(message as LookupWordMessage, sendResponse);
             break;
