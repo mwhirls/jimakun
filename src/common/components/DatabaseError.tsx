@@ -1,5 +1,5 @@
 import React from 'react';
-import { ErrorOccurred } from '../events';
+import { ErrorOccurred } from '../../database/dbstatus';
 
 interface DatabaseErrorProps {
     dbStatus: ErrorOccurred;

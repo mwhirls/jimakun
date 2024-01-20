@@ -1,12 +1,48 @@
-import { DBOperation } from "./database/database";
-import { RuntimeMessage, RuntimeEvent, DBStatusResult, Status, DataSource } from "./common/events";
-import { ProgressType } from "./common/progress";
-import * as tabs from './tabs';
-import { LocalStorageObject } from "./storage/local-storage";
+import { DBOperation } from "./database";
+import { Progress, ProgressType } from "../common/progress";
+import { LocalStorageObject } from "../storage/local-storage";
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
-export async function notifyDBStatusReady() {
+export enum DataSource {
+    JMDict = 'jmdict',
+    KanjiDic2 = 'kanji-dic2',
+    Tatoeba = 'tatoeba',
+    Unknown = '',
+}
+
+export enum Status {
+    Ready = 'ready',
+    Blocked = 'blocked',
+    Busy = 'busy',
+    ErrorOccurred = 'error-occurred',
+}
+
+export interface Ready {
+    type: Status.Ready;
+}
+
+export interface Blocked {
+    type: Status.Blocked;
+}
+
+export interface Busy {
+    type: Status.Busy;
+    operation: DBOperation;
+    progress: Progress;
+    source?: DataSource;
+}
+
+export interface ErrorOccurred {
+    type: Status.ErrorOccurred;
+    message?: string;
+}
+
+export interface DBStatusResult {
+    status: Ready | Blocked | Busy | ErrorOccurred;
+}
+
+export async function setDBStatusReady() {
     const result: DBStatusResult = {
         status: {
             type: Status.Ready,
@@ -15,7 +51,7 @@ export async function notifyDBStatusReady() {
     return updateStatus(result);
 }
 
-export async function notifyDBStatusBlocked() {
+export async function setDBStatusBlocked() {
     const result: DBStatusResult = {
         status: {
             type: Status.Blocked,
@@ -24,7 +60,7 @@ export async function notifyDBStatusBlocked() {
     return updateStatus(result);
 }
 
-export async function notifyDBStatusBusyDeterminate(operation: DBOperation, value: number, max: number, source?: DataSource) {
+export async function setDBStatusBusyDeterminate(operation: DBOperation, value: number, max: number, source?: DataSource) {
     const result: DBStatusResult = {
         status: {
             type: Status.Busy,
@@ -40,7 +76,7 @@ export async function notifyDBStatusBusyDeterminate(operation: DBOperation, valu
     return updateStatus(result);
 }
 
-export async function notifyDBStatusBusyIndeterminate(operation: DBOperation, source?: DataSource) {
+export async function setDBStatusBusyIndeterminate(operation: DBOperation, source?: DataSource) {
     const result: DBStatusResult = {
         status: {
             type: Status.Busy,
@@ -54,7 +90,7 @@ export async function notifyDBStatusBusyIndeterminate(operation: DBOperation, so
     return updateStatus(result);
 }
 
-export async function notifyDBStatusError(e?: Error) {
+export async function setDBStatusError(e?: Error) {
     const result: DBStatusResult = {
         status: {
             type: Status.ErrorOccurred,
@@ -76,15 +112,9 @@ export async function getDBStatus(): Promise<DBStatusResult> {
 
 async function updateStatus(result: DBStatusResult) {
     try {
-        await notifyContentScripts(result);
         const storage = new LocalStorageObject<DBStatusResult>(DB_STATUS_KEY);
         return storage.set(result);
     } catch (e) {
         console.error(e);
     }
-}
-
-async function notifyContentScripts(result: DBStatusResult) {
-    const message: RuntimeMessage = { event: RuntimeEvent.ReportDBStatus, data: result };
-    return tabs.sendMessageToAll(message);
 }

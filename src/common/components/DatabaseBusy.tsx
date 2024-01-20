@@ -1,7 +1,7 @@
 import React from 'react';
 import ProgressBar from "../../content-scripts/components/lookup/ProgressBar";
 import { DBOperation } from "../../database/database";
-import { Busy, DataSource } from "../events";
+import { Busy, DataSource } from '../../database/dbstatus';
 
 interface DatabaseBusyProps {
     dbStatus: Busy;

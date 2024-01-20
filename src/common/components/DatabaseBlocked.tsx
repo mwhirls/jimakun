@@ -1,5 +1,5 @@
 import React from 'react';
-import { Blocked } from '../events';
+import { Blocked } from '../../database/dbstatus';
 
 interface DatabaseBlockedProps {
     dbStatus: Blocked;

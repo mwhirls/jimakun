@@ -2,10 +2,11 @@ import { IDBUpgradeContext, IDBWrapper, DBOperation, IDBObjectStoreWrapper } fro
 import { JMDictStore, JMDictStoreUpgrade } from "./database/jmdict";
 import { TatoebaStore, TatoebaStoreUpgrade } from "./database/tatoeba";
 import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanjidic2";
-import { DataSource, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./common/events";
-import * as DBStatusNotifier from './dbstatus-notifier'
+import { LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./common/events";
+import * as DBStatusManager from './database/dbstatus'
 import * as tabs from './tabs'
 import { SessionStorageObject } from "./storage/sesson-storage";
+import { DataSource } from "./database/dbstatus";
 
 const DB_NAME = 'jimakun';
 const DB_VERSION = 1; // todo
@@ -145,12 +146,12 @@ async function onDBUpgrade(db: IDBUpgradeContext) {
 
 async function populateObjectStore(store: IDBObjectStoreWrapper) {
     const source = Object.values(DataSource).find(x => x === store.name());
-    await DBStatusNotifier.notifyDBStatusBusyIndeterminate(DBOperation.Open);
+    await DBStatusManager.setDBStatusBusyIndeterminate(DBOperation.Open);
     await store.populate(async (operation: DBOperation, value?: number, max?: number) => {
         if (value && max) {
-            return DBStatusNotifier.notifyDBStatusBusyDeterminate(operation, value, max, source);
+            return DBStatusManager.setDBStatusBusyDeterminate(operation, value, max, source);
         }
-        return DBStatusNotifier.notifyDBStatusBusyIndeterminate(operation, source);
+        return DBStatusManager.setDBStatusBusyIndeterminate(operation, source);
     });
 }
 
@@ -168,15 +169,15 @@ async function populateDatabase(db: IDBWrapper) {
 
 async function initializeDatabase() {
     try {
-        await DBStatusNotifier.notifyDBStatusBusyIndeterminate(DBOperation.Open);
+        await DBStatusManager.setDBStatusBusyIndeterminate(DBOperation.Open);
         const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
         await populateDatabase(db);
-        await DBStatusNotifier.notifyDBStatusReady();
+        await DBStatusManager.setDBStatusReady();
     } catch (e: unknown) {
         if (e instanceof Error) {
-            DBStatusNotifier.notifyDBStatusError(e);
+            DBStatusManager.setDBStatusError(e);
         } else {
-            DBStatusNotifier.notifyDBStatusError();
+            DBStatusManager.setDBStatusError();
         }
     }
 }
@@ -187,7 +188,7 @@ async function initializeApp() {
         chrome.storage.session.setAccessLevel({
             accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS'
         });
-        await DBStatusNotifier.clearStatus()
+        await DBStatusManager.clearStatus()
         initializeDatabase();
     } catch (e) {
         console.error(e);

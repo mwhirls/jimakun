@@ -1,5 +1,3 @@
-import { DBOperation } from "../database/database";
-import { Progress } from "./progress";
 import { TatoebaSentence } from "./tatoeba-types";
 
 export enum RuntimeEvent {
@@ -12,7 +10,6 @@ export enum RuntimeEvent {
     SeekTime = 'seek-time',
     ToggleSubs = 'toggle-subs',
     PlayAudio = 'play-audio',
-    ReportDBStatus = 'report-db-status',
 }
 
 export interface RuntimeMessage {
@@ -73,42 +70,4 @@ export interface LookupKanjiMessage {
 
 export interface PlayAudioMessage {
     utterance: string;
-}
-
-export enum DataSource {
-    JMDict = 'jmdict',
-    KanjiDic2 = 'kanji-dic2',
-    Tatoeba = 'tatoeba',
-    Unknown = '',
-}
-
-export enum Status {
-    Ready = 'ready',
-    Blocked = 'blocked',
-    Busy = 'busy',
-    ErrorOccurred = 'error-occurred',
-}
-
-export interface Ready {
-    type: Status.Ready;
-}
-
-export interface Blocked {
-    type: Status.Blocked;
-}
-
-export interface Busy {
-    type: Status.Busy;
-    operation: DBOperation;
-    progress: Progress;
-    source?: DataSource;
-}
-
-export interface ErrorOccurred {
-    type: Status.ErrorOccurred;
-    message?: string;
-}
-
-export interface DBStatusResult {
-    status: Ready | Blocked | Busy | ErrorOccurred;
 }
