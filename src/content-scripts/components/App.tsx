@@ -8,7 +8,7 @@ import { TimedTextTrack, NetflixMetadata, TimedTextSwitch } from "../../util/net
 import { RuntimeEvent } from '../../util/events';
 import { SegmenterContext } from '../contexts/SegmenterContext';
 import { Segmenter, build } from 'bunsetsu';
-import { LocalStorageChangedListener, LocalStorageObject } from '../../local-storage';
+import { SessionStorageChangedListener, SessionStorageObject } from '../../storage/sesson-storage';
 
 const NETFLIX_PLAYER_CLASS = "watch-video--player-view";
 const NETFLIX_VIDEO_CLASS = `${NETFLIX_PLAYER_CLASS} video`
@@ -86,8 +86,8 @@ function App() {
         window.addEventListener(RuntimeEvent.MetadataDetected, metadataListener);
         window.addEventListener(RuntimeEvent.SubtitleTrackSwitched, trackSwitchedListener);
 
-        const storage = new LocalStorageObject<MovieId>(MOVIE_KEY);
-        const onMovieIdChanged = LocalStorageChangedListener.create(storage, (_, newValue) => setCurrMovie(newValue));
+        const storage = new SessionStorageObject<MovieId>(MOVIE_KEY);
+        const onMovieIdChanged = SessionStorageChangedListener.create(storage, (_, newValue) => setCurrMovie(newValue));
         storage.get().then(movieId => setCurrMovie(movieId));
         storage.addOnChangedListener(onMovieIdChanged);
 

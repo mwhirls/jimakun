@@ -5,7 +5,7 @@ import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanjidic2";
 import { DataSource, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
 import * as DBStatusNotifier from './dbstatus-notifier'
 import * as tabs from './tabs'
-import { LocalStorageObject } from "./local-storage";
+import { SessionStorageObject } from "./storage/sesson-storage";
 
 const DB_NAME = 'jimakun';
 const DB_VERSION = 1; // todo
@@ -40,7 +40,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
     const movieId = extractMovieId(url);
     if (movieId) {
-        const storage = new LocalStorageObject<number>(MOVIE_KEY);
+        const storage = new SessionStorageObject<number>(MOVIE_KEY);
         storage.set(movieId);
     }
 });
@@ -185,6 +185,10 @@ async function openDatabase() {
 
 async function initializeApp() {
     try {
+        // session storage can't be accessed from content scripts by default
+        chrome.storage.session.setAccessLevel({
+            accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS'
+        });
         await DBStatusNotifier.clearStatus()
         openDatabase();
     } catch (e) {

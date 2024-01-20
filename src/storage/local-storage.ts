@@ -47,6 +47,6 @@ export class LocalStorageObject<T> {
     }
 
     removeOnChangedListener(listener: LocalStorageChangedListener) {
-        chrome.storage.local.onChanged.removeListener(listener.callback)
+        chrome.storage.local.onChanged.removeListener(listener.callback);
     }
 }

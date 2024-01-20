@@ -2,7 +2,7 @@ import { DBOperation } from "./database/database";
 import { RuntimeMessage, RuntimeEvent, DBStatusResult, Status, DataSource } from "./util/events";
 import { ProgressType } from "./util/progress";
 import * as tabs from './tabs';
-import { LocalStorageObject } from "./local-storage";
+import { LocalStorageObject } from "./storage/local-storage";
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
