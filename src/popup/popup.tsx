@@ -4,25 +4,23 @@ import ReactDOM from 'react-dom/client';
 import DatabaseBlocked from "../common/components/DatabaseBlocked";
 import DatabaseBusy from "../common/components/DatabaseBusy";
 import DatabaseError from "../common/components/DatabaseError";
-import { DBStatusResult, RuntimeMessage, RuntimeEvent, Status } from "../common/events";
-import * as DBStatusNotifier from '../dbstatus-notifier';
+import { DBStatusResult, Status } from "../common/events";
 import DatabaseReady from "./components/Ready";
+import { LocalStorageObject, LocalStorageChangedListener } from '../storage/local-storage';
+
+const DB_STATUS_KEY = 'lastDBStatusResult'
 
 function Popup() {
     const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
 
     useEffect(() => {
-        const runtimeListener = (message: RuntimeMessage) => {
-            if (message.event === RuntimeEvent.ReportDBStatus) {
-                const result = message.data as DBStatusResult; // TODO: validate
-                setDBStatus(result);
-            }
-        };
-        chrome.runtime.onMessage.addListener(runtimeListener);
-        DBStatusNotifier.getDBStatus().then(result => setDBStatus(result));
+        const storage = new LocalStorageObject<DBStatusResult>(DB_STATUS_KEY);
+        const onStatusChanged = LocalStorageChangedListener.create(storage, (_, newValue) => setDBStatus(newValue));
+        storage.addOnChangedListener(onStatusChanged);
+        storage.get().then(status => setDBStatus(status));
 
         return () => {
-            chrome.runtime.onMessage.removeListener(runtimeListener);
+            storage.removeOnChangedListener(onStatusChanged);
         }
     }, []);
 
