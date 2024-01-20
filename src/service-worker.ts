@@ -166,13 +166,11 @@ async function populateDatabase(db: IDBWrapper) {
     }
 }
 
-async function openDatabase() {
+async function initializeDatabase() {
     try {
         await DBStatusNotifier.notifyDBStatusBusyIndeterminate(DBOperation.Open);
         const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
-        if (db.upgraded) {
-            await populateDatabase(db);
-        }
+        await populateDatabase(db);
         await DBStatusNotifier.notifyDBStatusReady();
     } catch (e: unknown) {
         if (e instanceof Error) {
@@ -190,7 +188,7 @@ async function initializeApp() {
             accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS'
         });
         await DBStatusNotifier.clearStatus()
-        openDatabase();
+        initializeDatabase();
     } catch (e) {
         console.error(e);
     }

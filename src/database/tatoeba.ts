@@ -50,6 +50,10 @@ export class TatoebaStore implements IDBObjectStoreWrapper {
     async populate(onProgressUpdate: ProgressUpdateCallback) {
         const data = await JSONDataProvider.fetch<TatoebaSentence[], TatoebaSentence, TatoebaEntry>(DATA_URL, onProgressUpdate);
         const readEntries = (data: TatoebaSentence[]) => data;
+        const count = await this.db.countRecords(OBJECT_STORE);
+        if (!this.db.upgraded && count === data.count(readEntries)) {
+            return;
+        }
         const parseEntry = ((entry: TatoebaSentence) => {
             const keywords: string[] = entry.words.flatMap(word => {
                 return [word.headword, ...word.reading ?? [], ...word.surfaceForm ?? []]

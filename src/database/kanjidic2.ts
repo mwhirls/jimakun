@@ -35,6 +35,10 @@ export class KanjiDic2Store implements IDBObjectStoreWrapper {
     async populate(onProgressUpdate: ProgressUpdateCallback) {
         const data = await JSONDataProvider.fetch<Kanjidic2, Kanjidic2Character, Kanjidic2Character>(DATA_URL, onProgressUpdate);
         const readEntries = (data: Kanjidic2) => data.characters;
+        const count = await this.db.countRecords(OBJECT_STORE);
+        if (!this.db.upgraded && count === data.count(readEntries)) {
+            return;
+        }
         const parseEntry = (entry: Kanjidic2Character) => entry;
         const entries = await data.parse(readEntries, parseEntry, onProgressUpdate);
         await this.db.putAll(OBJECT_STORE, entries, onProgressUpdate);

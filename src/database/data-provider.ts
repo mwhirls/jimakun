@@ -20,6 +20,11 @@ export class JSONDataProvider<Data, Entry, Parsed> {
         return new JSONDataProvider(data);
     }
 
+    count(readEntries: ReadEntriesCallback<Data, Entry>) {
+        const entries = readEntries(this.data);
+        return entries.length;
+    }
+
     async parse(readEntries: ReadEntriesCallback<Data, Entry>, parseEntry: ParseEntryCallback<Entry, Parsed>, onProgressUpdate: ProgressUpdateCallback) {
         const entries = readEntries(this.data);
         const checkpoints = Checkpoints.generate(entries.length - 1);

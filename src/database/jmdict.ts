@@ -91,6 +91,10 @@ export class JMDictStore implements IDBObjectStoreWrapper {
     async populate(onProgressUpdate: ProgressUpdateCallback) {
         const data = await JSONDataProvider.fetch<JMdict, JMdictWord, JMDictEntry>(DATA_URL, onProgressUpdate);
         const readEntries = (data: JMdict) => data.words;
+        const count = await this.db.countRecords(OBJECT_STORE);
+        if (!this.db.upgraded && count === data.count(readEntries)) {
+            return;
+        }
         const parseEntry = ((entry: JMdictWord) => {
             return {
                 ...entry,
