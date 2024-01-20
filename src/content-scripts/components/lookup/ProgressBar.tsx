@@ -45,14 +45,14 @@ export interface ProgressBarProps {
 
 function ProgressBar({ id, label, progress, units }: ProgressBarProps) {
     return (
-        <>
+        <div>
             <label htmlFor={id} className='font-normal text-3xl'>{label}</label>
             {
                 progress.type === ProgressType.Determinate ?
                     <DeterminateProgress id={id} progress={progress} units={units}></DeterminateProgress> :
                     <IndeterminateProgress id={id}></IndeterminateProgress>
             }
-        </>
+        </div>
     );
 }
 export default ProgressBar;

@@ -62,7 +62,9 @@ function BusyScreen({ dbStatus }: BusyScreenProps) {
         }
     }
     return (
-        <div className='p-8'>
+        <div className='flex flex-col justify-center items-center w-4/5 m-auto text-3xl font-normal h-full gap-4'>
+            <div>Please wait for the dictionaries to initialize...</div>
+            <div>This may take a few minutes after installing or updating Jimakun.</div>
             <ProgressBar id={"database-progress"} label={text()} progress={dbStatus.progress} units={'entries'} ></ProgressBar>
         </div>
     )
@@ -70,6 +72,14 @@ function BusyScreen({ dbStatus }: BusyScreenProps) {
 
 function ErrorOccurred() {
     return <>A database error occurred!</>;
+}
+
+function LoadingScreen() {
+    return (
+        <div className='flex justify-center items-center w-32 h-full m-auto'>
+            <Spinner></Spinner>
+        </div>
+    )
 }
 
 interface EntryDetailsProps {
@@ -162,7 +172,7 @@ function Card({ word }: CardProps) {
             case Status.ErrorOccurred:
                 return <ErrorOccurred></ErrorOccurred>
             default:
-                return <Spinner></Spinner>;
+                return <LoadingScreen></LoadingScreen>;
         }
     }
 

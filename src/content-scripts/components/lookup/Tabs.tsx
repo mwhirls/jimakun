@@ -14,7 +14,7 @@ export interface TabProps {
 function Tabs({ tabs, selectedIndex, onSelected }: TabProps) {
     const content = selectedIndex >= 0 && selectedIndex < tabs.length ? tabs[selectedIndex].content : <></>;
     return (
-        <div className='flex flex-col'>
+        <div className='flex flex-col max-h-full'>
             <div className='flex flex-row bg-slate-100 rounded-md'>
                 {
                     tabs.map((tab: Tab, index: number) => {
@@ -38,7 +38,7 @@ function Tabs({ tabs, selectedIndex, onSelected }: TabProps) {
                     })
                 }
             </div>
-            <div className='my-6 pr-6 overflow-y-auto min-h-[20rem] h-[22rem] min-w-full w-[45rem] max-w-full'>
+            <div className='my-6 pr-6 overflow-y-auto min-h-[5rem] h-[22rem] min-w-full w-[45rem] max-w-full'>
                 {content}
             </div>
         </div>
