@@ -38,9 +38,15 @@ function calculateViewRect(video: HTMLVideoElement): DOMRect {
         height = width / videoRatio;
     }
 
+    const rect = video.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const left = centerX - width / 2;
+    const top = centerY - height / 2;
+
     return new DOMRect(
-        video.offsetWidth / 2 - width / 2,
-        video.offsetHeight / 2 - height / 2,
+        left,
+        top,
         width,
         height,
     );
