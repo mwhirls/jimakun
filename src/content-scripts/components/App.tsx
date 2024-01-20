@@ -5,7 +5,7 @@ import Video from './Video'
 
 import { ChildMutationType, WEBVTT_FORMAT, querySelectorMutation } from "../util/util"
 import { TimedTextTrack, NetflixMetadata, TimedTextSwitch } from "../../util/netflix-types";
-import { RuntimeEvent, RuntimeMessage } from '../../util/events';
+import { RuntimeEvent } from '../../util/events';
 import { SegmenterContext } from '../contexts/SegmenterContext';
 import { Segmenter, build } from 'bunsetsu';
 import { LocalStorageChangedListener, LocalStorageObject } from '../../local-storage';
@@ -13,6 +13,9 @@ import { LocalStorageChangedListener, LocalStorageObject } from '../../local-sto
 const NETFLIX_PLAYER_CLASS = "watch-video--player-view";
 const NETFLIX_VIDEO_CLASS = `${NETFLIX_PLAYER_CLASS} video`
 const MOVIE_KEY = 'lastMovieId';
+
+type MovieId = number;
+type SubtitleTracks = Map<string, SubtitleData>;
 
 class SubtitleData implements WebvttSubtitles {
     webvttUrl: string;
@@ -49,9 +52,8 @@ async function downloadSubtitles(track: TimedTextTrack): Promise<SubtitleData | 
 }
 
 function App() {
-    const [moviesMetadata, setMoviesMetadata] = useState(new Map<number, NetflixMetadata>);
-    const [subtitleData, setSubtitleData] = useState(new Map<string, SubtitleData>);
-    const [currMovie, setCurrMovie] = useState<number | null>(null);
+    const [subtitleData, setSubtitleData] = useState(new Map<MovieId, SubtitleTracks>);
+    const [currMovie, setCurrMovie] = useState<MovieId | null>(null);
     const [currTrack, setCurrTrack] = useState("");
     const [netflixPlayer, setNetflixPlayer] = useState<Element | null>(document.querySelector(`.${NETFLIX_PLAYER_CLASS}`));
     const [videoElem, setVideoElem] = useState<HTMLVideoElement | null>(document.querySelector(`.${NETFLIX_VIDEO_CLASS}`) as HTMLVideoElement | null);
@@ -59,14 +61,17 @@ function App() {
 
     useEffect(() => {
         const metadataListener = async (event: Event) => {
-            const data = (event as CustomEvent).detail as NetflixMetadata;
-            const metadata = data;
-            setMoviesMetadata(prev => new Map([...prev, [metadata.movieId, metadata]]));
+            const metadata = (event as CustomEvent).detail as NetflixMetadata;
+            const movieId = metadata.movieId;
             for (const track of metadata.timedtexttracks) {
                 try {
                     const subtitles = await downloadSubtitles(track);
                     if (subtitles) {
-                        setSubtitleData(prev => new Map([...prev, [track.new_track_id, subtitles]]));
+                        setSubtitleData(prev => {
+                            const previousTracks = prev.get(movieId) ?? [];
+                            const tracks = new Map([...previousTracks, [track.new_track_id, subtitles]]);
+                            return new Map([...prev, [movieId, tracks]])
+                        });
                     }
                 } catch (error) {
                     console.error('[JIMAKUN] Failed to fetch WebVTT file', error);
@@ -81,8 +86,8 @@ function App() {
         window.addEventListener(RuntimeEvent.MetadataDetected, metadataListener);
         window.addEventListener(RuntimeEvent.SubtitleTrackSwitched, trackSwitchedListener);
 
-        const storage = new LocalStorageObject<number>(MOVIE_KEY);
-        const onMovieIdChanged = LocalStorageChangedListener.create(storage, (movieId => setCurrMovie(movieId)));
+        const storage = new LocalStorageObject<MovieId>(MOVIE_KEY);
+        const onMovieIdChanged = LocalStorageChangedListener.create(storage, (_, newValue) => setCurrMovie(newValue));
         storage.get().then(movieId => setCurrMovie(movieId));
         storage.addOnChangedListener(onMovieIdChanged);
 
@@ -116,25 +121,29 @@ function App() {
         };
     }, []);
 
-    const subtitles = subtitleData.get(currTrack);
-    if (netflixPlayer && videoElem && subtitles) {
-        // Appending to the Netflix player element since its layout is fairly stable and consistent,
-        // and doesn't typically cause issues with blocking input, etc
-        return (
-            <>
-
-                {createPortal(
-                    <SegmenterContext.Provider value={{ segmenter }}>
-                        <Video webvttSubtitles={subtitles} videoElem={videoElem}></Video>
-                    </SegmenterContext.Provider>,
-                    netflixPlayer
-                )}
-
-            </>
-        )
-    } else {
-        return (<></>);
+    if (!currMovie) {
+        return <></>;
     }
+    const subtitleTracks = subtitleData.get(currMovie);
+    const subtitles = subtitleTracks?.get(currTrack);
+    if (!netflixPlayer || !videoElem || !subtitles) {
+        return <></>;
+    }
+
+    // Appending to the Netflix player element since its layout is fairly stable and consistent,
+    // and doesn't typically cause issues with blocking input, etc
+    return (
+        <>
+
+            {createPortal(
+                <SegmenterContext.Provider value={{ segmenter }}>
+                    <Video webvttSubtitles={subtitles} videoElem={videoElem}></Video>
+                </SegmenterContext.Provider>,
+                netflixPlayer
+            )}
+
+        </>
+    )
 }
 
 export default App

@@ -1,18 +1,18 @@
 type Changes = { [key: string]: chrome.storage.StorageChange; };
 type StorageAreaChanged = (changes: Changes) => void;
 
-export class LocalStorageChangedListener<T> {
+export class LocalStorageChangedListener {
     callback: StorageAreaChanged;
 
     private constructor(callback: StorageAreaChanged) {
         this.callback = callback;
     }
 
-    static create<T>(storage: LocalStorageObject<T>, callback: (newValue: T) => void) {
+    static create<T>(storage: LocalStorageObject<T>, callback: (oldValue: T, newValue: T) => void) {
         const cb = (changes: Changes) => {
             if (storage.key in changes) {
-                const value = changes[storage.key] as T; // todo: validate
-                callback(value);
+                const change = changes[storage.key]; // todo: validate
+                callback(change.oldValue, change.newValue);
             }
         };
         chrome.storage.local.onChanged.addListener(cb);
@@ -42,11 +42,11 @@ export class LocalStorageObject<T> {
         return chrome.storage.local.remove(this.key);
     }
 
-    addOnChangedListener(listener: LocalStorageChangedListener<T>) {
+    addOnChangedListener(listener: LocalStorageChangedListener) {
         chrome.storage.local.onChanged.addListener(listener.callback);
     }
 
-    removeOnChangedListener(listener: LocalStorageChangedListener<T>) {
+    removeOnChangedListener(listener: LocalStorageChangedListener) {
         chrome.storage.local.onChanged.removeListener(listener.callback)
     }
 }
