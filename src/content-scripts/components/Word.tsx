@@ -4,7 +4,7 @@ import * as bunsetsu from "bunsetsu";
 import * as Diff from "diff";
 import './Word.css'
 import Card from "./lookup/Card";
-import { toHiragana } from "../../util/lang";
+import { toHiragana } from "../../common/lang";
 
 function toTokens(word: bunsetsu.Word): TokenProps[] {
     const wordSurfaceForm = word.surfaceForm();

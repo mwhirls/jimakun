@@ -2,7 +2,7 @@ import { IDBUpgradeContext, IDBWrapper, DBOperation, IDBObjectStoreWrapper } fro
 import { JMDictStore, JMDictStoreUpgrade } from "./database/jmdict";
 import { TatoebaStore, TatoebaStoreUpgrade } from "./database/tatoeba";
 import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanjidic2";
-import { DataSource, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./util/events";
+import { DataSource, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./common/events";
 import * as DBStatusNotifier from './dbstatus-notifier'
 import * as tabs from './tabs'
 import { SessionStorageObject } from "./storage/sesson-storage";

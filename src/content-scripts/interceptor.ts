@@ -1,7 +1,7 @@
 // must run in the MAIN world since we need to manipulate some global variables
 
-import { RuntimeEvent, SeekTimeMessage } from "../util/events";
-import { Netflix, NetflixMetadata, TimedTextSwitch } from "../util/netflix-types";
+import { RuntimeEvent, SeekTimeMessage } from "../common/events";
+import { Netflix, NetflixMetadata, TimedTextSwitch } from "../common/netflix-types";
 
 declare global {
     const netflix: unknown; // Netflix API object should exist on the page

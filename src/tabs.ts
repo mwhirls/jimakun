@@ -1,4 +1,4 @@
-import { RuntimeMessage } from "./util/events";
+import { RuntimeMessage } from "./common/events";
 
 export async function sendMessageToAll(message: RuntimeMessage) {
     try {

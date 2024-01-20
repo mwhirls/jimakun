@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import * as bunsetsu from "bunsetsu";
-import { TatoebaSentence } from '../../../util/tatoeba-types';
-import { LookupSentencesMessage, LookupSentencesResult, RuntimeEvent, RuntimeMessage } from '../../../util/events';
-import { toHiragana } from '../../../util/lang';
+import { TatoebaSentence } from '../../../common/tatoeba-types';
+import { LookupSentencesMessage, LookupSentencesResult, RuntimeEvent, RuntimeMessage } from '../../../common/events';
+import { toHiragana } from '../../../common/lang';
 import Pagination from './Pagination';
 
 const SENTENCES_PER_PAGE = 20;

@@ -4,8 +4,8 @@ import { WebvttSubtitles } from './Video'
 import Video from './Video'
 
 import { ChildMutationType, WEBVTT_FORMAT, querySelectorMutation } from "../util/util"
-import { TimedTextTrack, NetflixMetadata, TimedTextSwitch } from "../../util/netflix-types";
-import { RuntimeEvent } from '../../util/events';
+import { TimedTextTrack, NetflixMetadata, TimedTextSwitch } from "../../common/netflix-types";
+import { RuntimeEvent } from '../../common/events';
 import { SegmenterContext } from '../contexts/SegmenterContext';
 import { Segmenter, build } from 'bunsetsu';
 import { SessionStorageChangedListener, SessionStorageObject } from '../../storage/sesson-storage';

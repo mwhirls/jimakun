@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import Subtitle from "./Subtitle";
-import { RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from '../../util/events';
+import { RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from '../../common/events';
 import { ChildMutationType, querySelectorMutation } from '../util/util';
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';

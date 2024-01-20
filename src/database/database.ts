@@ -1,5 +1,5 @@
-import { awaitSequential } from "../util/async";
-import { Checkpoints } from "../util/progress";
+import { awaitSequential } from "../common/async";
+import { Checkpoints } from "../common/progress";
 
 export enum DBErrorType {
     Blocked = 'BLOCKED',

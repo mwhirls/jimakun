@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LookupKanjiMessage, RuntimeEvent, RuntimeMessage } from '../../../util/events';
+import { LookupKanjiMessage, RuntimeEvent, RuntimeMessage } from '../../../common/events';
 import { JMdictWord, Kanjidic2Character, Kanjidic2ReadingMeaning } from '@scriptin/jmdict-simplified-types';
 
 // https://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi

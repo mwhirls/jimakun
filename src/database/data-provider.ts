@@ -1,5 +1,5 @@
-import { awaitSequential } from "../util/async";
-import { Checkpoints } from "../util/progress";
+import { awaitSequential } from "../common/async";
+import { Checkpoints } from "../common/progress";
 import { ProgressUpdateCallback, DBOperation } from "./database";
 
 type ReadEntriesCallback<Data, Entry> = (data: Data) => Entry[];

@@ -1,6 +1,6 @@
 import { DBOperation } from "./database/database";
-import { RuntimeMessage, RuntimeEvent, DBStatusResult, Status, DataSource } from "./util/events";
-import { ProgressType } from "./util/progress";
+import { RuntimeMessage, RuntimeEvent, DBStatusResult, Status, DataSource } from "./common/events";
+import { ProgressType } from "./common/progress";
 import * as tabs from './tabs';
 import { LocalStorageObject } from "./storage/local-storage";
 

@@ -8,13 +8,13 @@ import Examples from './Examples';
 import Kanji from './Kanji';
 import Notes from './Notes';
 import type { JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { Busy, DBStatusResult, DataSource, LookupWordMessage, RuntimeEvent, RuntimeMessage, Status } from '../../../util/events';
-import { toHiragana } from '../../../util/lang';
-import ProgressBar from './ProgressBar';
-import { DBOperation } from '../../../database/database';
+import { DBStatusResult, LookupWordMessage, RuntimeEvent, RuntimeMessage, Status } from '../../../common/events';
+import { toHiragana } from '../../../common/lang';
 import Spinner from './Spinner';
 import * as DBStatusNotifier from './../../../dbstatus-notifier';
-import { ProgressType } from '../../../util/progress';
+import DatabaseBusy from '../../../common/components/DatabaseBusy';
+import DatabaseBlocked from '../../../common/components/DatabaseBlocked';
+import DatabaseError from '../../../common/components/DatabaseError';
 
 async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> {
     const data: LookupWordMessage = {
@@ -25,58 +25,6 @@ async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> 
     };
     const message: RuntimeMessage = { event: RuntimeEvent.LookupWord, data: data };
     return chrome.runtime.sendMessage(message);
-}
-
-function Blocked() {
-    return <>Database is blocked!</>;
-}
-
-interface BusyScreenProps {
-    dbStatus: Busy;
-}
-
-function BusyScreen({ dbStatus }: BusyScreenProps) {
-    const text = () => {
-        const sourceText = () => {
-            switch (dbStatus.source) {
-                case DataSource.JMDict:
-                    return "dictionary"
-                case DataSource.KanjiDic2:
-                    return "kanji data";
-                case DataSource.Tatoeba:
-                    return "example sentences";
-            }
-        }
-        switch (dbStatus.operation) {
-            case DBOperation.Open:
-                return `Establishing connection...`;
-            case DBOperation.Upgrade:
-                return "Upgrading database...";
-            case DBOperation.FetchData:
-                return `Fetch latest ${sourceText()}...`;
-            case DBOperation.ParseData:
-                return `Parsing latest ${sourceText()}...`;
-            case DBOperation.PutData:
-                return `Adding ${sourceText()} to database...`;
-            default:
-                return 'Loading...';
-        }
-    }
-    return (
-        <div className='flex flex-col justify-center items-center m-auto gap-8 w-[40rem] max-w-full h-[30rem] max-h-full'>
-            <div>
-                <div className='font-bold text-4xl mb-6 text-center'>{text()}</div>
-                <div className='w-4/5 mx-auto'>
-                    <ProgressBar progress={dbStatus.progress} units={'entries'} ></ProgressBar>
-                </div>
-            </div>
-            <div className='text-2xl font-light text-center text-slate-400 w-11/12'>Please wait for the dictionaries to initialize... This may take a few minutes after installing or updating Jimakun.</div>
-        </div>
-    )
-}
-
-function ErrorOccurred() {
-    return <>A database error occurred!</>;
 }
 
 function LoadingScreen() {
@@ -175,11 +123,11 @@ function Card({ word }: CardProps) {
             case Status.Ready:
                 return <EntryDetails word={word}></EntryDetails>;
             case Status.Blocked:
-                return <Blocked></Blocked>
+                return <DatabaseBlocked dbStatus={dbStatus.status}></DatabaseBlocked>
             case Status.Busy:
-                return <BusyScreen dbStatus={dbStatus.status}></BusyScreen>
+                return <DatabaseBusy dbStatus={dbStatus.status}></DatabaseBusy>
             case Status.ErrorOccurred:
-                return <ErrorOccurred></ErrorOccurred>
+                return <DatabaseError dbStatus={dbStatus.status}></DatabaseError>
             default:
                 return <LoadingScreen></LoadingScreen>;
         }

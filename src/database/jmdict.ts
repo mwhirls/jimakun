@@ -1,5 +1,5 @@
 import { JMdict, JMdictKana, JMdictKanji, JMdictSense, JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { LookupWordMessage } from "../util/events";
+import { LookupWordMessage } from "../common/events";
 import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper, DBStoreUpgradeContext, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
 import { JSONDataProvider } from "./data-provider";
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import * as bunsetsu from "bunsetsu";
 import { JMdictSense, JMdictWord } from '@scriptin/jmdict-simplified-types';
-import { JMDictPOS, getPartsOfSpeech } from '../../../util/jmdict-types';
+import { JMDictPOS, getPartsOfSpeech } from '../../../common/jmdict-types';
 
 function getPartOfSpeechInfo(sense: JMdictSense) {
     const partsOfSpeech = getPartsOfSpeech(sense);

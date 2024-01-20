@@ -1,5 +1,5 @@
-import { LookupSentencesMessage, LookupSentencesResult } from "../util/events";
-import { TatoebaSentence, TatoebaWord } from "../util/tatoeba-types";
+import { LookupSentencesMessage, LookupSentencesResult } from "../common/events";
+import { TatoebaSentence, TatoebaWord } from "../common/tatoeba-types";
 import { JSONDataProvider } from "./data-provider";
 import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
 
