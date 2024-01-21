@@ -107,7 +107,7 @@ function Pagination({ numPages, onPageClicked }: PaginationProps) {
 
     const pages = Array.from(Array(numPages).keys());
     const firstFewPages = pages.slice(0, Math.min(2, pages.length - 2)).map(page => numberedPage(page, selectedPage, onClick));
-    const collapsedPages = pages.length >= 5 ? new PageItem(new Text("...")) : undefined;
+    const collapsedPages = pages.length >= 5 ? new PageItem(new Text("...")) : [];
     const finalPages = pages.slice(pages.length - 1).map(page => numberedPage(page, selectedPage, onClick));
     const items = [
         new PageNavigation(prevIcon, onClickPrev, Selected.No, Mirrored.No),
@@ -115,17 +115,14 @@ function Pagination({ numPages, onPageClicked }: PaginationProps) {
         collapsedPages,
         ...finalPages,
         new PageNavigation(prevIcon, onClickNext, Selected.No, Mirrored.Yes),
-    ];
+    ].flat();
 
     return (
-        <div className="inline-grid gap-2 auto-cols-fr grid-flow-col m-3">
+        <div className="flex flex-row gap-2 m-3">
             {
                 items.map((item, index) => {
-                    if (!item) {
-                        return <></>;
-                    }
                     return (
-                        <div key={index} className="flex flex-col justify-center items-center aspect-square">
+                        <div key={index} className="flex flex-col justify-center items-center">
                             {item.render()}
                         </div>
                     );
