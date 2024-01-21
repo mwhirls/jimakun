@@ -61,11 +61,9 @@ module.exports = (
                     ]
                 },
                 {
-                    test: /\.(svg)$/,
-                    loader: require.resolve("file-loader"),
-                    options: {
-                        name: "web-accessible-resources/[name].[hash:8].[ext]"
-                    }
+                    test: /\.svg$/i,
+                    issuer: /\.[jt]sx?$/,
+                    use: ['@svgr/webpack'],
                 },
                 {
                     test: /index.bundle\.js$/,

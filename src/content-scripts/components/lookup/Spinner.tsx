@@ -1,12 +1,11 @@
 import React from "react";
-
-const SPINNER_ICON_URL = 'assets/spinner.svg';
+import Loader from './../../../../public/assets/loader-01.svg'
 
 function Spinner() {
-    const spinnerIcon = chrome.runtime.getURL(SPINNER_ICON_URL);
-
     return (
-        <img src={spinnerIcon} className="animate-spin"></img>
+        <div className="animate-spin">
+            <Loader ></Loader>
+        </div>
     );
 }
 export default Spinner;

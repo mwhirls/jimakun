@@ -1,20 +1,17 @@
 import React from 'react';
-
-const FAVORITE_ICON = 'assets/favourite.svg';
-const DOWNLOAD_ICON = 'assets/file-down-01.svg';
+import FavoriteIcon from '../../../../public/assets/favourite.svg';
+import DownloadIcon from '../../../../public/assets/file-down-01.svg';
 
 function Footer() {
-    const favoriteIconUrl = chrome.runtime.getURL(FAVORITE_ICON);
-    const downloadIconUrl = chrome.runtime.getURL(DOWNLOAD_ICON);
     return (
         <div className='flex-none'>
             <hr></hr>
             <div className="flex justify-between mt-3">
                 <button>
-                    <img src={favoriteIconUrl}></img>
+                    <FavoriteIcon></FavoriteIcon>
                 </button>
                 <button>
-                    <img src={downloadIconUrl}></img>
+                    <DownloadIcon></DownloadIcon>
                 </button>
             </div>
         </div>

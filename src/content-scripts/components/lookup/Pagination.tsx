@@ -1,12 +1,11 @@
 import React, { useState } from "react";
+import ChevronLeftIcon from '../../../../public/assets/chevron-left.svg';
 
-const PREV_ICON = 'assets/chevron-left.svg';
+class SVG {
+    jsx: JSX.Element;
 
-class Icon {
-    url: string
-
-    constructor(url: string) {
-        this.url = chrome.runtime.getURL(url);
+    constructor(jsx: JSX.Element) {
+        this.jsx = jsx;
     }
 }
 
@@ -20,11 +19,13 @@ enum Mirrored {
     No,
 }
 
-function itemContent(content: Icon | string) {
+function itemContent(content: SVG | string) {
     const inner = () => {
-        if (content instanceof Icon) {
+        if (content instanceof SVG) {
             return (
-                <img src={content.url} className="block m-auto"></img>
+                <div className="block m-auto">
+                    {content.jsx}
+                </div>
             )
         } else if (typeof content === 'string') {
             return (
@@ -42,9 +43,9 @@ function itemContent(content: Icon | string) {
 }
 
 class PageItem {
-    content: Icon | string;
+    content: SVG | string;
 
-    constructor(content: Icon | string) {
+    constructor(content: SVG | string) {
         this.content = content;
     }
 
@@ -58,7 +59,7 @@ class PageNavigation extends PageItem {
     selected: Selected;
     mirrored: Mirrored;
 
-    constructor(content: Icon | string, onClick: () => void, selected: Selected, mirrored: Mirrored) {
+    constructor(content: SVG | string, onClick: () => void, selected: Selected, mirrored: Mirrored) {
         super(content);
         this.onClick = onClick;
         this.selected = selected;
@@ -90,7 +91,7 @@ export interface PaginationProps {
 function Pagination({ numPages, onPageClicked }: PaginationProps) {
     const [selectedPage, setSelectedPage] = useState<number>(0);
 
-    const prevIcon = new Icon(PREV_ICON);
+    const prevIcon = new SVG(<ChevronLeftIcon></ChevronLeftIcon>);
 
     const onClick = (page: number) => {
         setSelectedPage(page);
