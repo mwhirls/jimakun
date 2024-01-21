@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import ChevronLeftIcon from '../../../../public/assets/chevron-left.svg';
 
+const NUM_LEADING_PAGES = 1;
+const NUM_FOLLOWING_PAGES = 1;
+
 enum Selected {
     Yes,
     No,
@@ -84,6 +87,22 @@ function numberedPage(page: number, selectedPage: number, onPageClicked: (page: 
     return new PageNavigation(number, onClickNumbered, selected, Mirrored.No);
 }
 
+function leadingPages(pages: number[]) {
+    const end = Math.min(NUM_LEADING_PAGES, pages.length - 1);
+    return pages.slice(0, end);
+}
+
+function currentPages(pages: number[], selected: number) {
+    const start = Math.max(selected - 1, 0)
+    const end = Math.min(selected + 2, pages.length)
+    return pages.slice(start, end);
+}
+
+function followingPages(pages: number[]) {
+    const start = Math.max(0, pages.length - NUM_FOLLOWING_PAGES);
+    return pages.slice(start, pages.length);
+}
+
 export interface PaginationProps {
     numPages: number;
     onPageClicked: (page: number) => void;
@@ -106,14 +125,16 @@ function Pagination({ numPages, onPageClicked }: PaginationProps) {
     }
 
     const pages = Array.from(Array(numPages).keys());
-    const firstFewPages = pages.slice(0, Math.min(2, pages.length - 2)).map(page => numberedPage(page, selectedPage, onClick));
-    const collapsedPages = pages.length >= 5 ? new PageItem(new Text("...")) : [];
-    const finalPages = pages.slice(pages.length - 1).map(page => numberedPage(page, selectedPage, onClick));
+    const current = currentPages(pages, selectedPage);
+    const leading = leadingPages(pages).filter((value) => value < current[0]);
+    const following = followingPages(pages).filter((value) => value > current[current.length - 1]);
     const items = [
         new PageNavigation(prevIcon, onClickPrev, Selected.No, Mirrored.No),
-        ...firstFewPages,
-        collapsedPages,
-        ...finalPages,
+        ...(leading.map(page => numberedPage(page, selectedPage, onClick))),
+        leading.length ? new PageItem(new Text("...")) : [],
+        ...(current.map(page => numberedPage(page, selectedPage, onClick))),
+        following.length ? new PageItem(new Text("...")) : [],
+        ...(following.map(page => numberedPage(page, selectedPage, onClick))),
         new PageNavigation(prevIcon, onClickNext, Selected.No, Mirrored.Yes),
     ].flat();
 
