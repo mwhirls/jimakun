@@ -5,12 +5,9 @@ import { Busy, DataSource } from '../../database/dbstatus';
 
 interface DatabaseBusyProps {
     dbStatus: Busy;
-    className?: string;
-    titleClassName?: string;
-    infoTextClassName?: string;
 }
 
-function DatabaseBusy({ dbStatus, className, titleClassName, infoTextClassName }: DatabaseBusyProps) {
+function DatabaseBusy({ dbStatus }: DatabaseBusyProps) {
     const text = () => {
         const sourceText = () => {
             switch (dbStatus.source) {
@@ -38,14 +35,14 @@ function DatabaseBusy({ dbStatus, className, titleClassName, infoTextClassName }
         }
     }
     return (
-        <div className={`flex flex-col justify-center items-center m-auto gap-8 max-w-full max-h-full ${className}`}>
+        <div className='flex flex-col justify-center items-center m-auto gap-8 w-[40rem] max-w-full h-[30rem] max-h-full'>
             <div>
-                <div className={`font-bold mb-6 text-center ${titleClassName}`}>{text()}</div>
+                <div className='text-4xl font-bold mb-6 text-center'>{text()}</div>
                 <div className='w-4/5 mx-auto'>
                     <ProgressBar progress={dbStatus.progress} units={'entries'} ></ProgressBar>
                 </div>
             </div>
-            <div className={`font-light text-center text-slate-400 w-11/12 ${infoTextClassName}`}>Please wait for the dictionaries to initialize... This may take a few minutes after installing or updating Jimakun.</div>
+            <div className='text-2xl font-light text-center text-slate-400 w-11/12'>Please wait for the dictionaries to initialize... This may take a few minutes after installing or updating Jimakun.</div>
         </div>
     )
 }

@@ -35,7 +35,7 @@ function Popup() {
             case Status.Blocked:
                 return <DatabaseBlocked dbStatus={dbStatus.status}></DatabaseBlocked>
             case Status.Busy:
-                return <DatabaseBusy dbStatus={dbStatus.status} className='w-[20rem] h-[16rem]' titleClassName='text-xl' infoTextClassName='text-base'></DatabaseBusy>
+                return <DatabaseBusy dbStatus={dbStatus.status}></DatabaseBusy>
             case Status.ErrorOccurred:
                 return <DatabaseError dbStatus={dbStatus.status}></DatabaseError>
         }
