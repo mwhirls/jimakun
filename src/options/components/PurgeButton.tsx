@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { RuntimeMessage, RuntimeEvent } from "../../common/events";
 import { DBStatusResult, Status } from "../../database/dbstatus";
 import { LocalStorageChangedListener, LocalStorageObject } from "../../storage/local-storage";
 import Spinner from "../../common/components/Spinner";
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
-async function purgeDictionaries(): Promise<number> {
-    const message: RuntimeMessage = { event: RuntimeEvent.PurgeDictionaries, data: undefined };
-    return chrome.runtime.sendMessage(message);
+interface PurgeButtonProps {
+    onClick: () => void;
 }
 
-function PurgeButton() {
+function PurgeButton({ onClick }: PurgeButtonProps) {
     const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
 
     useEffect(() => {
@@ -43,7 +41,7 @@ function PurgeButton() {
     }
 
     return (
-        <button className="text-white text-3xl font-bold py-2 px-4 bg-red-600 border border-solid border-slate-400 rounded-md hover:bg-red-500 active:bg-red-700 disabled:opacity-75 disabled:bg-slate-400" disabled={disabled} onClick={() => purgeDictionaries()}>
+        <button className="text-white text-3xl font-bold py-2 px-4 bg-red-600 border border-solid border-slate-400 rounded-md hover:bg-red-500 active:bg-red-700 disabled:opacity-75 disabled:bg-slate-400" disabled={disabled} onClick={() => onClick()}>
             {content()}
         </button>
     )
