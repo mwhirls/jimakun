@@ -1,4 +1,4 @@
-import { LookupSentencesMessage, LookupSentencesResult } from "../common/events";
+import { CountSentencesMessage, LookupSentencesMessage, LookupSentencesResult } from "../common/events";
 import { TatoebaSentence, TatoebaWord } from "../common/tatoeba-types";
 import { JSONDataProvider } from "./data-provider";
 import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
@@ -33,6 +33,10 @@ export class TatoebaStore implements IDBObjectStoreWrapper {
     static async open(name: string, version: number, onDBUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>) {
         const db = await IDBWrapper.open(name, version, onDBUpgrade);
         return new TatoebaStore(db);
+    }
+
+    async count(lookup: CountSentencesMessage): Promise<number> {
+        return this.db.countQueryResults(OBJECT_STORE, INDEX, lookup.searchTerm);
     }
 
     async lookup(lookup: LookupSentencesMessage): Promise<LookupSentencesResult> {

@@ -2,7 +2,7 @@ import { IDBUpgradeContext, IDBWrapper, DBOperation, IDBObjectStoreWrapper } fro
 import { JMDictStore, JMDictStoreUpgrade } from "./database/jmdict";
 import { TatoebaStore, TatoebaStoreUpgrade } from "./database/tatoeba";
 import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanjidic2";
-import { LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./common/events";
+import { CountSentencesMessage, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./common/events";
 import * as DBStatusManager from './database/dbstatus'
 import * as tabs from './tabs'
 import { SessionStorageObject } from "./storage/sesson-storage";
@@ -94,11 +94,21 @@ async function lookupKanji(message: LookupKanjiMessage, sendResponse: (response?
     }
 }
 
+async function countSentences(message: CountSentencesMessage, sendResponse: (response?: unknown) => void) {
+    try {
+        const store = await TatoebaStore.open(DB_NAME, DB_VERSION, onDBUpgrade);
+        const count = await store.count(message);
+        sendResponse(count);
+    } catch (e) {
+        sendResponse(0); // TODO: better error handling
+    }
+}
+
 async function lookupSentences(message: LookupSentencesMessage, sendResponse: (response?: unknown) => void) {
     try {
         const store = await TatoebaStore.open(DB_NAME, DB_VERSION, onDBUpgrade);
-        const kanji = await store.lookup(message);
-        sendResponse(kanji);
+        const sentences = await store.lookup(message);
+        sendResponse(sentences);
     } catch (e) {
         sendResponse(undefined); // TODO: better error handling
     }
@@ -119,6 +129,9 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
             break;
         case RuntimeEvent.LookupKanji:
             lookupKanji(message as LookupKanjiMessage, sendResponse);
+            break;
+        case RuntimeEvent.CountSentences:
+            countSentences(message as CountSentencesMessage, sendResponse);
             break;
         case RuntimeEvent.LookupSentences:
             lookupSentences(message as LookupSentencesMessage, sendResponse);

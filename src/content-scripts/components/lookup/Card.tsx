@@ -14,7 +14,7 @@ import DatabaseBusy from '../../../common/components/DatabaseBusy';
 import DatabaseBlocked from '../../../common/components/DatabaseBlocked';
 import DatabaseError from '../../../common/components/DatabaseError';
 import { LocalStorageObject, LocalStorageChangedListener } from '../../../storage/local-storage';
-import { LookupWordMessage, RuntimeMessage, RuntimeEvent } from '../../../common/events';
+import { LookupWordMessage, RuntimeMessage, RuntimeEvent, CountSentencesMessage } from '../../../common/events';
 import { DBStatusResult, Status } from '../../../database/dbstatus';
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
@@ -30,6 +30,14 @@ async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> 
     return chrome.runtime.sendMessage(message);
 }
 
+async function countSentences(word: bunsetsu.Word): Promise<number> {
+    const data: CountSentencesMessage = {
+        searchTerm: word.basicForm() ?? toHiragana(word.reading()),
+    };
+    const message: RuntimeMessage = { event: RuntimeEvent.CountSentences, data: data };
+    return chrome.runtime.sendMessage(message);
+}
+
 function LoadingScreen() {
     return (
         <div className='flex justify-center items-center w-32 h-full m-auto'>
@@ -38,12 +46,17 @@ function LoadingScreen() {
     )
 }
 
+interface WordDetails {
+    entry: JMdictWord;
+    numSentences: number;
+}
+
 interface EntryDetailsProps {
     word: bunsetsu.Word;
 }
 
 function EntryDetails({ word }: EntryDetailsProps) {
-    const [entry, setEntry] = useState<JMdictWord | null>(null);
+    const [details, setDetails] = useState<WordDetails | null>(null);
     const [selectedTab, setSelectedTab] = useState(0);
 
     useEffect(() => {
@@ -53,26 +66,31 @@ function EntryDetails({ word }: EntryDetailsProps) {
                 // todo: how to display this to the user?
                 return;
             }
-            setEntry(entry);
+            const numSentences = await countSentences(word);
+            const details = {
+                entry,
+                numSentences,
+            }
+            setDetails(details);
         })();
     }, []);
 
-    if (!entry) {
+    if (!details) {
         return <></>; // TODO: better loading indicator
     }
 
     const tabs = [
         {
             label: "Definitions",
-            content: <Definitions word={word} entry={entry}></Definitions>
+            content: <Definitions word={word} entry={details.entry}></Definitions>
         },
         {
             label: "Kanji",
-            content: <Kanji entry={entry}></Kanji>
+            content: <Kanji entry={details.entry}></Kanji>
         },
         {
             label: "Examples",
-            content: <Examples word={word}></Examples>
+            content: <Examples word={word} numSentences={details.numSentences}></Examples>
         },
         {
             label: "Notes",
@@ -83,7 +101,7 @@ function EntryDetails({ word }: EntryDetailsProps) {
     return (
         <div className='flex flex-col gap-y-6 h-full'>
             <div className='flex-none'>
-                <Header word={word} entry={entry}></Header>
+                <Header word={word} entry={details.entry}></Header>
             </div>
             <div className='flex-initial overflow-y-hidden'>
                 <Tabs tabs={tabs} selectedIndex={selectedTab} onSelected={(index) => setSelectedTab(index)}></Tabs>

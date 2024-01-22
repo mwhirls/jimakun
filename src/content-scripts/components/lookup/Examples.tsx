@@ -19,10 +19,10 @@ async function lookupSentences(word: bunsetsu.Word, page: number): Promise<Looku
 
 export interface ExamplesProps {
     word: bunsetsu.Word;
+    numSentences: number;
 }
 
-function Examples({ word }: ExamplesProps) {
-    const [count, setCount] = useState<number>(0);
+function Examples({ word, numSentences }: ExamplesProps) {
     const [numPages, setNumPages] = useState<number | null>(0);
     const [sentences, setSentences] = useState<TatoebaSentence[]>([]);
 
@@ -30,13 +30,14 @@ function Examples({ word }: ExamplesProps) {
         onPageSelected(0);
     }, []);
 
-    const onPageSelected = (page: number) => {
-        lookupSentences(word, page).then(result => {
+    const onPageSelected = async (page: number) => {
+        try {
+            const result = await lookupSentences(word, page);
             setNumPages(result.pages);
             setSentences(result.sentences);
-        }).catch(e => {
+        } catch (e) {
             console.error(e);
-        })
+        }
     }
 
     const pagination = () => {
@@ -52,7 +53,7 @@ function Examples({ word }: ExamplesProps) {
 
     return (
         <div>
-            <h3>{`Sentences - ${count} found`}</h3>
+            <h3>{`Sentences - ${numSentences} found`}</h3>
             {
                 sentences.map((sentence, index) => {
                     return (

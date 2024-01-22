@@ -1,15 +1,16 @@
 import { TatoebaSentence } from "./tatoeba-types";
 
 export enum RuntimeEvent {
+    CountSentences = 'count-sentences',
     LookupKanji = 'lookup-kanji',
     LookupSentences = 'lookup-sentences',
     LookupWord = 'lookup-word',
     MetadataDetected = 'metadata-detected',
+    PlayAudio = 'play-audio',
     SubtitleTrackSwitched = 'subtitle-track-switched',
     SeekCue = 'seek-cue',
     SeekTime = 'seek-time',
     ToggleSubs = 'toggle-subs',
-    PlayAudio = 'play-audio',
 }
 
 export interface RuntimeMessage {
@@ -51,6 +52,10 @@ export interface Error<S> {
 
 export interface MessageResponse<T, S> {
     result: Success<T> | Error<S>
+}
+
+export interface CountSentencesMessage {
+    searchTerm: string;
 }
 
 export interface LookupSentencesMessage {
