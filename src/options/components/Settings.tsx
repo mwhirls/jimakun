@@ -10,7 +10,7 @@ async function purgeDictionaries(): Promise<number> {
 }
 
 function Settings() {
-    const [showAlert, setShowAlert] = useState(true)
+    const [showAlert, setShowAlert] = useState(false);
 
     const onPurgeClicked = () => {
         setShowAlert(true);
@@ -32,7 +32,7 @@ function Settings() {
                     </div>
                 </div>
             </div>
-            <Alert open={showAlert} setOpen={(show) => setShowAlert(show)} headerText={"Purge Dictionaries"} bodyText={"Are you sure you want to delete and reimport the dictionaries? This operation may take a few minutes."} buttonText={"Purge"}></Alert>
+            <Alert open={showAlert} setOpen={(show) => setShowAlert(show)} headerText={"Purge Dictionaries"} bodyText={"Are you sure you want to delete and reimport the dictionaries? This operation may take a few minutes."} buttonText={"Purge"} scale={2.0}></Alert>
         </>
     )
 }

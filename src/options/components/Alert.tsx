@@ -10,10 +10,14 @@ interface AlertProps {
     buttonText: string;
     open: boolean;
     setOpen: (open: boolean) => void;
+    scale: number;
 }
 
-export default function Alert({ headerText, bodyText, buttonText, open, setOpen }: AlertProps) {
+export default function Alert({ headerText, bodyText, buttonText, open, setOpen, scale }: AlertProps) {
     const cancelButtonRef = useRef(null)
+    const panelStyle = {
+        transform: `scale(${scale})`,
+    };
 
     return (
         <Transition.Root show={open} as={Fragment}>
@@ -41,7 +45,7 @@ export default function Alert({ headerText, bodyText, buttonText, open, setOpen 
                             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
-                            <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                            <Dialog.Panel style={panelStyle} className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
                                 <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                                     <div className="sm:flex sm:items-start">
                                         <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
