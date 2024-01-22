@@ -2,15 +2,19 @@ import React, { useState, useEffect } from "react";
 import { DBStatusResult, Status } from "../../database/dbstatus";
 import { LocalStorageChangedListener, LocalStorageObject } from "../../storage/local-storage";
 import Spinner from "../../common/components/Spinner";
+import { RuntimeMessage, RuntimeEvent } from "../../common/events";
+import Alert from "./Alert";
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
-interface PurgeButtonProps {
-    onClick: () => void;
+async function purgeDictionaries(): Promise<number> {
+    const message: RuntimeMessage = { event: RuntimeEvent.PurgeDictionaries, data: undefined };
+    return chrome.runtime.sendMessage(message);
 }
 
-function PurgeButton({ onClick }: PurgeButtonProps) {
+function PurgeButton() {
     const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
+    const [showAlert, setShowAlert] = useState(false);
 
     useEffect(() => {
         const storage = new LocalStorageObject<DBStatusResult>(DB_STATUS_KEY);
@@ -22,6 +26,10 @@ function PurgeButton({ onClick }: PurgeButtonProps) {
             storage.removeOnChangedListener(onStatusChanged);
         }
     }, []);
+
+    const onPurgeClicked = () => {
+        setShowAlert(true);
+    };
 
     const disabled = !dbStatus || dbStatus.status.type == Status.Busy;
     const content = () => {
@@ -41,9 +49,12 @@ function PurgeButton({ onClick }: PurgeButtonProps) {
     }
 
     return (
-        <button className="text-white text-3xl font-bold py-2 px-4 bg-red-600 border border-solid border-slate-400 rounded-md hover:bg-red-500 active:bg-red-700 disabled:opacity-75 disabled:bg-slate-400" disabled={disabled} onClick={() => onClick()}>
-            {content()}
-        </button>
+        <>
+            <button className="text-white text-2xl font-bold p-4 bg-red-600 rounded-md hover:bg-red-500 active:bg-red-700 disabled:opacity-75 disabled:bg-slate-400" disabled={disabled} onClick={() => onPurgeClicked()}>
+                {content()}
+            </button>
+            <Alert open={showAlert} setOpen={(show) => setShowAlert(show)} headerText={"Purge Dictionaries"} bodyText={"Are you sure you want to delete and reimport the dictionaries? This operation may take a few minutes."} buttonText={"Purge"} scale={2.0}></Alert>
+        </>
     )
 }
 
