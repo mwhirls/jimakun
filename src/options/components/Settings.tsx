@@ -1,5 +1,6 @@
 import React from "react";
 import Header from './Header'
+import PurgeButton from "./PurgeButton";
 
 function Settings() {
     return (
@@ -14,7 +15,7 @@ function Settings() {
                         <p className="text-2xl text-slate-400 mt-2">Forcefully purge all dictionary databases and attempt to reimport dictionaries. This can be used to reset the state of the backend in the event that Jimakun encounters an error during upgrade.</p>
                     </div>
                     <div className="justify-self-end">
-                        <button className="text-red-600 text-3xl font-bold py-4 px-8 bg-slate-100 border border-solid border-slate-400 rounded-md hover:bg-red-600 hover:text-white">Purge</button>
+                        <PurgeButton></PurgeButton>
                     </div>
                 </div>
             </div>

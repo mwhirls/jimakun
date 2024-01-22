@@ -7,6 +7,7 @@ export enum RuntimeEvent {
     LookupWord = 'lookup-word',
     MetadataDetected = 'metadata-detected',
     PlayAudio = 'play-audio',
+    PurgeDictionaries = 'purge-dictionaries',
     SubtitleTrackSwitched = 'subtitle-track-switched',
     SeekCue = 'seek-cue',
     SeekTime = 'seek-time',

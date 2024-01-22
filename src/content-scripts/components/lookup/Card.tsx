@@ -9,7 +9,7 @@ import Kanji from './Kanji';
 import Notes from './Notes';
 import type { JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { toHiragana } from '../../../common/lang';
-import Spinner from './Spinner';
+import Spinner from '../../../common/components/Spinner';
 import DatabaseBusy from '../../../common/components/DatabaseBusy';
 import DatabaseBlocked from '../../../common/components/DatabaseBlocked';
 import DatabaseError from '../../../common/components/DatabaseError';
