@@ -11,23 +11,6 @@ async function purgeDictionaries(): Promise<number> {
     return chrome.runtime.sendMessage(message);
 }
 
-function ProcessingButton() {
-    return (
-        <button className="disabled:opacity-75">
-            <span className="w-8 inline-block align-middle mr-4">
-                <Spinner color='white' thickness={3}></Spinner>
-            </span>
-            <span className="inline-block">Processing...</span>
-        </button>
-    )
-}
-
-function NormalButton() {
-    return (
-        <button className="hover:bg-red-700 active:bg-red-800" onClick={() => purgeDictionaries()}>Purge</button>
-    )
-}
-
 function PurgeButton() {
     const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
 
@@ -42,23 +25,27 @@ function PurgeButton() {
         }
     }, []);
 
-    if (!dbStatus) {
-        return <ProcessingButton></ProcessingButton>;
-    }
-
+    const disabled = !dbStatus || dbStatus.status.type == Status.Busy;
     const content = () => {
-        switch (dbStatus.status.type) {
+        switch (dbStatus?.status.type) {
             case Status.Busy:
-                return <ProcessingButton></ProcessingButton>
+                return (
+                    <>
+                        <span className="w-8 inline-block align-middle mr-4">
+                            <Spinner color='white' thickness={3}></Spinner>
+                        </span>
+                        <span className="inline-block">Processing...</span>
+                    </>
+                )
             default:
-                return <NormalButton></NormalButton>
+                return <>Purge</>
         }
     }
 
     return (
-        <div className="text-white text-3xl font-bold py-2 px-4 bg-red-600 border border-solid border-slate-400 rounded-md ">
-            <ProcessingButton></ProcessingButton>
-        </div>
+        <button className="text-white text-3xl font-bold py-2 px-4 bg-red-600 border border-solid border-slate-400 rounded-md hover:bg-red-500 active:bg-red-700 disabled:opacity-75 disabled:bg-slate-400" disabled={disabled} onClick={() => purgeDictionaries()}>
+            {content()}
+        </button>
     )
 }
 
