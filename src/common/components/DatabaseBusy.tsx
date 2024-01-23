@@ -25,7 +25,7 @@ function DatabaseBusy({ dbStatus }: DatabaseBusyProps) {
             case DBOperation.Upgrade:
                 return "Upgrading database...";
             case DBOperation.FetchData:
-                return `Fetch latest ${sourceText()}...`;
+                return `Fetching latest ${sourceText()}...`;
             case DBOperation.ParseData:
                 return `Parsing latest ${sourceText()}...`;
             case DBOperation.PutData:
