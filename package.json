@@ -840,7 +840,6 @@
   },
   "scripts": {
     "postinstall": "cd third-party/bunsetsu && npm install && npm link && cd ../../ && npm link bunsetsu",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint \"./src/**/*.{js,jsx,ts,tsx}\"",
     "dev": "npm run lint && webpack --mode development",
     "build": "npm run lint && webpack --mode production"
