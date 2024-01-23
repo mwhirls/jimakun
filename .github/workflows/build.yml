@@ -34,8 +34,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: server-dist
+        name: dist
         path: |
-          server
-          !server/node_modules
+          dist
   
