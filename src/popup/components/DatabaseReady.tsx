@@ -1,5 +1,6 @@
 import React from 'react';
 import CheckContained from '../../../public/assets/check-contained.svg';
+import OptionsButton from '../../common/components/OptionsButton';
 
 function DatabaseReady() {
     return (
@@ -11,6 +12,7 @@ function DatabaseReady() {
                 </div>
             </div>
             <div className='w-4/5 text-2xl font-light text-center text-slate-400 w-11/12'>Jimakun has successfully updated. You may need to refresh Netflix for changes to take effect.</div>
+            <OptionsButton></OptionsButton>
         </div>
     )
 }

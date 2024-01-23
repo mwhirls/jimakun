@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom/client';
 import DatabaseBlocked from "../common/components/DatabaseBlocked";
 import DatabaseBusy from "../common/components/DatabaseBusy";
 import DatabaseError from "../common/components/DatabaseError";
-import DatabaseReady from "./components/Ready";
+import DatabaseReady from "./components/DatabaseReady";
 import { LocalStorageObject, LocalStorageChangedListener } from '../storage/local-storage';
 import { DBStatusResult, Status } from '../database/dbstatus';
 

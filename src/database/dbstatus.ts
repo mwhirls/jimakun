@@ -35,7 +35,7 @@ export interface Busy {
 
 export interface ErrorOccurred {
     type: Status.ErrorOccurred;
-    message?: string;
+    message: string;
 }
 
 export interface DBStatusResult {
@@ -90,11 +90,11 @@ export async function setDBStatusBusyIndeterminate(operation: DBOperation, sourc
     return updateStatus(result);
 }
 
-export async function setDBStatusError(e?: Error) {
+export async function setDBStatusError(e: Error) {
     const result: DBStatusResult = {
         status: {
             type: Status.ErrorOccurred,
-            message: e?.message,
+            message: e.message,
         }
     }
     return updateStatus(result);

@@ -190,7 +190,7 @@ async function initializeDatabase() {
         if (e instanceof Error) {
             DBStatusManager.setDBStatusError(e);
         } else {
-            DBStatusManager.setDBStatusError();
+            DBStatusManager.setDBStatusError(new Error('unknown error'));
         }
     }
 }
