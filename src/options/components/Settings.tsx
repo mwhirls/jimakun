@@ -7,7 +7,7 @@ function Settings() {
     return (
         <>
             <Header></Header>
-            <div className="w-3/5 mx-auto my-8 flex flex-col gap-4">
+            <div className="w-4/5 max-w-[175rem] mx-auto my-8 flex flex-col gap-4">
                 <h1 className="text-5xl font-bold">Settings</h1>
                 <hr></hr>
                 <div className="grid grid-cols-2 gap-8 divide-y mt-8 items-center">
