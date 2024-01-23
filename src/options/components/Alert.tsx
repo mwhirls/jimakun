@@ -9,19 +9,21 @@ interface AlertProps {
     bodyText: string;
     buttonText: string;
     open: boolean;
-    setOpen: (open: boolean) => void;
-    scale: number;
+    onConfirm: () => void;
+    onCancel: () => void;
+    scale?: number;
 }
 
-export default function Alert({ headerText, bodyText, buttonText, open, setOpen, scale }: AlertProps) {
+export default function Alert({ headerText, bodyText, buttonText, open, onCancel, onConfirm, scale }: AlertProps) {
+    const scaleXY = scale ?? 1.0;
     const cancelButtonRef = useRef(null)
     const panelStyle = {
-        transform: `scale(${scale})`,
+        transform: `scale(${scaleXY})`,
     };
 
     return (
         <Transition.Root show={open} as={Fragment}>
-            <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={setOpen}>
+            <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={onCancel}>
                 <Transition.Child
                     as={Fragment}
                     enter="ease-out duration-300"
@@ -67,14 +69,14 @@ export default function Alert({ headerText, bodyText, buttonText, open, setOpen,
                                     <button
                                         type="button"
                                         className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                                        onClick={() => setOpen(false)}
+                                        onClick={() => onConfirm()}
                                     >
                                         {buttonText}
                                     </button>
                                     <button
                                         type="button"
                                         className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                                        onClick={() => setOpen(false)}
+                                        onClick={() => onCancel()}
                                         ref={cancelButtonRef}
                                     >
                                         Cancel
