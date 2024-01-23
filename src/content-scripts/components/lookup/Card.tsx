@@ -140,11 +140,11 @@ function Card({ word }: CardProps) {
             case Status.Ready:
                 return <EntryDetails word={word}></EntryDetails>;
             case Status.Blocked:
-                return <DatabaseBlocked dbStatus={dbStatus.status}></DatabaseBlocked>
+                return <DatabaseBlocked></DatabaseBlocked>
             case Status.Busy:
                 return <DatabaseBusy dbStatus={dbStatus.status}></DatabaseBusy>
             case Status.ErrorOccurred:
-                return <DatabaseError dbStatus={dbStatus.status}></DatabaseError>
+                return <DatabaseError></DatabaseError>
             default:
                 return <LoadingScreen></LoadingScreen>;
         }

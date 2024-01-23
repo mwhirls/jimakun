@@ -33,11 +33,11 @@ function Popup() {
             case Status.Ready:
                 return <DatabaseReady></DatabaseReady>
             case Status.Blocked:
-                return <DatabaseBlocked dbStatus={dbStatus.status}></DatabaseBlocked>
+                return <DatabaseBlocked></DatabaseBlocked>
             case Status.Busy:
                 return <DatabaseBusy dbStatus={dbStatus.status}></DatabaseBusy>
             case Status.ErrorOccurred:
-                return <DatabaseError dbStatus={dbStatus.status}></DatabaseError>
+                return <DatabaseError></DatabaseError>
         }
     }
 
