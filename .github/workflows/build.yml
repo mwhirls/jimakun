@@ -3,8 +3,10 @@ name: Build
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+
+env:
+  MAJOR_VERSION: 0
+  MINOR_VERSION: 0
 
 jobs:
   build:
@@ -34,7 +36,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: dist
+        name: jimakun-percheckin-v${{env.MAJOR_VERSION}}.${{env.MINOR_VERSION}}.${{github.run_number}}
         path: |
           dist
   
