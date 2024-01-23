@@ -15,6 +15,9 @@
             "js": [
                 "content.bundle.js"
             ],
+            "css": [
+                "content.css"
+            ],
             "matches": [
                 "https://www.netflix.com/*"
             ]

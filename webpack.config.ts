@@ -19,12 +19,12 @@ module.exports = (
     env: Record<string, unknown>,
     argv: Record<string, unknown>,
 ): webpack.Configuration => {
-    const isProduction = argv.mode === "production";
-    const isDevelopment = !isProduction;
+    const production = argv.mode === "production";
+    const development = !production;
     const outputDir = path.resolve(__dirname, "dist");
 
     return {
-        devtool: isDevelopment && "inline-source-map",
+        devtool: development && "inline-source-map",
         entry: {
             popup: "./src/popup/popup.tsx",
             options: "./src/options/options.tsx",
@@ -48,14 +48,14 @@ module.exports = (
                         options: {
                             cacheDirectory: true,
                             cacheCompression: false,
-                            envName: isProduction ? "production" : "development"
+                            envName: production ? "production" : "development"
                         }
                     }
                 },
                 {
                     test: /\.css$/,
                     use: [
-                        isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+                        production ? MiniCssExtractPlugin.loader : "style-loader",
                         "css-loader",
                         "postcss-loader"
                     ]
@@ -88,6 +88,7 @@ module.exports = (
                     parallel: false
                 }
             }),
+            new MiniCssExtractPlugin(),
             new ForkTsCheckerWebpackPlugin({
                 async: false
             }),
