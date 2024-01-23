@@ -97,6 +97,7 @@ export enum DBOperation {
     FetchData,
     ParseData,
     PutData,
+    Delete,
 }
 
 export type ProgressUpdateCallback = (operation: DBOperation, value?: number, max?: number) => Promise<void>;
@@ -173,6 +174,21 @@ export class IDBWrapper {
                 throw e;
             }
         }
+    }
+
+    static async delete(name: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const request = self.indexedDB.deleteDatabase(name);
+            request.onblocked = () => {
+                reject(new DatabaseError(DBErrorType.Blocked, `${request.error?.name}`));
+            };
+            request.onerror = () => {
+                reject(new DatabaseError(DBErrorType.Unknown, `${request.error?.name}`));
+            };
+            request.onsuccess = () => {
+                resolve();
+            };
+        });
     }
 
     putAll(store: DBStore, entries: unknown[], onProgressUpdate: ProgressUpdateCallback): Promise<void[]> {

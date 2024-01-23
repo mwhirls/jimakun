@@ -121,6 +121,22 @@ function playAudio(message: PlayAudioMessage) {
     chrome.tts.speak(message.utterance, { lang: 'ja' });
 }
 
+async function purgeDictionaries(sendResponse: (response?: unknown) => void) {
+    try {
+        await DBStatusManager.clearStatus();
+        await deleteDatabase();
+        await initializeDatabase();
+        sendResponse(true);
+    } catch (e) {
+        if (e instanceof Error) {
+            DBStatusManager.setDBStatusError(e);
+        } else {
+            DBStatusManager.setDBStatusError(new Error('unknown error'));
+        }
+        sendResponse(false);
+    }
+}
+
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     const message = request.data; // todo: validate
     switch (request.event) {
@@ -139,6 +155,9 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         case RuntimeEvent.PlayAudio:
             playAudio(message as PlayAudioMessage);
             return false;
+        case RuntimeEvent.PurgeDictionaries:
+            purgeDictionaries(sendResponse);
+            break;
         default:
             console.warn("unrecognized request", request);
     }
@@ -181,18 +200,15 @@ async function populateDatabase(db: IDBWrapper) {
 }
 
 async function initializeDatabase() {
-    try {
-        await DBStatusManager.setDBStatusBusyIndeterminate(DBOperation.Open);
-        const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
-        await populateDatabase(db);
-        await DBStatusManager.setDBStatusReady();
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            DBStatusManager.setDBStatusError(e);
-        } else {
-            DBStatusManager.setDBStatusError(new Error('unknown error'));
-        }
-    }
+    await DBStatusManager.setDBStatusBusyIndeterminate(DBOperation.Open);
+    const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
+    await populateDatabase(db);
+    await DBStatusManager.setDBStatusReady();
+}
+
+async function deleteDatabase() {
+    await DBStatusManager.setDBStatusBusyIndeterminate(DBOperation.Delete);
+    await IDBWrapper.delete(DB_NAME);
 }
 
 async function initializeApp() {
@@ -204,7 +220,11 @@ async function initializeApp() {
         await DBStatusManager.clearStatus()
         initializeDatabase();
     } catch (e) {
-        console.error(e);
+        if (e instanceof Error) {
+            DBStatusManager.setDBStatusError(e);
+        } else {
+            DBStatusManager.setDBStatusError(new Error('unknown error'));
+        }
     }
 }
 

@@ -21,12 +21,7 @@ function PurgeButton() {
         const storage = new LocalStorageObject<DBStatusResult>(DB_STATUS_KEY);
         const onStatusChanged = LocalStorageChangedListener.create(storage, (_, newValue) => setDBStatus(newValue));
         storage.addOnChangedListener(onStatusChanged);
-        storage.get().then(result => {
-            if (result.status.type !== Status.Busy) {
-                setPurging(false);
-            }
-            setDBStatus(result)
-        });
+        storage.get().then(result => setDBStatus(result));
 
         return () => {
             storage.removeOnChangedListener(onStatusChanged);
@@ -37,10 +32,11 @@ function PurgeButton() {
         setShowAlert(true);
     };
 
-    const onPurgeConfirmed = () => {
+    const onPurgeConfirmed = async () => {
         setShowAlert(false);
         setPurging(true);
-        purgeDictionaries();
+        await purgeDictionaries();
+        setPurging(false);
     }
 
     const disabled = !dbStatus || dbStatus.status.type == Status.Busy;
