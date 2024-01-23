@@ -44,13 +44,13 @@ function PurgeButton() {
                     </>
                 )
             default:
-                return <>Purge</>
+                return <span className="px-4">Purge</span>
         }
     }
 
     return (
         <>
-            <button className="text-white text-2xl font-bold p-4 bg-red-600 rounded-md hover:bg-red-500 active:bg-red-700 disabled:opacity-75 disabled:bg-slate-400" disabled={disabled} onClick={() => onPurgeClicked()}>
+            <button className="text-white text-2xl font-semibold py-4 px-8  bg-red-600 rounded-md hover:drop-shadow-md active:bg-red-700 disabled:opacity-75 disabled:bg-slate-400" disabled={disabled} onClick={() => onPurgeClicked()}>
                 {content()}
             </button>
             <Alert open={showAlert} setOpen={(show) => setShowAlert(show)} headerText={"Purge Dictionaries"} bodyText={"Are you sure you want to delete and reimport the dictionaries? This operation may take a few minutes."} buttonText={"Purge"} scale={2.0}></Alert>
