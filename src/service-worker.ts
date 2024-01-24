@@ -231,7 +231,7 @@ async function initializeApp() {
             accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS'
         });
         await DBStatusManager.clearStatus()
-        initializeDatabase();
+        await initializeDatabase();
     } catch (e) {
         handleDatabaseError(e);
     }

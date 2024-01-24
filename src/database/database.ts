@@ -1,4 +1,3 @@
-import { awaitSequential } from "../common/async";
 import { Checkpoints } from "../common/progress";
 
 export enum DBErrorType {
@@ -203,7 +202,7 @@ export class IDBWrapper {
             })
         });
         transaction.commit();
-        return awaitSequential(results);
+        return Promise.all(results);
     }
 
     countRecords(store: DBStore) {

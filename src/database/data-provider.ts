@@ -1,4 +1,3 @@
-import { awaitSequential } from "../common/async";
 import { Checkpoints } from "../common/progress";
 import { ProgressUpdateCallback, DBOperation } from "./database";
 
@@ -35,7 +34,6 @@ export class JSONDataProvider<Data, Entry, Parsed> {
             }
             return parsed;
         });
-        const parsed = await awaitSequential(promises);
-        return parsed;
+        return Promise.all(promises);
     }
 }
