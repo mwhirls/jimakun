@@ -1,4 +1,4 @@
-import { IDBUpgradeContext, IDBWrapper, DBOperation, IDBObjectStoreWrapper } from "./database/database";
+import { IDBUpgradeContext, IDBWrapper, DBOperation, IDBObjectStoreWrapper, DatabaseError, DBErrorType } from "./database/database";
 import { JMDictStore, JMDictStoreUpgrade } from "./database/jmdict";
 import { TatoebaStore, TatoebaStoreUpgrade } from "./database/tatoeba";
 import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanjidic2";
@@ -9,8 +9,7 @@ import { SessionStorageObject } from "./storage/sesson-storage";
 import { DataSource } from "./database/dbstatus";
 
 const DB_NAME = 'jimakun';
-const DB_VERSION = 1; // todo
-const DB_OPEN_MAX_ATTEMPTS = 5;
+const DB_VERSION = 1;
 
 const MOVIE_KEY = 'lastMovieId';
 
@@ -128,11 +127,7 @@ async function purgeDictionaries(sendResponse: (response?: unknown) => void) {
         await initializeDatabase();
         sendResponse(true);
     } catch (e) {
-        if (e instanceof Error) {
-            DBStatusManager.setDBStatusError(e);
-        } else {
-            DBStatusManager.setDBStatusError(new Error('unknown error'));
-        }
+        handleDatabaseError(e);
         sendResponse(false);
     }
 }
@@ -205,7 +200,7 @@ async function populateDatabase(db: IDBWrapper) {
 
 async function initializeDatabase() {
     await DBStatusManager.setDBStatusBusyIndeterminate(DBOperation.Open);
-    const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, onDBVersionChanged, DB_OPEN_MAX_ATTEMPTS);
+    const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, onDBVersionChanged);
     await populateDatabase(db);
     await DBStatusManager.setDBStatusReady();
 }
@@ -213,6 +208,20 @@ async function initializeDatabase() {
 async function deleteDatabase() {
     await DBStatusManager.setDBStatusBusyIndeterminate(DBOperation.Delete);
     await IDBWrapper.delete(DB_NAME);
+}
+
+function handleDatabaseError(e: unknown) {
+    if (e instanceof DatabaseError) {
+        if (e.type === DBErrorType.Blocked) {
+            DBStatusManager.setDBStatusBlocked();
+        } else {
+            DBStatusManager.setDBStatusError(e);
+        }
+    } else if (e instanceof Error) {
+        DBStatusManager.setDBStatusError(e);
+    } else {
+        DBStatusManager.setDBStatusError(new Error('unknown error'));
+    }
 }
 
 async function initializeApp() {
@@ -224,11 +233,7 @@ async function initializeApp() {
         await DBStatusManager.clearStatus()
         initializeDatabase();
     } catch (e) {
-        if (e instanceof Error) {
-            DBStatusManager.setDBStatusError(e);
-        } else {
-            DBStatusManager.setDBStatusError(new Error('unknown error'));
-        }
+        handleDatabaseError(e);
     }
 }
 

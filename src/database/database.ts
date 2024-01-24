@@ -112,36 +112,6 @@ export interface DBStoreUpgrade {
     apply(): void;
 }
 
-function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, onVersionChange: () => void): Promise<IDBWrapper> {
-    return new Promise((resolve, reject) => {
-        const request = self.indexedDB.open(name, version);
-        request.onblocked = () => {
-            reject(new DatabaseError(DBErrorType.Blocked, `${request.error?.name}`));
-        };
-        request.onerror = () => {
-            reject(new DatabaseError(DBErrorType.Unknown, `${request.error?.name}`));
-        };
-        request.onsuccess = () => {
-            const db = request.result;
-            const wrapper = new IDBWrapper(db, false, onVersionChange)
-            db.onversionchange = () => {
-                db.close(); // close to allow upgrading database instances in another tab upgrade
-                wrapper.onVersionChange();
-            };
-            resolve(wrapper);
-        };
-        request.onupgradeneeded = () => {
-            if (!request.result) {
-                reject(new DatabaseError(DBErrorType.UpgradeFailed, `${request.error?.name}`))
-                return;
-            }
-            const db = request.result;
-            const context = new IDBUpgradeContext(new IDBWrapper(db, true, onVersionChange));
-            resolve(onUpgrade(context));
-        };
-    });
-}
-
 export interface Pagination {
     page: number;
     perPage: number
@@ -158,26 +128,34 @@ export class IDBWrapper {
         this.onVersionChange = onVersionChange;
     }
 
-    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, onVersionChange: () => void): Promise<IDBWrapper>;
-    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, onVersionChange: () => void, attempts?: number): Promise<IDBWrapper>;
-    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, onVersionChange: () => void, attempts?: number): Promise<IDBWrapper> {
-        if (!attempts) {
-            return openIndexedDB(name, version, onUpgrade, onVersionChange);
-        }
-        if (attempts <= 0) {
-            throw new Error('unable to open database after multiple attempts; aborting');
-        }
-        try {
-            return openIndexedDB(name, version, onUpgrade, onVersionChange);
-        } catch (e: unknown) {
-            if (e instanceof DatabaseError && e.type === DBErrorType.Blocked) {
-                // re-attempt
-                console.warn('database was blocked; attempting to reopen...');
-                return IDBWrapper.open(name, version, onUpgrade, onVersionChange, --attempts);
-            } else {
-                throw e;
-            }
-        }
+    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, onVersionChange: () => void): Promise<IDBWrapper> {
+        return new Promise((resolve, reject) => {
+            const request = self.indexedDB.open(name, version);
+            request.onblocked = () => {
+                reject(new DatabaseError(DBErrorType.Blocked, `${request.error?.name}`));
+            };
+            request.onerror = () => {
+                reject(new DatabaseError(DBErrorType.Unknown, `${request.error?.name}`));
+            };
+            request.onsuccess = () => {
+                const db = request.result;
+                const wrapper = new IDBWrapper(db, false, onVersionChange)
+                db.onversionchange = () => {
+                    db.close(); // close to allow upgrading database instances in another tab upgrade
+                    wrapper.onVersionChange();
+                };
+                resolve(wrapper);
+            };
+            request.onupgradeneeded = () => {
+                if (!request.result) {
+                    reject(new DatabaseError(DBErrorType.UpgradeFailed, `${request.error?.name}`))
+                    return;
+                }
+                const db = request.result;
+                const context = new IDBUpgradeContext(new IDBWrapper(db, true, onVersionChange));
+                resolve(onUpgrade(context));
+            };
+        });
     }
 
     static async delete(name: string): Promise<void> {
