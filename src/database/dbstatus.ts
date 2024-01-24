@@ -16,6 +16,7 @@ export enum Status {
     Blocked = 'blocked',
     Busy = 'busy',
     ErrorOccurred = 'error-occurred',
+    VersionChanged = 'version-changed',
 }
 
 export interface Ready {
@@ -38,8 +39,12 @@ export interface ErrorOccurred {
     message: string;
 }
 
+export interface VersionChanged {
+    type: Status.VersionChanged;
+}
+
 export interface DBStatusResult {
-    status: Ready | Blocked | Busy | ErrorOccurred;
+    status: Ready | Blocked | Busy | ErrorOccurred | VersionChanged;
 }
 
 export async function setDBStatusReady() {
@@ -95,6 +100,15 @@ export async function setDBStatusError(e: Error) {
         status: {
             type: Status.ErrorOccurred,
             message: e.message,
+        }
+    }
+    return updateStatus(result);
+}
+
+export async function setDBStatusVersionChanged() {
+    const result: DBStatusResult = {
+        status: {
+            type: Status.VersionChanged,
         }
     }
     return updateStatus(result);

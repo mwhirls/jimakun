@@ -17,8 +17,8 @@ export class KanjiDic2Store implements IDBObjectStoreWrapper {
         this.db = db;
     }
 
-    static async open(name: string, version: number, onDBUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>) {
-        const db = await IDBWrapper.open(name, version, onDBUpgrade);
+    static async open(name: string, version: number, onDBUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, onDBVersionChanged: () => void) {
+        const db = await IDBWrapper.open(name, version, onDBUpgrade, onDBVersionChanged);
         return new KanjiDic2Store(db);
     }
 

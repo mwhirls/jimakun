@@ -76,7 +76,7 @@ chrome.commands.onCommand.addListener(command => {
 
 async function lookupWord(message: LookupWordMessage, sendResponse: (response?: unknown) => void) {
     try {
-        const dict = await JMDictStore.open(DB_NAME, DB_VERSION, onDBUpgrade);
+        const dict = await JMDictStore.open(DB_NAME, DB_VERSION, onDBUpgrade, onDBVersionChanged);
         const word = await dict.lookupBestMatch(message);
         sendResponse(word);
     } catch (e) {
@@ -86,7 +86,7 @@ async function lookupWord(message: LookupWordMessage, sendResponse: (response?: 
 
 async function lookupKanji(message: LookupKanjiMessage, sendResponse: (response?: unknown) => void) {
     try {
-        const dict = await KanjiDic2Store.open(DB_NAME, DB_VERSION, onDBUpgrade);
+        const dict = await KanjiDic2Store.open(DB_NAME, DB_VERSION, onDBUpgrade, onDBVersionChanged);
         const kanji = await dict.lookup(message);
         sendResponse(kanji);
     } catch (e) {
@@ -96,7 +96,7 @@ async function lookupKanji(message: LookupKanjiMessage, sendResponse: (response?
 
 async function countSentences(message: CountSentencesMessage, sendResponse: (response?: unknown) => void) {
     try {
-        const store = await TatoebaStore.open(DB_NAME, DB_VERSION, onDBUpgrade);
+        const store = await TatoebaStore.open(DB_NAME, DB_VERSION, onDBUpgrade, onDBVersionChanged);
         const count = await store.count(message);
         sendResponse(count);
     } catch (e) {
@@ -106,7 +106,7 @@ async function countSentences(message: CountSentencesMessage, sendResponse: (res
 
 async function lookupSentences(message: LookupSentencesMessage, sendResponse: (response?: unknown) => void) {
     try {
-        const store = await TatoebaStore.open(DB_NAME, DB_VERSION, onDBUpgrade);
+        const store = await TatoebaStore.open(DB_NAME, DB_VERSION, onDBUpgrade, onDBVersionChanged);
         const sentences = await store.lookup(message);
         sendResponse(sentences);
     } catch (e) {
@@ -176,6 +176,10 @@ async function onDBUpgrade(db: IDBUpgradeContext) {
     return db.commit();
 }
 
+async function onDBVersionChanged() {
+    await DBStatusManager.setDBStatusVersionChanged();
+}
+
 async function populateObjectStore(store: IDBObjectStoreWrapper) {
     const source = Object.values(DataSource).find(x => x === store.name());
     await DBStatusManager.setDBStatusBusyIndeterminate(DBOperation.Open);
@@ -201,7 +205,7 @@ async function populateDatabase(db: IDBWrapper) {
 
 async function initializeDatabase() {
     await DBStatusManager.setDBStatusBusyIndeterminate(DBOperation.Open);
-    const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, DB_OPEN_MAX_ATTEMPTS);
+    const db = await IDBWrapper.open(DB_NAME, DB_VERSION, onDBUpgrade, onDBVersionChanged, DB_OPEN_MAX_ATTEMPTS);
     await populateDatabase(db);
     await DBStatusManager.setDBStatusReady();
 }

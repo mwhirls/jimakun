@@ -112,7 +112,7 @@ export interface DBStoreUpgrade {
     apply(): void;
 }
 
-function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>): Promise<IDBWrapper> {
+function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, onVersionChange: () => void): Promise<IDBWrapper> {
     return new Promise((resolve, reject) => {
         const request = self.indexedDB.open(name, version);
         request.onblocked = () => {
@@ -123,7 +123,12 @@ function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgrade
         };
         request.onsuccess = () => {
             const db = request.result;
-            resolve(new IDBWrapper(db, false));
+            const wrapper = new IDBWrapper(db, false, onVersionChange)
+            db.onversionchange = () => {
+                db.close(); // close to allow upgrading database instances in another tab upgrade
+                wrapper.onVersionChange();
+            };
+            resolve(wrapper);
         };
         request.onupgradeneeded = () => {
             if (!request.result) {
@@ -131,10 +136,7 @@ function openIndexedDB(name: string, version: number, onUpgrade: (db: IDBUpgrade
                 return;
             }
             const db = request.result;
-            db.onversionchange = () => {
-                db.close(); // close to allow new database instances in other tabs to upgrade
-            };
-            const context = new IDBUpgradeContext(new IDBWrapper(db, true));
+            const context = new IDBUpgradeContext(new IDBWrapper(db, true, onVersionChange));
             resolve(onUpgrade(context));
         };
     });
@@ -148,28 +150,30 @@ export interface Pagination {
 export class IDBWrapper {
     readonly db: IDBDatabase;
     readonly upgraded: boolean;
+    readonly onVersionChange: () => void;
 
-    constructor(db: IDBDatabase, upgraded: boolean) {
+    constructor(db: IDBDatabase, upgraded: boolean, onVersionChange: () => void) {
         this.db = db;
         this.upgraded = upgraded;
+        this.onVersionChange = onVersionChange;
     }
 
-    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>): Promise<IDBWrapper>;
-    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, attempts?: number): Promise<IDBWrapper>;
-    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, attempts?: number): Promise<IDBWrapper> {
+    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, onVersionChange: () => void): Promise<IDBWrapper>;
+    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, onVersionChange: () => void, attempts?: number): Promise<IDBWrapper>;
+    static async open(name: string, version: number, onUpgrade: (db: IDBUpgradeContext) => Promise<IDBWrapper>, onVersionChange: () => void, attempts?: number): Promise<IDBWrapper> {
         if (!attempts) {
-            return openIndexedDB(name, version, onUpgrade);
+            return openIndexedDB(name, version, onUpgrade, onVersionChange);
         }
         if (attempts <= 0) {
             throw new Error('unable to open database after multiple attempts; aborting');
         }
         try {
-            return openIndexedDB(name, version, onUpgrade);
+            return openIndexedDB(name, version, onUpgrade, onVersionChange);
         } catch (e: unknown) {
             if (e instanceof DatabaseError && e.type === DBErrorType.Blocked) {
                 // re-attempt
                 console.warn('database was blocked; attempting to reopen...');
-                return IDBWrapper.open(name, version, onUpgrade, --attempts);
+                return IDBWrapper.open(name, version, onUpgrade, onVersionChange, --attempts);
             } else {
                 throw e;
             }
@@ -189,6 +193,10 @@ export class IDBWrapper {
                 resolve();
             };
         });
+    }
+
+    close() {
+        this.db.close();
     }
 
     putAll(store: DBStore, entries: unknown[], onProgressUpdate: ProgressUpdateCallback): Promise<void[]> {
