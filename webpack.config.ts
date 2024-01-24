@@ -7,11 +7,34 @@ import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import packageJSON from './package.json'
 
-function updateChromeManifest(data: Buffer) {
+function updateChromeManifest(data: Buffer, production: boolean) {
     const manifest = JSON.parse(data.toString());
     manifest.name = packageJSON.name;
     manifest.description = packageJSON.description;
     manifest.version = packageJSON.version;
+    manifest.content_scripts = [
+        {
+            "js": [
+                "content.bundle.js"
+            ],
+            "css": production ? [
+                "content.css"
+            ] : [],
+            "matches": [
+                "https://www.netflix.com/*"
+            ]
+        },
+        {
+            "js": [
+                "interceptor.bundle.js"
+            ],
+            "matches": [
+                "https://www.netflix.com/*"
+            ],
+            "run_at": "document_start",
+            "world": "MAIN"
+        }
+    ]
     return JSON.stringify(manifest, null, 2);
 }
 
@@ -113,7 +136,7 @@ module.exports = (
                         from: "public/manifest.json",
                         to: "manifest.json",
                         transform(content) {
-                            return updateChromeManifest(content);
+                            return updateChromeManifest(content, production);
                         }
                     },
                     { from: 'node_modules/kuromoji/dict', to: './dict' },
