@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import * as bunsetsu from "bunsetsu";
 import { RuntimeMessage, RuntimeEvent, PlayAudioMessage } from '../../../common/events';
 import { JMdictKana, JMdictWord } from '@scriptin/jmdict-simplified-types';
 import SoundIcon from '../../../../public/assets/volume-05.svg';
+import { ChromeExtensionContext, ExtensionContext } from '../../contexts/ExtensionContext';
+import { sendMessage } from '../../util/browser-runtime';
 
 export interface HeaderProps {
     word: bunsetsu.Word;
@@ -31,19 +33,20 @@ function getBestReading(word: bunsetsu.Word, entry: JMdictWord): JMdictKana | un
     return best ? best.kana : entry.kana[0];
 }
 
-function onAudioClicked(word: bunsetsu.Word) {
+function onAudioClicked(word: bunsetsu.Word, context: ExtensionContext) {
     const utterance = word.basicForm();
     if (!utterance) {
         return;
     }
     const data: PlayAudioMessage = { utterance };
     const message: RuntimeMessage = { event: RuntimeEvent.PlayAudio, data };
-    chrome.runtime.sendMessage(message);
+    sendMessage(message, context);
 }
 
 function Header({ word, entry }: HeaderProps) {
     const dictionaryForm = word.basicForm();
     const reading = getBestReading(word, entry);
+    const context = useContext(ChromeExtensionContext);
     return (
         <div className='flex-none pt-6'>
             <div className="flex flex-initial flex-row flex-nowrap justify-between">
@@ -51,7 +54,7 @@ function Header({ word, entry }: HeaderProps) {
                     <h3 className="inline-block mr-6 text-5xl text-black font-medium">{dictionaryForm}</h3>
                     <h5 className="inline-block text-4xl text-slate-500 font-medium">{reading?.text ?? ""}</h5>
                 </div>
-                <button onClick={() => onAudioClicked(word)}>
+                <button onClick={() => onAudioClicked(word, context)}>
                     <SoundIcon></SoundIcon>
                 </button>
             </div>

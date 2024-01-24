@@ -1,6 +1,6 @@
+import { RuntimeMessage } from "../../common/events";
 import { StorageListener, StorageObject, StorageType } from "../../storage/storage";
 import { ExtensionContext } from "../contexts/ExtensionContext";
-
 
 function isValidRuntime() {
     return !!chrome.runtime?.id;
@@ -58,6 +58,7 @@ export class BrowserStorage<T> {
     addOnChangedListener(listener: BrowserStorageListener<T>) {
         if (!isValidRuntime()) {
             this.context.onInvalidated();
+            return;
         }
         return this.storage.addOnChangedListener(listener.listener);
     }
@@ -65,7 +66,16 @@ export class BrowserStorage<T> {
     removeOnChangedListener(listener: BrowserStorageListener<T>) {
         if (!isValidRuntime()) {
             this.context.onInvalidated();
+            return;
         }
         return this.storage.addOnChangedListener(listener.listener);
     }
+}
+
+export function sendMessage(message: RuntimeMessage, context: ExtensionContext) {
+    if (!isValidRuntime()) {
+        context.onInvalidated();
+        return;
+    }
+    return chrome.runtime.sendMessage(message);
 }

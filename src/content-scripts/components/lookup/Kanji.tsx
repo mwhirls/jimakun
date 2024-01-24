@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { LookupKanjiMessage, RuntimeEvent, RuntimeMessage } from '../../../common/events';
 import { JMdictWord, Kanjidic2Character, Kanjidic2ReadingMeaning } from '@scriptin/jmdict-simplified-types';
+import { ChromeExtensionContext, ExtensionContext } from '../../contexts/ExtensionContext';
+import { sendMessage } from '../../util/browser-runtime';
 
 // https://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
 function isKanji(char: string) {
@@ -17,13 +19,13 @@ function extractKanji(word: string): string[] {
     return chars.filter(c => isKanji(c));
 }
 
-async function lookupKanji(entry: JMdictWord): Promise<Kanjidic2Character[]> {
+async function lookupKanji(entry: JMdictWord, context: ExtensionContext): Promise<Kanjidic2Character[]> {
     const kanjiWords = entry.kanji.map(k => k.text);
     const kanji = kanjiWords.flatMap(word => extractKanji(word));
     const unique = kanji.filter((c, index, arr) => arr.indexOf(c) === index);
     const data: LookupKanjiMessage = { kanji: unique };
     const message: RuntimeMessage = { event: RuntimeEvent.LookupKanji, data: data };
-    return chrome.runtime.sendMessage(message);
+    return sendMessage(message, context);
 }
 
 interface SquareIconProps {
@@ -94,11 +96,12 @@ export interface KanjiProps {
 
 function Kanji({ entry }: KanjiProps) {
     const [kanji, setKanji] = useState<Kanjidic2Character[]>([]);
+    const context = useContext(ChromeExtensionContext);
 
     useEffect(() => {
         (async () => {
             try {
-                const kanji = await lookupKanji(entry);
+                const kanji = await lookupKanji(entry, context);
                 setKanji(kanji);
             } catch (e) {
                 console.error(e);

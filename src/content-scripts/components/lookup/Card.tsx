@@ -15,13 +15,13 @@ import DatabaseBlocked from '../../../common/components/DatabaseBlocked';
 import DatabaseError from '../../../common/components/DatabaseError';
 import { LookupWordMessage, RuntimeMessage, RuntimeEvent, CountSentencesMessage } from '../../../common/events';
 import { DBStatusResult, Status } from '../../../database/dbstatus';
-import { ChromeExtensionContext } from '../../contexts/ExtensionContext';
-import { BrowserStorage, BrowserStorageListener } from '../../util/browser-runtime';
+import { ChromeExtensionContext, ExtensionContext } from '../../contexts/ExtensionContext';
+import { BrowserStorage, BrowserStorageListener, sendMessage } from '../../util/browser-runtime';
 import { StorageType } from '../../../storage/storage';
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
-async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> {
+async function lookupWord(word: bunsetsu.Word, context: ExtensionContext): Promise<JMdictWord | undefined> {
     const data: LookupWordMessage = {
         surfaceForm: word.surfaceForm(),
         baseForm: word.basicForm() ?? "",
@@ -29,15 +29,15 @@ async function lookupWord(word: bunsetsu.Word): Promise<JMdictWord | undefined> 
         hiragana: toHiragana(word.reading()),
     };
     const message: RuntimeMessage = { event: RuntimeEvent.LookupWord, data: data };
-    return chrome.runtime.sendMessage(message);
+    return sendMessage(message, context);
 }
 
-async function countSentences(word: bunsetsu.Word): Promise<number> {
+async function countSentences(word: bunsetsu.Word, context: ExtensionContext): Promise<number> {
     const data: CountSentencesMessage = {
         searchTerm: word.basicForm() ?? toHiragana(word.reading()),
     };
     const message: RuntimeMessage = { event: RuntimeEvent.CountSentences, data: data };
-    return chrome.runtime.sendMessage(message);
+    return sendMessage(message, context);
 }
 
 function LoadingScreen() {
@@ -60,15 +60,16 @@ interface EntryDetailsProps {
 function EntryDetails({ word }: EntryDetailsProps) {
     const [details, setDetails] = useState<WordDetails | null>(null);
     const [selectedTab, setSelectedTab] = useState(0);
+    const context = useContext(ChromeExtensionContext);
 
     useEffect(() => {
         (async () => {
-            const entry = await lookupWord(word);
+            const entry = await lookupWord(word, context);
             if (!entry) {
                 // todo: how to display this to the user?
                 return;
             }
-            const numSentences = await countSentences(word);
+            const numSentences = await countSentences(word, context);
             const details = {
                 entry,
                 numSentences,
