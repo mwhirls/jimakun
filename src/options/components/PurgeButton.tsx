@@ -4,8 +4,7 @@ import { LocalStorageChangedListener, LocalStorageObject } from "../../storage/l
 import Spinner from "../../common/components/Spinner";
 import { RuntimeMessage, RuntimeEvent } from "../../common/events";
 import Modal from "../../common/components/modal/Modal";
-import Alert, { AlertType } from "../../common/components/modal/Alert";
-import ConfirmCancel from "../../common/components/modal/ConfirmCancel";
+import { AlertType } from "../../common/components/modal/Alert";
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 

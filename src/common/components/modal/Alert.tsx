@@ -2,7 +2,7 @@ import React from 'react'
 import { Dialog } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import ConfirmCancel from './ConfirmCancel';
-import ReloadButton from '../ReloadButton';
+import ReloadButton from './ReloadButton';
 
 // https://tailwindui.com/components/application-ui/overlays/dialogs
 
@@ -42,7 +42,9 @@ const Alert = React.forwardRef((props: AlertProps, ref: React.ForwardedRef<HTMLB
             case AlertType.AlertConfirmCancel:
                 return <ConfirmCancel ref={ref} buttonText={props.buttons.buttonText} onConfirm={props.buttons.onConfirm} onCancel={props.buttons.onCancel}></ConfirmCancel>
             case AlertType.AlertReload:
-                return <ReloadButton ref={ref}></ReloadButton>
+                return (
+                    <div className='w-full pb-4'><ReloadButton ref={ref} className='block w-48 mx-auto'></ReloadButton></div>
+                )
         }
     }
 
