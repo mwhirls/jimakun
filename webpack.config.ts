@@ -142,11 +142,6 @@ module.exports = (
                     { from: 'node_modules/kuromoji/dict', to: './dict' },
                 ]
             }),
-        ],
-        optimization: {
-            splitChunks: {
-                chunks: 'all',
-            },
-        },
+        ]
     }
 }
