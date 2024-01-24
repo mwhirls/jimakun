@@ -2,12 +2,13 @@ import React from 'react'
 import { Dialog } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import ConfirmCancel from './ConfirmCancel';
+import ReloadButton from '../ReloadButton';
 
 // https://tailwindui.com/components/application-ui/overlays/dialogs
 
 export enum AlertType {
     AlertConfirmCancel,
-    AlertConfirm,
+    AlertReload,
 }
 
 export interface ConfirmCancelButtons {
@@ -17,18 +18,17 @@ export interface ConfirmCancelButtons {
     onCancel: () => void;
 }
 
-export interface ConfirmButton {
-    type: AlertType.AlertConfirm;
-    buttonText: string;
-    onConfirm: () => void;
-    onCancel: () => void;
+export interface ReloadButton {
+    type: AlertType.AlertReload;
 }
+
+export type AlertButtons = ConfirmCancelButtons | ReloadButton;
 
 export interface AlertProps {
     headerText: string;
     bodyText: string;
     scale?: number;
-    buttons: ConfirmCancelButtons | ConfirmButton;
+    buttons: AlertButtons;
 }
 
 const Alert = React.forwardRef((props: AlertProps, ref: React.ForwardedRef<HTMLButtonElement>) => {
@@ -40,9 +40,9 @@ const Alert = React.forwardRef((props: AlertProps, ref: React.ForwardedRef<HTMLB
     const buttons = () => {
         switch (props.buttons.type) {
             case AlertType.AlertConfirmCancel:
-                return <ConfirmCancel buttonText={props.buttons.buttonText} onConfirm={props.buttons.onConfirm} onCancel={props.buttons.onCancel} ref={ref}></ConfirmCancel>
-            case AlertType.AlertConfirm:
-                return <></>; // todo
+                return <ConfirmCancel ref={ref} buttonText={props.buttons.buttonText} onConfirm={props.buttons.onConfirm} onCancel={props.buttons.onCancel}></ConfirmCancel>
+            case AlertType.AlertReload:
+                return <ReloadButton ref={ref}></ReloadButton>
         }
     }
 

@@ -3,9 +3,9 @@ import { DBStatusResult, Status } from "../../database/dbstatus";
 import { LocalStorageChangedListener, LocalStorageObject } from "../../storage/local-storage";
 import Spinner from "../../common/components/Spinner";
 import { RuntimeMessage, RuntimeEvent } from "../../common/events";
-import Modal from "../../common/components/Modal";
-import Alert, { AlertType } from "../../common/components/Alert";
-import ConfirmCancel from "../../common/components/ConfirmCancel";
+import Modal from "../../common/components/modal/Modal";
+import Alert, { AlertType } from "../../common/components/modal/Alert";
+import ConfirmCancel from "../../common/components/modal/ConfirmCancel";
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 

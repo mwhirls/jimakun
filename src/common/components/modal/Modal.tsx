@@ -1,6 +1,6 @@
 import React, { Fragment, useRef } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import Alert, { ConfirmButton, ConfirmCancelButtons } from './Alert';
+import Alert, { AlertButtons } from './Alert';
 
 // https://tailwindui.com/components/application-ui/overlays/dialogs
 
@@ -8,7 +8,7 @@ interface ModalProps {
     open: boolean;
     headerText: string;
     bodyText: string;
-    buttons: ConfirmCancelButtons | ConfirmButton;
+    buttons: AlertButtons;
     scale?: number;
     onClickOutside?: () => void;
 }

@@ -9,6 +9,8 @@ import { SegmenterContext } from "../contexts/SegmenterContext";
 import { BrowserStorage, BrowserStorageListener } from "../util/browser-runtime";
 import { WEBVTT_FORMAT, querySelectorMutation, ChildMutationType } from "../util/util";
 import Video, { WebvttSubtitles } from "./Video";
+import { AlertType } from "../../common/components/modal/Alert";
+import Modal from "../../common/components/modal/Modal";
 
 const NETFLIX_PLAYER_CLASS = "watch-video--player-view";
 const NETFLIX_VIDEO_CLASS = `${NETFLIX_PLAYER_CLASS} video`
@@ -133,7 +135,9 @@ function App() {
     }, []);
 
     if (invalidated) {
-        return <>Please reload</>; // todo
+        return (
+            <Modal open={invalidated} headerText={"Extension Updated"} bodyText={"It looks like Jimakun was updated or reinstalled from another tab. Please reload the page for changes to take effect."} buttons={{ type: AlertType.AlertReload }} scale={2.0}></Modal>
+        )
     }
 
     if (!currMovie) {
