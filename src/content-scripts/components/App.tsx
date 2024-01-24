@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom';
-import { WebvttSubtitles } from './Video'
-import Video from './Video'
-
-import { ChildMutationType, WEBVTT_FORMAT, querySelectorMutation } from "../util/util"
+import { Segmenter, build } from "bunsetsu";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { RuntimeEvent } from "../../common/events";
 import { TimedTextTrack, NetflixMetadata, TimedTextSwitch } from "../../common/netflix-types";
-import { RuntimeEvent } from '../../common/events';
-import { SegmenterContext } from '../contexts/SegmenterContext';
-import { Segmenter, build } from 'bunsetsu';
-import { SessionStorageChangedListener, SessionStorageObject } from '../../storage/sesson-storage';
+import { StorageType } from "../../storage/storage";
+import { ExtensionContext, ChromeExtensionContext } from "../contexts/ExtensionContext";
+import { SegmenterContext } from "../contexts/SegmenterContext";
+import { BrowserStorage, BrowserStorageListener } from "../util/browser-runtime";
+import { WEBVTT_FORMAT, querySelectorMutation, ChildMutationType } from "../util/util";
+import Video, { WebvttSubtitles } from "./Video";
 
 const NETFLIX_PLAYER_CLASS = "watch-video--player-view";
 const NETFLIX_VIDEO_CLASS = `${NETFLIX_PLAYER_CLASS} video`
@@ -52,12 +52,15 @@ async function downloadSubtitles(track: TimedTextTrack): Promise<SubtitleData | 
 }
 
 function App() {
+    const [invalidated, setInvalidated] = useState(false);
     const [subtitleData, setSubtitleData] = useState(new Map<MovieId, SubtitleTracks>);
     const [currMovie, setCurrMovie] = useState<MovieId | null>(null);
     const [currTrack, setCurrTrack] = useState("");
     const [netflixPlayer, setNetflixPlayer] = useState<Element | null>(document.querySelector(`.${NETFLIX_PLAYER_CLASS}`));
     const [videoElem, setVideoElem] = useState<HTMLVideoElement | null>(document.querySelector(`.${NETFLIX_VIDEO_CLASS}`) as HTMLVideoElement | null);
     const [segmenter, setSegmenter] = useState<Segmenter | null>(null);
+
+    const context = new ExtensionContext(() => setInvalidated(true));
 
     useEffect(() => {
         const metadataListener = async (event: Event) => {
@@ -86,10 +89,16 @@ function App() {
         window.addEventListener(RuntimeEvent.MetadataDetected, metadataListener);
         window.addEventListener(RuntimeEvent.SubtitleTrackSwitched, trackSwitchedListener);
 
-        const storage = new SessionStorageObject<MovieId>(MOVIE_KEY);
-        const onMovieIdChanged = SessionStorageChangedListener.create(storage, (_, newValue) => setCurrMovie(newValue));
-        storage.get().then(movieId => setCurrMovie(movieId));
-        storage.addOnChangedListener(onMovieIdChanged);
+        const storage = new BrowserStorage<MovieId>(MOVIE_KEY, StorageType.Session, context);
+        const onMovieIdChanged = BrowserStorageListener.create(storage, (_, newValue) => setCurrMovie(newValue), context);
+        storage.get().then(movieId => {
+            if (movieId) {
+                setCurrMovie(movieId);
+            }
+        });
+        if (onMovieIdChanged) {
+            storage.addOnChangedListener(onMovieIdChanged);
+        }
 
         // We insert our components into the Netflix DOM, but they constantly
         // mutate it.  Watch for changes so we know when to re-render.
@@ -116,10 +125,16 @@ function App() {
         return () => {
             window.removeEventListener(RuntimeEvent.MetadataDetected, metadataListener);
             window.removeEventListener(RuntimeEvent.MetadataDetected, trackSwitchedListener);
-            storage.removeOnChangedListener(onMovieIdChanged);
+            if (onMovieIdChanged) {
+                storage.removeOnChangedListener(onMovieIdChanged);
+            }
             netflixObserver.disconnect();
         };
     }, []);
+
+    if (invalidated) {
+        return <>Please reload</>; // todo
+    }
 
     if (!currMovie) {
         return <></>;
@@ -137,10 +152,13 @@ function App() {
 
             {createPortal(
                 <SegmenterContext.Provider value={{ segmenter }}>
-                    <Video webvttSubtitles={subtitles} videoElem={videoElem}></Video>
+                    <ChromeExtensionContext.Provider value={context}>
+                        <Video webvttSubtitles={subtitles} videoElem={videoElem}></Video>
+                    </ChromeExtensionContext.Provider>
                 </SegmenterContext.Provider>,
                 netflixPlayer
-            )}
+            )
+            }
 
         </>
     )

@@ -1,5 +1,4 @@
-type Changes = { [key: string]: chrome.storage.StorageChange; };
-type StorageAreaChanged = (changes: Changes) => void;
+import { StorageAreaChanged, Changes, StorageType } from "./storage";
 
 export class SessionStorageChangedListener {
     callback: StorageAreaChanged;
@@ -15,15 +14,16 @@ export class SessionStorageChangedListener {
                 callback(change.oldValue, change.newValue);
             }
         };
-        chrome.storage.session.onChanged.addListener(cb);
         return new SessionStorageChangedListener(cb);
     }
 }
 
 export class SessionStorageObject<T> {
+    type: StorageType.Session;
     key: string;
 
     constructor(key: string) {
+        this.type = StorageType.Session;
         this.key = key;
     }
 

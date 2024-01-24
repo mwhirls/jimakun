@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import * as bunsetsu from "bunsetsu";
 import Footer from './Footer';
 import Definitions from './Definitions';
@@ -13,9 +13,11 @@ import Spinner from '../../../common/components/Spinner';
 import DatabaseBusy from '../../../common/components/DatabaseBusy';
 import DatabaseBlocked from '../../../common/components/DatabaseBlocked';
 import DatabaseError from '../../../common/components/DatabaseError';
-import { LocalStorageObject, LocalStorageChangedListener } from '../../../storage/local-storage';
 import { LookupWordMessage, RuntimeMessage, RuntimeEvent, CountSentencesMessage } from '../../../common/events';
 import { DBStatusResult, Status } from '../../../database/dbstatus';
+import { ChromeExtensionContext } from '../../contexts/ExtensionContext';
+import { BrowserStorage, BrowserStorageListener } from '../../util/browser-runtime';
+import { StorageType } from '../../../storage/storage';
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
@@ -118,16 +120,25 @@ export interface CardProps {
 }
 
 function Card({ word }: CardProps) {
+    const context = useContext(ChromeExtensionContext);
     const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
 
     useEffect(() => {
-        const storage = new LocalStorageObject<DBStatusResult>(DB_STATUS_KEY);
-        const onStatusChanged = LocalStorageChangedListener.create(storage, (_, newValue) => setDBStatus(newValue));
-        storage.addOnChangedListener(onStatusChanged);
-        storage.get().then(status => setDBStatus(status));
+        const storage = new BrowserStorage<DBStatusResult>(DB_STATUS_KEY, StorageType.Local, context);
+        const onStatusChanged = BrowserStorageListener.create(storage, (_, newValue) => setDBStatus(newValue), context);
+        if (onStatusChanged) {
+            storage.addOnChangedListener(onStatusChanged);
+        }
+        storage.get().then(status => {
+            if (status) {
+                setDBStatus(status);
+            }
+        });
 
         return () => {
-            storage.removeOnChangedListener(onStatusChanged);
+            if (onStatusChanged) {
+                storage.removeOnChangedListener(onStatusChanged);
+            }
         }
     }, []);
 

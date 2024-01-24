@@ -5,7 +5,7 @@ import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanjidic2";
 import { CountSentencesMessage, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./common/events";
 import * as DBStatusManager from './database/dbstatus'
 import * as tabs from './tabs'
-import { SessionStorageObject } from "./storage/sesson-storage";
+import { SessionStorageObject } from "./storage/session-storage";
 import { DataSource } from "./database/dbstatus";
 
 const DB_NAME = 'jimakun';

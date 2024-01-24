@@ -1,5 +1,4 @@
-type Changes = { [key: string]: chrome.storage.StorageChange; };
-type StorageAreaChanged = (changes: Changes) => void;
+import { Changes, StorageAreaChanged, StorageType } from "./storage";
 
 export class LocalStorageChangedListener {
     callback: StorageAreaChanged;
@@ -21,9 +20,11 @@ export class LocalStorageChangedListener {
 }
 
 export class LocalStorageObject<T> {
+    type: StorageType.Local;
     key: string;
 
     constructor(key: string) {
+        this.type = StorageType.Local;
         this.key = key;
     }
 
