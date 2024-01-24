@@ -9,7 +9,7 @@ import { SessionStorageObject } from "./storage/sesson-storage";
 import { DataSource } from "./database/dbstatus";
 
 const DB_NAME = 'jimakun';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 const MOVIE_KEY = 'lastMovieId';
 

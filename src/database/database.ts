@@ -39,6 +39,10 @@ export class DBStoreUpgradeContext {
         this.requests = [];
     }
 
+    exists(store: DBStore) {
+        return this.wrapper.db.objectStoreNames.contains(store.name);
+    }
+
     create(stores: DBStore[]) {
         const requests = stores.map((store) => {
             return new Promise<void>((resolve, reject) => {

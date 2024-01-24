@@ -123,6 +123,8 @@ export class JMDictStoreUpgrade implements DBStoreUpgrade {
     }
 
     apply() {
-        this.db.create([OBJECT_STORE]);
+        if (!this.db.exists(OBJECT_STORE)) {
+            this.db.create([OBJECT_STORE]);
+        }
     }
 }
