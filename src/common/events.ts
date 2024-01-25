@@ -1,6 +1,7 @@
 import { TatoebaSentence } from "./tatoeba-types";
 
 export enum RuntimeEvent {
+    CountKanji = 'count-kanji',
     CountSentences = 'count-sentences',
     LookupKanji = 'lookup-kanji',
     LookupSentences = 'lookup-sentences',
@@ -53,6 +54,10 @@ export interface Error<S> {
 
 export interface MessageResponse<T, S> {
     result: Success<T> | Error<S>
+}
+
+export interface CountKanjiMessage {
+    kanji: string[];
 }
 
 export interface CountSentencesMessage {

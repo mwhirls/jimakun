@@ -3,6 +3,7 @@ import React from 'react';
 export interface Tab {
     label: string,
     content: React.JSX.Element;
+    disabled: boolean;
 }
 
 export interface TabProps {
@@ -15,24 +16,15 @@ function Tabs({ tabs, selectedIndex, onSelected }: TabProps) {
     const content = selectedIndex >= 0 && selectedIndex < tabs.length ? tabs[selectedIndex].content : <></>;
     return (
         <div className='flex flex-col max-h-full'>
-            <div className='flex flex-row bg-slate-100 rounded-md'>
+            <div className='flex flex-row bg-white rounded-md'>
                 {
                     tabs.map((tab: Tab, index: number) => {
-                        const label = (
-                            <h4 className='font-normal text-3xl text-black'>
-                                {tab.label}
-                            </h4>
-                        );
-                        if (index === selectedIndex) {
-                            return (
-                                <button key={index} className="m-3 p-3 bg-white rounded-md" onClick={() => onSelected(index)}>
-                                    {label}
-                                </button>
-                            )
-                        }
+                        const selected = index === selectedIndex ? "text-black border-b-2 border-solid border-b-red-600" : "text-slate-400 hover:text-black";
                         return (
-                            <button key={index} className="m-3 p-3" onClick={() => onSelected(index)}>
-                                {label}
+                            <button key={index} className={`p-4 disabled:text-slate-300 disabled:cursor-not-allowed ${selected}`} disabled={tab.disabled} onClick={() => onSelected(index)}>
+                                <h4 className='text-3xl text-medium'>
+                                    {tab.label}
+                                </h4>
                             </button>
                         )
                     })

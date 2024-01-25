@@ -7,13 +7,13 @@ import Tabs from './Tabs';
 import Examples from './Examples';
 import Kanji from './Kanji';
 import Notes from './Notes';
-import type { JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { toHiragana } from '../../../common/lang';
+import type { JMdictWord, Kanjidic2Character } from "@scriptin/jmdict-simplified-types";
+import { extractKanji, toHiragana } from '../../../common/lang';
 import Spinner from '../../../common/components/Spinner';
 import DatabaseBusy from '../../../common/components/DatabaseBusy';
 import DatabaseBlocked from '../../../common/components/DatabaseBlocked';
 import DatabaseError from '../../../common/components/DatabaseError';
-import { LookupWordMessage, RuntimeMessage, RuntimeEvent, CountSentencesMessage } from '../../../common/events';
+import { LookupWordMessage, RuntimeMessage, RuntimeEvent, CountSentencesMessage, CountKanjiMessage } from '../../../common/events';
 import { DBStatusResult, Status } from '../../../database/dbstatus';
 import { ChromeExtensionContext, ExtensionContext } from '../../contexts/ExtensionContext';
 import { BrowserStorage, BrowserStorageListener, sendMessage } from '../../util/browser-runtime';
@@ -29,6 +29,15 @@ async function lookupWord(word: bunsetsu.Word, context: ExtensionContext): Promi
         hiragana: toHiragana(word.reading()),
     };
     const message: RuntimeMessage = { event: RuntimeEvent.LookupWord, data: data };
+    return sendMessage(message, context);
+}
+
+async function countKanji(entry: JMdictWord, context: ExtensionContext): Promise<number> {
+    const kanjiWords = entry.kanji.map(k => k.text);
+    const kanji = kanjiWords.flatMap(word => extractKanji(word));
+    const unique = kanji.filter((c, index, arr) => arr.indexOf(c) === index);
+    const data: CountKanjiMessage = { kanji: unique };
+    const message: RuntimeMessage = { event: RuntimeEvent.LookupKanji, data: data };
     return sendMessage(message, context);
 }
 
@@ -50,6 +59,7 @@ function LoadingScreen() {
 
 interface WordDetails {
     entry: JMdictWord;
+    numKanji: number;
     numSentences: number;
 }
 
@@ -69,9 +79,11 @@ function EntryDetails({ word }: EntryDetailsProps) {
                 // todo: how to display this to the user?
                 return;
             }
+            const numKanji = await countKanji(entry, context);
             const numSentences = await countSentences(word, context);
             const details = {
                 entry,
+                numKanji,
                 numSentences,
             }
             setDetails(details);
@@ -85,19 +97,23 @@ function EntryDetails({ word }: EntryDetailsProps) {
     const tabs = [
         {
             label: "Definitions",
-            content: <Definitions word={word} entry={details.entry}></Definitions>
+            content: <Definitions word={word} entry={details.entry}></Definitions>,
+            disabled: false,
         },
         {
             label: "Kanji",
-            content: <Kanji entry={details.entry}></Kanji>
+            content: <Kanji entry={details.entry}></Kanji>,
+            disabled: details.numKanji <= 0,
         },
         {
             label: "Examples",
-            content: <Examples word={word} numSentences={details.numSentences}></Examples>
+            content: <Examples word={word} numSentences={details.numSentences}></Examples>,
+            disabled: details.numSentences <= 0,
         },
         {
             label: "Notes",
-            content: <Notes word={word}></Notes>
+            content: <Notes word={word}></Notes>,
+            disabled: false,
         }
     ];
 
