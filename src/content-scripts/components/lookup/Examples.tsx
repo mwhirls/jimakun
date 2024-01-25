@@ -3,7 +3,7 @@ import * as bunsetsu from "bunsetsu";
 import { TatoebaSentence } from '../../../common/tatoeba-types';
 import { LookupSentencesMessage, LookupSentencesResult, RuntimeEvent, RuntimeMessage } from '../../../common/events';
 import { toHiragana } from '../../../common/lang';
-import Pagination from './Pagination';
+import Pagination from '../../../common/components/Pagination'
 import { ChromeExtensionContext, ExtensionContext } from '../../contexts/ExtensionContext';
 import { sendMessage } from '../../util/browser-runtime';
 

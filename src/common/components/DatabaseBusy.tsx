@@ -1,5 +1,5 @@
 import React from 'react';
-import ProgressBar from "../../content-scripts/components/lookup/ProgressBar";
+import ProgressBar from "./ProgressBar";
 import { DBOperation } from "../../database/database";
 import { Busy, DataSource } from '../../database/dbstatus';
 

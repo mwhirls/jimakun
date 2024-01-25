@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ChevronLeftIcon from '../../../../public/assets/chevron-left.svg';
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 
 const NUM_LEADING_PAGES = 1;
 const NUM_FOLLOWING_PAGES = 1;
@@ -14,7 +14,7 @@ enum Mirrored {
     No,
 }
 
-class SVG {
+class Icon {
     content: JSX.Element;
 
     constructor(content: JSX.Element) {
@@ -23,7 +23,7 @@ class SVG {
 
     render() {
         return (
-            <div className="block m-auto">
+            <div className="block m-auto w-12">
                 {this.content}
             </div>
         )
@@ -45,9 +45,9 @@ class Text {
 }
 
 class PageItem {
-    content: SVG | Text;
+    content: Icon | Text;
 
-    constructor(content: SVG | Text) {
+    constructor(content: Icon | Text) {
         this.content = content;
     }
 
@@ -62,7 +62,7 @@ class PageNavigation extends PageItem {
     selected: Selected;
     mirrored: Mirrored;
 
-    constructor(content: SVG | Text, onClick: () => void, selected: Selected, mirrored: Mirrored) {
+    constructor(content: Icon | Text, onClick: () => void, selected: Selected, mirrored: Mirrored) {
         super(content);
         this.onClick = onClick;
         this.selected = selected;
@@ -111,7 +111,7 @@ export interface PaginationProps {
 function Pagination({ numPages, onPageClicked }: PaginationProps) {
     const [selectedPage, setSelectedPage] = useState<number>(0);
 
-    const prevIcon = new SVG(<ChevronLeftIcon></ChevronLeftIcon>);
+    const prevIcon = new Icon(<ChevronLeftIcon></ChevronLeftIcon>);
 
     const onClick = (page: number) => {
         setSelectedPage(page);
@@ -126,8 +126,8 @@ function Pagination({ numPages, onPageClicked }: PaginationProps) {
 
     const pages = Array.from(Array(numPages).keys());
     const current = currentPages(pages, selectedPage);
-    const leading = leadingPages(pages).filter((value) => value < current[0]);
-    const following = followingPages(pages).filter((value) => value > current[current.length - 1]);
+    const leading = leadingPages(pages).filter((value) => value < current[0] - 1);
+    const following = followingPages(pages).filter((value) => value > current[current.length - 1] + 1);
     const items = [
         new PageNavigation(prevIcon, onClickPrev, Selected.No, Mirrored.No),
         ...(leading.map(page => numberedPage(page, selectedPage, onClick))),
