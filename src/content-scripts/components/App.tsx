@@ -1,5 +1,5 @@
 import { Segmenter, build } from "bunsetsu";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { createPortal } from "react-dom";
 import { RuntimeEvent } from "../../common/events";
 import { TimedTextTrack, NetflixMetadata, TimedTextSwitch } from "../../common/netflix-types";
@@ -11,10 +11,12 @@ import { WEBVTT_FORMAT, querySelectorMutation, ChildMutationType } from "../util
 import Video, { WebvttSubtitles } from "./Video";
 import { AlertType } from "../../common/components/modal/Alert";
 import Modal from "../../common/components/modal/Modal";
+import { DBStatusResult } from "../../database/dbstatus";
 
 const NETFLIX_PLAYER_CLASS = "watch-video--player-view";
 const NETFLIX_VIDEO_CLASS = `${NETFLIX_PLAYER_CLASS} video`
 const MOVIE_KEY = 'lastMovieId';
+const DB_STATUS_KEY = 'lastDBStatusResult';
 
 type MovieId = number;
 type SubtitleTracks = Map<string, SubtitleData>;
@@ -55,6 +57,7 @@ async function downloadSubtitles(track: TimedTextTrack): Promise<SubtitleData | 
 
 function App() {
     const [invalidated, setInvalidated] = useState(false);
+    const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
     const [subtitleData, setSubtitleData] = useState(new Map<MovieId, SubtitleTracks>);
     const [currMovie, setCurrMovie] = useState<MovieId | null>(null);
     const [currTrack, setCurrTrack] = useState("");
@@ -65,6 +68,27 @@ function App() {
     const context = new ExtensionContext(() => setInvalidated(true));
 
     useEffect(() => {
+        const dbStatusStorage = new BrowserStorage<DBStatusResult>(DB_STATUS_KEY, StorageType.Local, context);
+        const movieIdStorage = new BrowserStorage<MovieId>(MOVIE_KEY, StorageType.Session, context);
+        const onDBStatusChanged = BrowserStorageListener.create(dbStatusStorage, (_, newValue) => setDBStatus(newValue), context);
+        const onMovieIdChanged = BrowserStorageListener.create(movieIdStorage, (_, newValue) => setCurrMovie(newValue), context);
+        if (onDBStatusChanged) {
+            dbStatusStorage.addOnChangedListener(onDBStatusChanged);
+        }
+        if (onMovieIdChanged) {
+            movieIdStorage.addOnChangedListener(onMovieIdChanged);
+        }
+        dbStatusStorage.get().then(status => {
+            if (status) {
+                setDBStatus(status);
+            }
+        });
+        movieIdStorage.get().then(movieId => {
+            if (movieId) {
+                setCurrMovie(movieId);
+            }
+        });
+
         const metadataListener = async (event: Event) => {
             const metadata = (event as CustomEvent).detail as NetflixMetadata;
             const movieId = metadata.movieId;
@@ -91,17 +115,6 @@ function App() {
         window.addEventListener(RuntimeEvent.MetadataDetected, metadataListener);
         window.addEventListener(RuntimeEvent.SubtitleTrackSwitched, trackSwitchedListener);
 
-        const storage = new BrowserStorage<MovieId>(MOVIE_KEY, StorageType.Session, context);
-        const onMovieIdChanged = BrowserStorageListener.create(storage, (_, newValue) => setCurrMovie(newValue), context);
-        storage.get().then(movieId => {
-            if (movieId) {
-                setCurrMovie(movieId);
-            }
-        });
-        if (onMovieIdChanged) {
-            storage.addOnChangedListener(onMovieIdChanged);
-        }
-
         // We insert our components into the Netflix DOM, but they constantly
         // mutate it.  Watch for changes so we know when to re-render.
         const netflixObserver = new MutationObserver(mutationCallback);
@@ -125,11 +138,14 @@ function App() {
             .catch((err) => console.error('[JIMAKUN] error when building tokenizer', err));
 
         return () => {
+            if (onDBStatusChanged) {
+                dbStatusStorage.removeOnChangedListener(onDBStatusChanged);
+            }
+            if (onMovieIdChanged) {
+                movieIdStorage.removeOnChangedListener(onMovieIdChanged);
+            }
             window.removeEventListener(RuntimeEvent.MetadataDetected, metadataListener);
             window.removeEventListener(RuntimeEvent.MetadataDetected, trackSwitchedListener);
-            if (onMovieIdChanged) {
-                storage.removeOnChangedListener(onMovieIdChanged);
-            }
             netflixObserver.disconnect();
         };
     }, []);
@@ -157,7 +173,7 @@ function App() {
             {createPortal(
                 <SegmenterContext.Provider value={{ segmenter }}>
                     <ChromeExtensionContext.Provider value={context}>
-                        <Video webvttSubtitles={subtitles} videoElem={videoElem}></Video>
+                        <Video dbStatus={dbStatus} webvttSubtitles={subtitles} videoElem={videoElem}></Video>
                     </ChromeExtensionContext.Provider>
                 </SegmenterContext.Provider>,
                 netflixPlayer

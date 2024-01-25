@@ -3,18 +3,16 @@ import { createPortal } from 'react-dom';
 import Subtitle, { Line, WordDetails } from "./Subtitle";
 import { LookupWordsMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from '../../common/events';
 import { ChildMutationType, querySelectorMutation } from '../util/util';
-import { DBStatusResult } from '../../database/dbstatus';
-import { StorageType } from '../../storage/storage';
-import { BrowserStorage, BrowserStorageListener, sendMessage } from '../util/browser-runtime';
 import { ChromeExtensionContext, ExtensionContext } from '../contexts/ExtensionContext';
 import { toHiragana } from '../../common/lang';
 import { SegmenterContext, SegmenterContextI } from '../contexts/SegmenterContext';
 import * as bunsetsu from "bunsetsu";
+import { sendMessage } from '../util/browser-runtime';
+import { DBStatusResult } from '../../database/dbstatus';
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';
 const NETFLIX_TEXT_SUBTITLE_CLASS = "player-timedtext";
 const NETFLIX_IMAGE_SUBTITLE_CLASS = "image-based-timed-text";
-const DB_STATUS_KEY = 'lastDBStatusResult';
 
 function toList(cueList: TextTrackCueList | null): TextTrackCue[] {
     if (!cueList) {
@@ -74,12 +72,7 @@ function calculateSubtitleOffset(videoRect: DOMRect, controlsElem: Element | nul
     return defaultOffset + (subtitleBottom - controlsRect.top);
 }
 
-interface StyledNodeI {
-    element: HTMLElement;
-    style: CSSStyleDeclaration;
-}
-
-class StyledNode implements StyledNodeI {
+class StyledNode {
     element: HTMLElement;
     style: CSSStyleDeclaration;
 
@@ -190,15 +183,15 @@ async function lookupWordsInCue(cue: TextTrackCue, segmenterContext: SegmenterCo
 type ParsedCue = Line[];
 
 interface VideoProps {
+    dbStatus: DBStatusResult | null;
     webvttSubtitles: WebvttSubtitles;
     videoElem: HTMLVideoElement;
 }
 
-function Video({ webvttSubtitles, videoElem }: VideoProps) {
+function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
     const segmenterContext = useContext(SegmenterContext);
     const extensionContext = useContext(ChromeExtensionContext);
     const cuesRef = useRef<TextTrackCue[]>([]);
-    const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
     const [activeCues, setActiveCues] = useState<ParsedCue[]>([]);
     const [rect, setRect] = useState(calculateViewRect(videoElem));
     const [controlsElem, setControlsElem] = useState(document.querySelector(`.${NETFLIX_BOTTOM_CONTROLS_CLASS}`));
@@ -208,16 +201,6 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
     const [show, setShow] = useState(true);
 
     useEffect(() => {
-        const storage = new BrowserStorage<DBStatusResult>(DB_STATUS_KEY, StorageType.Local, extensionContext);
-        const onStatusChanged = BrowserStorageListener.create(storage, (_, newValue) => setDBStatus(newValue), extensionContext);
-        if (onStatusChanged) {
-            storage.addOnChangedListener(onStatusChanged);
-        }
-        storage.get().then(status => {
-            if (status) {
-                setDBStatus(status);
-            }
-        });
         const runtimeListener = (message: RuntimeMessage) => {
             if (message.event === RuntimeEvent.SeekCue) {
                 const data = message.data as SeekCueMessage;
@@ -292,9 +275,6 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
         hideNetflixSubtitles();
 
         return () => {
-            if (onStatusChanged) {
-                storage.removeOnChangedListener(onStatusChanged);
-            }
             chrome.runtime.onMessage.removeListener(runtimeListener);
             resizeObserver.disconnect();
             netflixObserver.disconnect();
