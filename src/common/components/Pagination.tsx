@@ -128,14 +128,16 @@ function Pagination({ numPages, onPageClicked }: PaginationProps) {
 
     const pages = Array.from(Array(numPages).keys());
     const current = currentPages(pages, selectedPage);
-    const leading = leadingPages(pages).filter((value) => value < current[0] - 1);
-    const following = followingPages(pages).filter((value) => value > current[current.length - 1] + 1);
+    const leading = leadingPages(pages).filter((value) => value < current[0]);
+    const following = followingPages(pages).filter((value) => value > current[current.length - 1]);
+    const collapseLeading = leading.length && (current[0] - leading[leading.length - 1]) > 1;
+    const collapseFollowing = following.length && (following[0] - current[current.length - 1]) > 1;
     const items = [
         new PageNavigation(prevIcon, onClickPrev, Selected.No, Mirrored.No, selectedPage <= 0),
         ...(leading.map(page => numberedPage(page, selectedPage, onClick))),
-        leading.length ? new PageItem(new Text("...")) : [],
+        collapseLeading ? new PageItem(new Text("...")) : [],
         ...(current.map(page => numberedPage(page, selectedPage, onClick))),
-        following.length ? new PageItem(new Text("...")) : [],
+        collapseFollowing ? new PageItem(new Text("...")) : [],
         ...(following.map(page => numberedPage(page, selectedPage, onClick))),
         new PageNavigation(prevIcon, onClickNext, Selected.No, Mirrored.Yes, selectedPage >= pages.length - 1),
     ].flat();
