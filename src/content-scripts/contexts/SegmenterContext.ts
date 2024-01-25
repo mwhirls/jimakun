@@ -2,7 +2,7 @@
 import { createContext } from 'react';
 import { Segmenter } from 'bunsetsu';
 
-interface SegmenterContextI {
+export interface SegmenterContextI {
     segmenter: Segmenter | null
 }
 

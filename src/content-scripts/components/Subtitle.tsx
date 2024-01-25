@@ -1,4 +1,4 @@
-import { SegmenterContext } from "../contexts/SegmenterContext";
+import { SegmenterContext, SegmenterContextI } from "../contexts/SegmenterContext";
 import React, { useContext, useEffect, useState } from "react";
 import * as bunsetsu from "bunsetsu";
 import Word, { WordIndex } from "./Word";
@@ -8,6 +8,13 @@ import { toHiragana } from "../../common/lang";
 import { ChromeExtensionContext, ExtensionContext } from "../contexts/ExtensionContext";
 import { sendMessage } from "../util/browser-runtime";
 import { DBStatusResult } from "../../database/dbstatus";
+
+type WordDetails = {
+    word: bunsetsu.Word;
+    entry?: JMdictWord;
+}
+
+type Line = WordDetails[];
 
 function extractCueText(cue: TextTrackCue): string {
     const cueText = (cue as any).text; // cue.text is not documented
@@ -47,9 +54,10 @@ async function lookupWords(words: bunsetsu.Word[], context: ExtensionContext): P
     });
 }
 
-type WordDetails = {
-    word: bunsetsu.Word;
-    entry?: JMdictWord;
+async function lookupWordsInCue(cue: TextTrackCue, segmenterContext: SegmenterContextI, extensionContext: ExtensionContext): Promise<Line[]> {
+    const lines = parseCue(cue, segmenterContext.segmenter);
+    const results = lines.map(line => lookupWords(line, extensionContext));
+    return Promise.all(results);
 }
 
 export interface SubtitleProps {
@@ -62,16 +70,9 @@ function Subtitle({ cue, fontSize }: SubtitleProps) {
     const segmenterContext = useContext(SegmenterContext);
     const extensionContext = useContext(ChromeExtensionContext);
     const [selectedWord, setSelectedWord] = useState<WordIndex | null>(null);
-    const lines = parseCue(cue, segmenterContext.segmenter);
     const [lineDetails, setLineDetails] = useState<WordDetails[][]>([]);
 
-    useEffect(() => {
-        (async () => {
-            const results = lines.map(line => lookupWords(line, extensionContext));
-            const lineEntries = await Promise.all(results);
-            setLineDetails(lineEntries);
-        })();
-    }, []);
+    lookupWordsInCue(cue, segmenterContext, extensionContext).then((lines) => setLineDetails(lines));
 
     const onWordClicked = (index: WordIndex) => {
         setSelectedWord(index);
@@ -87,7 +88,7 @@ function Subtitle({ cue, fontSize }: SubtitleProps) {
     return (
         <div style={style} className="block relative -left-1/2 font-bold drop-shadow-[0_0_7px_#000000] pointer-events-auto select-text">
             {
-                lineDetails.map((line: WordDetails[], lineIndex: number) => {
+                lineDetails.map((line: Line, lineIndex: number) => {
                     return (
                         <div key={lineIndex} className="block text-start m-0">
                             {
