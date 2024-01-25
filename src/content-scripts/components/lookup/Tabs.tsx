@@ -30,7 +30,7 @@ function Tabs({ tabs, selectedIndex, onSelected }: TabProps) {
                     })
                 }
             </div>
-            <div className='my-6 pr-6 overflow-y-auto min-h-[5rem] h-[22rem] min-w-full w-[45rem] max-w-full'>
+            <div className='my-6 pr-6 overflow-y-auto min-h-[5rem] h-[22rem] min-w-full w-[45rem] max-w-full scrollbar'>
                 {content}
             </div>
         </div>
