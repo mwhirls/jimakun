@@ -11,7 +11,7 @@ function getBestReading(word: bunsetsu.Word, entry: JMdictWord): JMdictKana | un
     if (!entry.kana.length) {
         return undefined;
     }
-    const baseForm = word.basicForm();
+    const baseForm = word.baseForm;
     let best: { kana: JMdictKana, kanji: string } | null = null;
     for (const kana of entry.kana) {
         for (const kanji of kana.appliesToKanji) {
@@ -30,7 +30,7 @@ function getBestReading(word: bunsetsu.Word, entry: JMdictWord): JMdictKana | un
 }
 
 function onAudioClicked(word: bunsetsu.Word, context: ExtensionContext) {
-    const utterance = word.basicForm();
+    const utterance = word.baseForm;
     if (!utterance) {
         return;
     }
@@ -46,7 +46,7 @@ export interface HeaderProps {
 }
 
 function Header({ word, entry, onCloseClicked }: HeaderProps) {
-    const dictionaryForm = word.basicForm();
+    const dictionaryForm = word.baseForm;
     const reading = getBestReading(word, entry);
     const context = useContext(ChromeExtensionContext);
     return (

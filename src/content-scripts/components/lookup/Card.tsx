@@ -23,10 +23,10 @@ const DB_STATUS_KEY = 'lastDBStatusResult'
 
 async function lookupWord(word: bunsetsu.Word, context: ExtensionContext): Promise<JMdictWord | undefined> {
     const data: LookupWordMessage = {
-        surfaceForm: word.surfaceForm(),
-        baseForm: word.basicForm() ?? "",
-        katakana: word.reading() ?? "",
-        hiragana: toHiragana(word.reading()),
+        surfaceForm: word.surfaceForm,
+        baseForm: word.baseForm ?? "",
+        katakana: word.reading ?? "",
+        hiragana: toHiragana(word.reading),
     };
     const message: RuntimeMessage = { event: RuntimeEvent.LookupWord, data: data };
     return sendMessage(message, context);
@@ -43,7 +43,7 @@ async function countKanji(entry: JMdictWord, context: ExtensionContext): Promise
 
 async function countSentences(word: bunsetsu.Word, context: ExtensionContext): Promise<number> {
     const data: CountSentencesMessage = {
-        searchTerm: word.basicForm() ?? toHiragana(word.reading()),
+        searchTerm: word.baseForm ?? toHiragana(word.reading),
     };
     const message: RuntimeMessage = { event: RuntimeEvent.CountSentences, data: data };
     return sendMessage(message, context);

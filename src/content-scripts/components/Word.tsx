@@ -7,11 +7,11 @@ import Card from "./lookup/Card";
 import { toHiragana } from "../../common/lang";
 
 function toTokens(word: bunsetsu.Word): TokenProps[] {
-    const wordSurfaceForm = word.surfaceForm();
+    const wordSurfaceForm = word.surfaceForm;
     if (!wordSurfaceForm.length) {
         return [];
     }
-    const katakana = word.reading(); // kuromoji gives us readings in katakana
+    const katakana = word.reading; // kuromoji gives us readings in katakana
     const hiragana = toHiragana(katakana);
     const tokens: TokenProps[] = [];
     const diff = Diff.diffChars(wordSurfaceForm, hiragana);

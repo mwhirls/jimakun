@@ -11,7 +11,7 @@ const SENTENCES_PER_PAGE = 20;
 
 async function lookupSentences(word: bunsetsu.Word, page: number, context: ExtensionContext): Promise<LookupSentencesResult> {
     const data: LookupSentencesMessage = {
-        searchTerm: word.basicForm() ?? toHiragana(word.reading()),
+        searchTerm: word.baseForm ?? toHiragana(word.reading),
         page,
         perPage: SENTENCES_PER_PAGE,
     };
