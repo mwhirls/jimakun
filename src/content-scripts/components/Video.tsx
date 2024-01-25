@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef, useContext } from 'react'
 import { createPortal } from 'react-dom';
-import Subtitle from "./Subtitle";
-import { RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from '../../common/events';
+import Subtitle, { Line, WordDetails } from "./Subtitle";
+import { LookupWordsMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from '../../common/events';
 import { ChildMutationType, querySelectorMutation } from '../util/util';
 import { DBStatusResult } from '../../database/dbstatus';
 import { StorageType } from '../../storage/storage';
-import { BrowserStorage, BrowserStorageListener } from '../util/browser-runtime';
-import { ChromeExtensionContext } from '../contexts/ExtensionContext';
+import { BrowserStorage, BrowserStorageListener, sendMessage } from '../util/browser-runtime';
+import { ChromeExtensionContext, ExtensionContext } from '../contexts/ExtensionContext';
+import { toHiragana } from '../../common/lang';
+import { SegmenterContext, SegmenterContextI } from '../contexts/SegmenterContext';
+import * as bunsetsu from "bunsetsu";
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';
 const NETFLIX_TEXT_SUBTITLE_CLASS = "player-timedtext";
@@ -139,16 +142,64 @@ function onSeekCue(direction: SeekDirection, currentTime: number, cues: TextTrac
     window.dispatchEvent(new CustomEvent(RuntimeEvent.SeekTime, { detail: { startTime: cue.startTime } }));
 }
 
+
+function extractCueText(cue: TextTrackCue): string {
+    const cueText = (cue as any).text; // cue.text is not documented
+    const tagsRegex = '(<([^>]+>)|&lrm;|&rlm;)';
+    const regex = new RegExp(tagsRegex, 'ig');
+    const match = regex.exec(cueText);
+    return match ? cueText.replace(regex, '') : cueText;
+}
+
+function parseCue(cue: TextTrackCue, segmenter: bunsetsu.Segmenter | null): bunsetsu.Word[][] {
+    const text = extractCueText(cue);
+    if (!segmenter) {
+        return [];
+    }
+    const lines = text.split('\n');
+    return lines.map((line: string) => segmenter.segmentAsWords(line));
+}
+
+async function lookupWords(words: bunsetsu.Word[], context: ExtensionContext): Promise<WordDetails[]> {
+    const data: LookupWordsMessage = {
+        words: words.map(word => {
+            return {
+                surfaceForm: word.surfaceForm,
+                baseForm: word.baseForm ?? "",
+                katakana: word.reading ?? "",
+                hiragana: toHiragana(word.reading),
+            };
+        })
+    };
+    const message: RuntimeMessage = { event: RuntimeEvent.LookupWords, data: data };
+    const entries = await sendMessage(message, context);
+    return words.map((word, index) => {
+        return {
+            word,
+            entry: entries[index]
+        }
+    });
+}
+
+async function lookupWordsInCue(cue: TextTrackCue, segmenterContext: SegmenterContextI, extensionContext: ExtensionContext): Promise<Line[]> {
+    const lines = parseCue(cue, segmenterContext.segmenter);
+    const results = lines.map(line => lookupWords(line, extensionContext));
+    return Promise.all(results);
+}
+
+type ParsedCue = Line[];
+
 interface VideoProps {
     webvttSubtitles: WebvttSubtitles;
     videoElem: HTMLVideoElement;
 }
 
 function Video({ webvttSubtitles, videoElem }: VideoProps) {
-    const context = useContext(ChromeExtensionContext);
+    const segmenterContext = useContext(SegmenterContext);
+    const extensionContext = useContext(ChromeExtensionContext);
     const cuesRef = useRef<TextTrackCue[]>([]);
     const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
-    const [activeCues, setActiveCues] = useState<TextTrackCue[]>([]);
+    const [activeCues, setActiveCues] = useState<ParsedCue[]>([]);
     const [rect, setRect] = useState(calculateViewRect(videoElem));
     const [controlsElem, setControlsElem] = useState(document.querySelector(`.${NETFLIX_BOTTOM_CONTROLS_CLASS}`));
     const [timedTextElem, setTimedTextElem] = useState<StyledNode | null>(queryStyledNode(NETFLIX_TEXT_SUBTITLE_CLASS));
@@ -157,8 +208,8 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
     const [show, setShow] = useState(true);
 
     useEffect(() => {
-        const storage = new BrowserStorage<DBStatusResult>(DB_STATUS_KEY, StorageType.Local, context);
-        const onStatusChanged = BrowserStorageListener.create(storage, (_, newValue) => setDBStatus(newValue), context);
+        const storage = new BrowserStorage<DBStatusResult>(DB_STATUS_KEY, StorageType.Local, extensionContext);
+        const onStatusChanged = BrowserStorageListener.create(storage, (_, newValue) => setDBStatus(newValue), extensionContext);
         if (onStatusChanged) {
             storage.addOnChangedListener(onStatusChanged);
         }
@@ -221,7 +272,9 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
                 return;
             }
             const track = e.target as TextTrack;
-            setActiveCues(toList(track.activeCues));
+            const activeCues = toList(track.activeCues);
+            const results = activeCues.map(cue => lookupWordsInCue(cue, segmenterContext, extensionContext));
+            Promise.all(results).then(cues => setActiveCues(cues));
         };
 
         if (trackRef.current) {
@@ -264,7 +317,7 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
     };
     const fontSize = rect.height * 0.035;
     const bottomOffset = calculateSubtitleOffset(rect, controlsElem);
-    const subtitles = (show && dbStatus) ? activeCues.map((value, index) => <Subtitle key={index} dbStatus={dbStatus} cue={value} fontSize={fontSize}></Subtitle>) : <></>;
+    const subtitles = (show && dbStatus) ? activeCues.map((cue, index) => <Subtitle key={index} lines={cue} fontSize={fontSize}></Subtitle>) : <></>;
     const containerStyle = {
         bottom: `${bottomOffset}px`,
     };
