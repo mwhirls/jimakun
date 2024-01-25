@@ -46,32 +46,31 @@ export interface WordIndex {
 export interface WordProps {
     word: bunsetsu.Word;
     index: WordIndex;
-    active: boolean;
+    selected: boolean;
     onWordClicked: (index: WordIndex) => void;
+    onDeselected: () => void;
 }
 
-function Word({ word, index, active, onWordClicked }: WordProps) {
+function Word({ word, index, selected, onWordClicked, onDeselected }: WordProps) {
     const tokensProps = toTokens(word);
 
-    const lookupCard = (() => {
-        if (!active) {
-            return <></>;
-        }
-        return (
-            <div className='absolute left-0 bottom-full w-max'>
-                <Card word={word}></Card>
-            </div>
-        )
-    })();
-
     return (
-        <span className="hover:text-red-500 relative subtitle-word" onClick={() => onWordClicked(index)}>
-            {tokensProps.map((props, index) => {
-                return (
-                    <Token key={index} {...props} />
-                );
-            })}
-            {lookupCard}
+        <span className="relative">
+            <button className="hover:text-red-500 subtitle-word" onClick={() => onWordClicked(index)}>
+                {
+                    tokensProps.map((props, index) => {
+                        return (
+                            <Token key={index} {...props} />
+                        );
+                    })
+                }
+            </button>
+            {
+                selected &&
+                <div className='absolute left-0 bottom-full w-max'>
+                    <Card word={word} onCardClosed={() => onDeselected()}></Card>
+                </div>
+            }
         </span>
     );
 }

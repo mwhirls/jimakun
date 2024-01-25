@@ -7,7 +7,7 @@ import Tabs from './Tabs';
 import Examples from './Examples';
 import Kanji from './Kanji';
 import Notes from './Notes';
-import type { JMdictWord, Kanjidic2Character } from "@scriptin/jmdict-simplified-types";
+import type { JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { extractKanji, toHiragana } from '../../../common/lang';
 import Spinner from '../../../common/components/Spinner';
 import DatabaseBusy from '../../../common/components/DatabaseBusy';
@@ -65,9 +65,10 @@ interface WordDetails {
 
 interface EntryDetailsProps {
     word: bunsetsu.Word;
+    onCardClosed: () => void;
 }
 
-function EntryDetails({ word }: EntryDetailsProps) {
+function EntryDetails({ word, onCardClosed }: EntryDetailsProps) {
     const [details, setDetails] = useState<WordDetails | null>(null);
     const [selectedTab, setSelectedTab] = useState(0);
     const context = useContext(ChromeExtensionContext);
@@ -120,7 +121,7 @@ function EntryDetails({ word }: EntryDetailsProps) {
     return (
         <div className='flex flex-col gap-y-6 h-full'>
             <div className='flex-none'>
-                <Header word={word} entry={details.entry}></Header>
+                <Header word={word} entry={details.entry} onCloseClicked={onCardClosed}></Header>
             </div>
             <div className='flex-initial overflow-y-hidden'>
                 <Tabs tabs={tabs} selectedIndex={selectedTab} onSelected={(index) => setSelectedTab(index)}></Tabs>
@@ -134,9 +135,10 @@ function EntryDetails({ word }: EntryDetailsProps) {
 
 export interface CardProps {
     word: bunsetsu.Word;
+    onCardClosed: () => void;
 }
 
-function Card({ word }: CardProps) {
+function Card({ word, onCardClosed }: CardProps) {
     const context = useContext(ChromeExtensionContext);
     const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
 
@@ -166,7 +168,7 @@ function Card({ word }: CardProps) {
     const content = () => {
         switch (dbStatus.status.type) {
             case Status.Ready:
-                return <EntryDetails word={word}></EntryDetails>;
+                return <EntryDetails word={word} onCardClosed={onCardClosed}></EntryDetails>;
             case Status.Blocked:
                 return <DatabaseBlocked></DatabaseBlocked>
             case Status.Busy:

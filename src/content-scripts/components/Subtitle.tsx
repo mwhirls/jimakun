@@ -25,15 +25,17 @@ interface SubtitleProps {
     fontSize: number,
 }
 
-// font-family: 'Netflix Sans', 'Helvetica Nueue', 'Helvetica', 'Arial', sans-serif;
 function Subtitle({ cue, fontSize }: SubtitleProps) {
     const context = useContext(SegmenterContext);
-    const [activeWord, setActiveWord] = useState<WordIndex | null>(null);
+    const [selectedWord, setSelectedWord] = useState<WordIndex | null>(null);
     const lines = parseCue(cue, context.segmenter);
 
     const onWordClicked = (index: WordIndex) => {
-        setActiveWord(index);
+        setSelectedWord(index);
     };
+    const onWordDeselected = () => {
+        setSelectedWord(null);
+    }
 
     const style = {
         fontSize: `${fontSize}px`,
@@ -48,8 +50,8 @@ function Subtitle({ cue, fontSize }: SubtitleProps) {
                             {
                                 line.map((word: bunsetsu.Word, wordIndex: number) => {
                                     const index = { line: lineIndex, word: wordIndex };
-                                    const active = index.line === activeWord?.line && index.word === activeWord?.word;
-                                    return <Word key={wordIndex} word={word} index={index} active={active} onWordClicked={onWordClicked}></Word>
+                                    const selected = index.line === selectedWord?.line && index.word === selectedWord?.word;
+                                    return <Word key={wordIndex} word={word} index={index} selected={selected} onWordClicked={onWordClicked} onDeselected={onWordDeselected}></Word>
                                 })
                             }
                         </div>

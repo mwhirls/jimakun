@@ -2,14 +2,10 @@ import React, { useContext } from 'react';
 import * as bunsetsu from "bunsetsu";
 import { RuntimeMessage, RuntimeEvent, PlayAudioMessage } from '../../../common/events';
 import { JMdictKana, JMdictWord } from '@scriptin/jmdict-simplified-types';
-import SoundIcon from '../../../../public/assets/volume-05.svg';
 import { ChromeExtensionContext, ExtensionContext } from '../../contexts/ExtensionContext';
 import { sendMessage } from '../../util/browser-runtime';
-
-export interface HeaderProps {
-    word: bunsetsu.Word;
-    entry: JMdictWord;
-}
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { SpeakerWaveIcon } from '@heroicons/react/24/outline';
 
 function getBestReading(word: bunsetsu.Word, entry: JMdictWord): JMdictKana | undefined {
     if (!entry.kana.length) {
@@ -43,19 +39,28 @@ function onAudioClicked(word: bunsetsu.Word, context: ExtensionContext) {
     sendMessage(message, context);
 }
 
-function Header({ word, entry }: HeaderProps) {
+export interface HeaderProps {
+    word: bunsetsu.Word;
+    entry: JMdictWord;
+    onCloseClicked: () => void;
+}
+
+function Header({ word, entry, onCloseClicked }: HeaderProps) {
     const dictionaryForm = word.basicForm();
     const reading = getBestReading(word, entry);
     const context = useContext(ChromeExtensionContext);
     return (
         <div className='flex-none pt-6'>
             <div className="flex flex-initial flex-row flex-nowrap justify-between">
-                <div>
-                    <h3 className="inline-block mr-6 text-5xl text-black font-medium">{dictionaryForm}</h3>
-                    <h5 className="inline-block text-4xl text-slate-500 font-medium">{reading?.text ?? ""}</h5>
+                <div className="flex flex-row flex-no-wrap items-center gap-4">
+                    <h3 className="text-5xl text-black font-semibold">{dictionaryForm}</h3>
+                    <h5 className="text-4xl text-slate-500 font-medium">{reading?.text ?? ""}</h5>
+                    <button className='w-12 text-slate-400 hover:text-black' onClick={() => onAudioClicked(word, context)}>
+                        <SpeakerWaveIcon></SpeakerWaveIcon>
+                    </button>
                 </div>
-                <button onClick={() => onAudioClicked(word, context)}>
-                    <SoundIcon></SoundIcon>
+                <button className='w-12 text-slate-400 hover:text-black' onClick={() => onCloseClicked()}>
+                    <XMarkIcon></XMarkIcon>
                 </button>
             </div>
         </div>
