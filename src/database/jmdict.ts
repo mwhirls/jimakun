@@ -1,5 +1,5 @@
 import { JMdict, JMdictKana, JMdictKanji, JMdictSense, JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { LookupWordMessage } from "../common/events";
+import { LookupWordsMessage } from "../common/events";
 import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper, DBStoreUpgradeContext, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
 import { JSONDataProvider } from "./data-provider";
 
@@ -15,13 +15,20 @@ const OBJECT_STORE = {
 };
 const DATA_URL = 'jmdict-simplified/jmdict-eng.json'
 
+type WordLookup = {
+    surfaceForm: string;
+    baseForm: string;
+    katakana: string;
+    hiragana: string;
+};
+
 function forms(word: JMdictWord) {
     const kanjiForms = word.kanji.map((kanji) => kanji.text);
     const kanaForms = word.kana.map((kana) => kana.text);
     return [...kanjiForms, ...kanaForms];
 }
 
-function gradeBaseForm(match: JMdictWord, lookup: LookupWordMessage): number {
+function gradeBaseForm(match: JMdictWord, lookup: WordLookup): number {
     const kanaOnly = lookup.katakana === lookup.surfaceForm ||
         lookup.hiragana === lookup.surfaceForm;
     if (kanaOnly) {
@@ -31,16 +38,16 @@ function gradeBaseForm(match: JMdictWord, lookup: LookupWordMessage): number {
     return baseForm ? 1 : 0;
 }
 
-function gradeReading(match: JMdictWord, lookup: LookupWordMessage): number {
+function gradeReading(match: JMdictWord, lookup: WordLookup): number {
     const reading = match.kana.find((x) => x.text === lookup.katakana || x.text === lookup.hiragana);
     return reading ? 1 : 0;
 }
 
-function gradePartOfSpeech(_match: JMdictWord, _lookup: LookupWordMessage): number {
+function gradePartOfSpeech(_match: JMdictWord, _lookup: WordLookup): number {
     return 0; // todo
 }
 
-function gradeMatch(match: JMdictWord, lookup: LookupWordMessage): number {
+function gradeMatch(match: JMdictWord, lookup: WordLookup): number {
     const baseForm = gradeBaseForm(match, lookup);
     const reading = gradeReading(match, lookup);
     const partOfSpeech = gradePartOfSpeech(match, lookup);
@@ -48,7 +55,7 @@ function gradeMatch(match: JMdictWord, lookup: LookupWordMessage): number {
     return sum;
 }
 
-function findBestMatch(matches: JMdictWord[], lookup: LookupWordMessage): JMdictWord | undefined {
+function findBestMatch(matches: JMdictWord[], lookup: WordLookup): JMdictWord | undefined {
     if (!matches.length) {
         return undefined;
     }
@@ -105,13 +112,12 @@ export class JMDictStore implements IDBObjectStoreWrapper {
         await this.db.putAll(OBJECT_STORE, entries, onProgressUpdate);
     }
 
-    async lookupWord(lookup: LookupWordMessage): Promise<JMdictWord | undefined> {
-        return this.db.getFromIndex<JMdictWord>(OBJECT_STORE, INDEX, lookup.baseForm);
-    }
-
-    async lookupBestMatch(lookup: LookupWordMessage): Promise<JMdictWord | undefined> {
-        const matches = await this.db.openCursorOnIndex<JMdictWord>(OBJECT_STORE, INDEX, lookup.baseForm);
-        return findBestMatch(matches, lookup);
+    async lookupBestMatches(lookup: LookupWordsMessage) {
+        const results = lookup.words.map(async (word) => {
+            const matches = await this.db.openCursorOnIndex<JMdictWord>(OBJECT_STORE, INDEX, word.baseForm);
+            return findBestMatch(matches, word);
+        });
+        return Promise.all(results);
     }
 }
 

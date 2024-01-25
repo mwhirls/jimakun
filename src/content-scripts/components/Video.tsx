@@ -1,12 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 import { createPortal } from 'react-dom';
 import Subtitle from "./Subtitle";
 import { RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from '../../common/events';
 import { ChildMutationType, querySelectorMutation } from '../util/util';
+import { DBStatusResult } from '../../database/dbstatus';
+import { StorageType } from '../../storage/storage';
+import { BrowserStorage, BrowserStorageListener } from '../util/browser-runtime';
+import { ChromeExtensionContext } from '../contexts/ExtensionContext';
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';
 const NETFLIX_TEXT_SUBTITLE_CLASS = "player-timedtext";
 const NETFLIX_IMAGE_SUBTITLE_CLASS = "image-based-timed-text";
+const DB_STATUS_KEY = 'lastDBStatusResult';
 
 function toList(cueList: TextTrackCueList | null): TextTrackCue[] {
     if (!cueList) {
@@ -140,7 +145,9 @@ interface VideoProps {
 }
 
 function Video({ webvttSubtitles, videoElem }: VideoProps) {
+    const context = useContext(ChromeExtensionContext);
     const cuesRef = useRef<TextTrackCue[]>([]);
+    const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
     const [activeCues, setActiveCues] = useState<TextTrackCue[]>([]);
     const [rect, setRect] = useState(calculateViewRect(videoElem));
     const [controlsElem, setControlsElem] = useState(document.querySelector(`.${NETFLIX_BOTTOM_CONTROLS_CLASS}`));
@@ -150,6 +157,16 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
     const [show, setShow] = useState(true);
 
     useEffect(() => {
+        const storage = new BrowserStorage<DBStatusResult>(DB_STATUS_KEY, StorageType.Local, context);
+        const onStatusChanged = BrowserStorageListener.create(storage, (_, newValue) => setDBStatus(newValue), context);
+        if (onStatusChanged) {
+            storage.addOnChangedListener(onStatusChanged);
+        }
+        storage.get().then(status => {
+            if (status) {
+                setDBStatus(status);
+            }
+        });
         const runtimeListener = (message: RuntimeMessage) => {
             if (message.event === RuntimeEvent.SeekCue) {
                 const data = message.data as SeekCueMessage;
@@ -222,6 +239,9 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
         hideNetflixSubtitles();
 
         return () => {
+            if (onStatusChanged) {
+                storage.removeOnChangedListener(onStatusChanged);
+            }
             chrome.runtime.onMessage.removeListener(runtimeListener);
             resizeObserver.disconnect();
             netflixObserver.disconnect();
@@ -244,7 +264,7 @@ function Video({ webvttSubtitles, videoElem }: VideoProps) {
     };
     const fontSize = rect.height * 0.035;
     const bottomOffset = calculateSubtitleOffset(rect, controlsElem);
-    const subtitles = show ? activeCues.map((value, index) => <Subtitle key={index} cue={value} fontSize={fontSize}></Subtitle>) : <></>;
+    const subtitles = (show && dbStatus) ? activeCues.map((value, index) => <Subtitle key={index} dbStatus={dbStatus} cue={value} fontSize={fontSize}></Subtitle>) : <></>;
     const containerStyle = {
         bottom: `${bottomOffset}px`,
     };

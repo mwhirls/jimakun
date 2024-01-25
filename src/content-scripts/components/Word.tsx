@@ -1,10 +1,11 @@
 import Token, { TokenProps } from "./Token";
-import React from 'react';
+import React, { useContext } from 'react';
 import * as bunsetsu from "bunsetsu";
 import * as Diff from "diff";
 import './Word.css'
 import Card from "./lookup/Card";
 import { toHiragana } from "../../common/lang";
+import { JMdictWord } from "@scriptin/jmdict-simplified-types";
 
 function toTokens(word: bunsetsu.Word): TokenProps[] {
     const wordSurfaceForm = word.surfaceForm;
@@ -45,19 +46,22 @@ export interface WordIndex {
 
 export interface WordProps {
     word: bunsetsu.Word;
+    entry?: JMdictWord;
     index: WordIndex;
     selected: boolean;
     onWordClicked: (index: WordIndex) => void;
     onDeselected: () => void;
 }
 
-function Word({ word, index, selected, onWordClicked, onDeselected }: WordProps) {
+function Word({ word, entry, index, selected, onWordClicked, onDeselected }: WordProps) {
     const tokensProps = toTokens(word);
-    const color = selected ? "text-red-500" : "text-white hover:text-red-500";
+    const disabled = !entry;
+    const hover = disabled ? "hover:text-slate-200" : "hover:text-red-500";
+    const color = selected ? "text-red-500" : `text-white ${hover}`;
 
     return (
         <span className="relative inline-block">
-            <button className={`${color} subtitle-word`} onClick={() => onWordClicked(index)}>
+            <button className={`${color} subtitle-word disabled:cursor-not-allowed`} onClick={() => onWordClicked(index)} disabled={disabled}>
                 {
                     tokensProps.map((props, index) => {
                         return (
@@ -67,9 +71,9 @@ function Word({ word, index, selected, onWordClicked, onDeselected }: WordProps)
                 }
             </button>
             {
-                selected &&
+                selected && entry &&
                 <div className='absolute left-0 bottom-full w-max'>
-                    <Card word={word} onCardClosed={() => onDeselected()}></Card>
+                    <Card word={word} entry={entry} onCardClosed={() => onDeselected()}></Card>
                 </div>
             }
         </span>

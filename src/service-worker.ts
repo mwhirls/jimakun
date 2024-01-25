@@ -2,7 +2,7 @@ import { IDBUpgradeContext, IDBWrapper, DBOperation, IDBObjectStoreWrapper, Data
 import { JMDictStore, JMDictStoreUpgrade } from "./database/jmdict";
 import { TatoebaStore, TatoebaStoreUpgrade } from "./database/tatoeba";
 import { KanjiDic2Store, KanjiDic2StoreUpgrade } from "./database/kanjidic2";
-import { CountSentencesMessage, LookupKanjiMessage, LookupSentencesMessage, LookupWordMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./common/events";
+import { CountSentencesMessage, LookupKanjiMessage, LookupSentencesMessage, LookupWordsMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from "./common/events";
 import * as DBStatusManager from './database/dbstatus'
 import * as tabs from './tabs'
 import { SessionStorageObject } from "./storage/session-storage";
@@ -73,11 +73,11 @@ chrome.commands.onCommand.addListener(command => {
     }
 });
 
-async function lookupWord(message: LookupWordMessage, sendResponse: (response?: unknown) => void) {
+async function lookupWords(message: LookupWordsMessage, sendResponse: (response?: unknown) => void) {
     try {
         const dict = await JMDictStore.open(DB_NAME, DB_VERSION, onDBUpgrade, onDBVersionChanged);
-        const word = await dict.lookupBestMatch(message);
-        sendResponse(word);
+        const words = await dict.lookupBestMatches(message);
+        sendResponse(words);
     } catch (e) {
         sendResponse(undefined); // TODO: better error handling
     }
@@ -135,8 +135,8 @@ async function purgeDictionaries(sendResponse: (response?: unknown) => void) {
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     const message = request.data; // todo: validate
     switch (request.event) {
-        case RuntimeEvent.LookupWord:
-            lookupWord(message as LookupWordMessage, sendResponse);
+        case RuntimeEvent.LookupWords:
+            lookupWords(message as LookupWordsMessage, sendResponse);
             break;
         case RuntimeEvent.LookupKanji:
             lookupKanji(message as LookupKanjiMessage, sendResponse);

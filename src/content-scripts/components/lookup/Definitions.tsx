@@ -154,11 +154,10 @@ function getPartOfSpeechInfo(sense: JMdictSense) {
 }
 
 export interface DefinitionsProps {
-    word: bunsetsu.Word;
     entry: JMdictWord;
 }
 
-function Definitions({ word, entry }: DefinitionsProps) {
+function Definitions({ entry }: DefinitionsProps) {
     return (
         <div>
             {

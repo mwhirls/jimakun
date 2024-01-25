@@ -5,7 +5,7 @@ export enum RuntimeEvent {
     CountSentences = 'count-sentences',
     LookupKanji = 'lookup-kanji',
     LookupSentences = 'lookup-sentences',
-    LookupWord = 'lookup-word',
+    LookupWords = 'lookup-words',
     MetadataDetected = 'metadata-detected',
     PlayAudio = 'play-audio',
     PurgeDictionaries = 'purge-dictionaries',
@@ -34,11 +34,13 @@ export interface SeekTimeMessage {
     startTime: number
 }
 
-export interface LookupWordMessage {
-    surfaceForm: string;
-    baseForm: string;
-    katakana: string;
-    hiragana: string;
+export interface LookupWordsMessage {
+    words: {
+        surfaceForm: string;
+        baseForm: string;
+        katakana: string;
+        hiragana: string;
+    }[];
 }
 
 export interface Success<T> {
