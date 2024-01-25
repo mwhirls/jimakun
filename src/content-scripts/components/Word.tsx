@@ -53,10 +53,11 @@ export interface WordProps {
 
 function Word({ word, index, selected, onWordClicked, onDeselected }: WordProps) {
     const tokensProps = toTokens(word);
+    const color = selected ? "text-red-500" : "text-white hover:text-red-500";
 
     return (
-        <span className="relative">
-            <button className="hover:text-red-500 subtitle-word" onClick={() => onWordClicked(index)}>
+        <span className="relative inline-block">
+            <button className={`${color} subtitle-word`} onClick={() => onWordClicked(index)}>
                 {
                     tokensProps.map((props, index) => {
                         return (
