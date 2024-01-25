@@ -23,7 +23,7 @@ class Icon {
 
     render() {
         return (
-            <div className="block m-auto w-12">
+            <div className="block m-auto w-8">
                 {this.content}
             </div>
         )
@@ -39,7 +39,7 @@ class Text {
 
     render() {
         return (
-            <div className="text-2xl font-normal text-center mx-3">{this.content}</div>
+            <div className="text-2xl text-center mx-3">{this.content}</div>
         )
     }
 }
@@ -61,19 +61,21 @@ class PageNavigation extends PageItem {
     onClick: () => void;
     selected: Selected;
     mirrored: Mirrored;
+    disabled: boolean;
 
-    constructor(content: Icon | Text, onClick: () => void, selected: Selected, mirrored: Mirrored) {
+    constructor(content: Icon | Text, onClick: () => void, selected: Selected, mirrored: Mirrored, disabled: boolean) {
         super(content);
         this.onClick = onClick;
         this.selected = selected;
         this.mirrored = mirrored;
+        this.disabled = disabled;
     }
 
     render(): JSX.Element {
         const mirror = this.mirrored === Mirrored.Yes ? "-scale-x-100" : "scale-x-100";
-        const border = this.selected === Selected.Yes ? "border border-solid border-black" : "";
+        const selected = this.selected === Selected.Yes ? "text-black font-semibold border-b-2 border-solid border-red-600" : "text-slate-400 font-normal hover:text-black hover:font-semibold";
         return (
-            <button onClick={() => this.onClick()} className={`w-full h-full align-top ${border} rounded-lg bg-white hover:bg-red-500 active:bg-red-400 text-black hover:text-white ${mirror}`}>
+            <button onClick={() => this.onClick()} className={`w-full h-full p-2 align-top bg-white ${mirror} ${selected} disabled:text-slate-300 disabled:font-normal disabled:cursor-not-allowed disabled:pointer-events-none`} disabled={this.disabled}>
                 {this.content.render()}
             </button>
         )
@@ -84,7 +86,7 @@ function numberedPage(page: number, selectedPage: number, onPageClicked: (page: 
     const selected = page === selectedPage ? Selected.Yes : Selected.No;
     const onClickNumbered = () => onPageClicked(page);
     const number = new Text((page + 1).toString());
-    return new PageNavigation(number, onClickNumbered, selected, Mirrored.No);
+    return new PageNavigation(number, onClickNumbered, selected, Mirrored.No, false);
 }
 
 function leadingPages(pages: number[]) {
@@ -129,13 +131,13 @@ function Pagination({ numPages, onPageClicked }: PaginationProps) {
     const leading = leadingPages(pages).filter((value) => value < current[0] - 1);
     const following = followingPages(pages).filter((value) => value > current[current.length - 1] + 1);
     const items = [
-        new PageNavigation(prevIcon, onClickPrev, Selected.No, Mirrored.No),
+        new PageNavigation(prevIcon, onClickPrev, Selected.No, Mirrored.No, selectedPage <= 0),
         ...(leading.map(page => numberedPage(page, selectedPage, onClick))),
         leading.length ? new PageItem(new Text("...")) : [],
         ...(current.map(page => numberedPage(page, selectedPage, onClick))),
         following.length ? new PageItem(new Text("...")) : [],
         ...(following.map(page => numberedPage(page, selectedPage, onClick))),
-        new PageNavigation(prevIcon, onClickNext, Selected.No, Mirrored.Yes),
+        new PageNavigation(prevIcon, onClickNext, Selected.No, Mirrored.Yes, selectedPage >= pages.length - 1),
     ].flat();
 
     return (

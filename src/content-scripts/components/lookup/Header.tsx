@@ -54,7 +54,7 @@ function Header({ word, entry, onCloseClicked }: HeaderProps) {
             <div className="flex flex-initial flex-row flex-nowrap justify-between">
                 <div className="flex flex-row flex-no-wrap items-center gap-4">
                     <h3 className="text-5xl text-black font-semibold">{dictionaryForm}</h3>
-                    <h5 className="text-4xl text-black-500 font-medium">{reading?.text ?? ""}</h5>
+                    <h5 className="text-4xl text-black font-medium">{reading?.text ?? ""}</h5>
                     <button className='w-12 text-slate-400 hover:text-black' onClick={() => onAudioClicked(word, context)}>
                         <SpeakerWaveIcon></SpeakerWaveIcon>
                     </button>
