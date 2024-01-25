@@ -9,6 +9,7 @@ import { SegmenterContext, SegmenterContextI } from '../contexts/SegmenterContex
 import * as bunsetsu from "bunsetsu";
 import { sendMessage } from '../util/browser-runtime';
 import { DBStatusResult } from '../../database/dbstatus';
+import { WordIndex } from './Word';
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';
 const NETFLIX_TEXT_SUBTITLE_CLASS = "player-timedtext";
@@ -199,6 +200,7 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
     const [imageTimedTextElem, setImageTimedTextElem] = useState<StyledNode | null>(queryStyledNode(NETFLIX_TEXT_SUBTITLE_CLASS));
     const trackRef = useRef<HTMLTrackElement>(null);
     const [show, setShow] = useState(true);
+    const [selectedWord, setSelectedWord] = useState<WordIndex | null>(null);
 
     useEffect(() => {
         const runtimeListener = (message: RuntimeMessage) => {
@@ -257,7 +259,10 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
             const track = e.target as TextTrack;
             const activeCues = toList(track.activeCues);
             const results = activeCues.map(cue => lookupWordsInCue(cue, segmenterContext, extensionContext));
-            Promise.all(results).then(cues => setActiveCues(cues));
+            Promise.all(results).then(cues => {
+                setActiveCues(cues);
+                setSelectedWord(null);
+            });
         };
 
         if (trackRef.current) {
@@ -297,7 +302,7 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
     };
     const fontSize = rect.height * 0.035;
     const bottomOffset = calculateSubtitleOffset(rect, controlsElem);
-    const subtitles = (show && dbStatus) ? activeCues.map((cue, index) => <Subtitle key={index} lines={cue} fontSize={fontSize}></Subtitle>) : <></>;
+    const subtitles = (show && dbStatus) ? activeCues.map((cue, index) => <Subtitle key={index} lines={cue} selectedWord={selectedWord} setSelectedWord={(index) => setSelectedWord(index)} fontSize={fontSize}></Subtitle>) : <></>;
     const containerStyle = {
         bottom: `${bottomOffset}px`,
     };

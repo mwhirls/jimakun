@@ -1,5 +1,5 @@
 import { Segmenter, build } from "bunsetsu";
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { RuntimeEvent } from "../../common/events";
 import { TimedTextTrack, NetflixMetadata, TimedTextSwitch } from "../../common/netflix-types";
@@ -156,10 +156,7 @@ function App() {
         )
     }
 
-    if (!currMovie) {
-        return <></>;
-    }
-    const subtitleTracks = subtitleData.get(currMovie);
+    const subtitleTracks = currMovie ? subtitleData.get(currMovie) : undefined;
     const subtitles = subtitleTracks?.get(currTrack);
     if (!netflixPlayer || !videoElem || !subtitles) {
         return <></>;

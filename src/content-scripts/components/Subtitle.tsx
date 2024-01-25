@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import * as bunsetsu from "bunsetsu";
 import Word, { WordIndex } from "./Word";
 import { JMdictWord } from "@scriptin/jmdict-simplified-types";
@@ -12,12 +12,12 @@ export type Line = WordDetails[];
 
 export interface SubtitleProps {
     lines: Line[];
+    selectedWord: WordIndex | null;
+    setSelectedWord: (index: WordIndex | null) => void;
     fontSize: number;
 }
 
-function Subtitle({ lines, fontSize }: SubtitleProps) {
-    const [selectedWord, setSelectedWord] = useState<WordIndex | null>(null);
-
+function Subtitle({ lines, selectedWord, setSelectedWord, fontSize }: SubtitleProps) {
     const onWordClicked = (index: WordIndex) => {
         setSelectedWord(index);
     };
