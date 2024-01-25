@@ -5,7 +5,7 @@ import { TimedTextTrack, NetflixMetadata, TimedTextSwitch } from "../../common/n
 import { StorageType } from "../../storage/storage";
 import { BrowserStorage, BrowserStorageListener } from "../util/browser-runtime";
 import { WEBVTT_FORMAT, querySelectorMutation, ChildMutationType } from "../util/util";
-import Video, { WebvttSubtitles } from "./SubtitleContainer";
+import Video, { WebvttSubtitles } from "./Video";
 import { DBStatusResult } from "../../database/dbstatus";
 import { ChromeExtensionContext } from "../contexts/ExtensionContext";
 

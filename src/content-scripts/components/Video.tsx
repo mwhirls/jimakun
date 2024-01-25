@@ -183,13 +183,13 @@ async function lookupWordsInCue(cue: TextTrackCue, segmenterContext: SegmenterCo
 
 type ParsedCue = Line[];
 
-interface SubtitleContainerProps {
+interface VideoProps {
     dbStatus: DBStatusResult | null;
     webvttSubtitles: WebvttSubtitles;
     videoElem: HTMLVideoElement;
 }
 
-function SubtitleContainer({ dbStatus, webvttSubtitles, videoElem }: SubtitleContainerProps) {
+function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
     const segmenterContext = useContext(SegmenterContext);
     const extensionContext = useContext(ChromeExtensionContext);
     const cuesRef = useRef<TextTrackCue[]>([]);
@@ -331,4 +331,4 @@ function SubtitleContainer({ dbStatus, webvttSubtitles, videoElem }: SubtitleCon
     )
 }
 
-export default SubtitleContainer;
+export default Video;
