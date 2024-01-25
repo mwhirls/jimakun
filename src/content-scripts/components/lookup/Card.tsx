@@ -9,8 +9,7 @@ import Kanji from './Kanji';
 import Notes from './Notes';
 import type { JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { extractKanji, toHiragana } from '../../../common/lang';
-import Spinner from '../../../common/components/Spinner';
-import { RuntimeMessage, RuntimeEvent, CountSentencesMessage, CountKanjiMessage, LookupWordsMessage } from '../../../common/events';
+import { RuntimeMessage, RuntimeEvent, CountSentencesMessage, CountKanjiMessage } from '../../../common/events';
 import { ChromeExtensionContext, ExtensionContext } from '../../contexts/ExtensionContext';
 import { sendMessage } from '../../util/browser-runtime';
 

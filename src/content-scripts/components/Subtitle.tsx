@@ -53,7 +53,7 @@ type WordDetails = {
 }
 
 export interface SubtitleProps {
-    dbStatus: DBStatusResult;
+    dbStatus: DBStatusResult; // todo: use this to show loading indicator
     cue: TextTrackCue;
     fontSize: number;
 }
@@ -61,7 +61,6 @@ export interface SubtitleProps {
 function Subtitle({ cue, fontSize }: SubtitleProps) {
     const segmenterContext = useContext(SegmenterContext);
     const extensionContext = useContext(ChromeExtensionContext);
-    const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
     const [selectedWord, setSelectedWord] = useState<WordIndex | null>(null);
     const lines = parseCue(cue, segmenterContext.segmenter);
     const [lineDetails, setLineDetails] = useState<WordDetails[][]>([]);

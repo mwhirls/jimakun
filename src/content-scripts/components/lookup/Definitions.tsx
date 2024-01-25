@@ -1,5 +1,4 @@
 import React from 'react';
-import * as bunsetsu from "bunsetsu";
 import { JMdictSense, JMdictWord } from '@scriptin/jmdict-simplified-types';
 import { JMDictPOS, getPartsOfSpeech } from '../../../common/jmdict-types';
 
