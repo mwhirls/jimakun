@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react'
 import { createPortal } from 'react-dom';
-import Subtitle, { Line, WordDetails } from "./Subtitle";
+import Subtitle, { Line, SubtitleLoading, WordDetails } from "./Subtitle";
 import { LookupWordsMessage, RuntimeEvent, RuntimeMessage, SeekCueMessage, SeekDirection } from '../../common/events';
 import { ChildMutationType, querySelectorMutation } from '../util/util';
 import { ChromeExtensionContext, ExtensionContext } from '../contexts/ExtensionContext';
@@ -8,7 +8,7 @@ import { toHiragana } from '../../common/lang';
 import { SegmenterContext, SegmenterContextI } from '../contexts/SegmenterContext';
 import * as bunsetsu from "bunsetsu";
 import { sendMessage } from '../util/browser-runtime';
-import { DBStatusResult } from '../../database/dbstatus';
+import { DBStatusResult, Status } from '../../database/dbstatus';
 import { WordIndex } from './Word';
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';
@@ -193,7 +193,8 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
     const segmenterContext = useContext(SegmenterContext);
     const extensionContext = useContext(ChromeExtensionContext);
     const cuesRef = useRef<TextTrackCue[]>([]);
-    const [activeCues, setActiveCues] = useState<ParsedCue[]>([]);
+    const [activeCues, setActiveCues] = useState<TextTrackCue[]>([]);
+    const [parsedCues, setParsedCues] = useState<ParsedCue[]>([]);
     const [rect, setRect] = useState(calculateViewRect(videoElem));
     const [controlsElem, setControlsElem] = useState(document.querySelector(`.${NETFLIX_BOTTOM_CONTROLS_CLASS}`));
     const [timedTextElem, setTimedTextElem] = useState<StyledNode | null>(queryStyledNode(NETFLIX_TEXT_SUBTITLE_CLASS));
@@ -258,9 +259,10 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
             }
             const track = e.target as TextTrack;
             const activeCues = toList(track.activeCues);
+            setActiveCues(activeCues);
             const results = activeCues.map(cue => lookupWordsInCue(cue, segmenterContext, extensionContext));
             Promise.all(results).then(cues => {
-                setActiveCues(cues);
+                setParsedCues(cues);
                 setSelectedWord(null);
             });
         };
@@ -302,10 +304,35 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
     };
     const fontSize = rect.height * 0.035;
     const bottomOffset = calculateSubtitleOffset(rect, controlsElem);
-    const subtitles = (show && dbStatus) ? activeCues.map((cue, index) => <Subtitle key={index} lines={cue} selectedWord={selectedWord} setSelectedWord={(index) => setSelectedWord(index)} fontSize={fontSize}></Subtitle>) : <></>;
     const containerStyle = {
         bottom: `${bottomOffset}px`,
     };
+    const subtitles = () => {
+        if (!show) {
+            return <></>;
+        }
+        const status = dbStatus?.status;
+        switch (status?.type) {
+            case Status.Ready:
+                return parsedCues.map((cue, index) => {
+                    return (
+                        <Subtitle key={index} lines={cue} selectedWord={selectedWord} setSelectedWord={(index) => setSelectedWord(index)} fontSize={fontSize}></Subtitle>
+                    )
+                });
+            case Status.Blocked:
+            case Status.Busy:
+            case Status.ErrorOccurred:
+            case Status.VersionChanged: {
+                return activeCues.map((cue, index) => {
+                    return (
+                        <SubtitleLoading key={index} dbStatus={status} cueText={extractCueText(cue)} fontSize={fontSize}></SubtitleLoading>
+                    )
+                })
+            }
+            default:
+                return <></>;
+        }
+    }
 
     // Add a dummy <div> container that acts as a proxy for the Netflix video screen
     // to help layout the child components.
@@ -314,7 +341,13 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
     return (
         <>
             <div id="jimakun-video" className="absolute pointer-events-none z-10" style={videoStyle}>
-                <div id="jimakun-subtitle-container" className="absolute text-center left-1/2" style={containerStyle}>{subtitles}</div>
+                <div id="jimakun-subtitle-container" className="absolute text-center left-1/2" style={containerStyle}>{
+                    activeCues.map((cue, index) => {
+                        return (
+                            <SubtitleLoading key={index} dbStatus={{ type: Status.Blocked }} cueText={extractCueText(cue)} fontSize={fontSize}></SubtitleLoading>
+                        )
+                    })
+                }</div>
             </div>
             {createPortal(
                 <track ref={trackRef} label="Jimakun" kind="subtitles" default={true} src={webvttSubtitles.webvttUrl} srcLang={webvttSubtitles.bcp47} onLoadCapture={(e) => {
