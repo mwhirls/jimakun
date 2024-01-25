@@ -6,7 +6,6 @@ import Header from './Header';
 import Tabs from './Tabs';
 import Examples from './Examples';
 import Kanji from './Kanji';
-import Notes from './Notes';
 import type { JMdictWord } from "@scriptin/jmdict-simplified-types";
 import { extractKanji, toHiragana } from '../../../common/lang';
 import { RuntimeMessage, RuntimeEvent, CountSentencesMessage, CountKanjiMessage } from '../../../common/events';
@@ -80,11 +79,6 @@ function Card({ word, entry, onCardClosed }: CardProps) {
             content: <Examples word={word} numSentences={details.numSentences}></Examples>,
             disabled: details.numSentences <= 0,
         },
-        {
-            label: "Notes",
-            content: <Notes word={word}></Notes>,
-            disabled: false,
-        }
     ];
 
     return (
