@@ -1,5 +1,5 @@
 import React from 'react';
-import ArrowRotateRight from '../../../../public/assets/arrow-rotate-right-01.svg'
+import ArrowRotateRight from './arrow-rotate-right-01.svg'
 
 function reloadPage() {
     if (chrome.tabs) {

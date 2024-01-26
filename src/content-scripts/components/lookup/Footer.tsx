@@ -1,19 +1,13 @@
 import React from 'react';
-import FavoriteIcon from '../../../../public/assets/favourite.svg';
-import DownloadIcon from '../../../../public/assets/file-down-01.svg';
+import { Cog8ToothIcon } from '@heroicons/react/24/outline'
 
 function Footer() {
     return (
         <div className='flex-none'>
             <hr></hr>
-            <div className="flex justify-between mt-3">
-                <button>
-                    <FavoriteIcon></FavoriteIcon>
-                </button>
-                <button>
-                    <DownloadIcon></DownloadIcon>
-                </button>
-            </div>
+            <button className='mt-3 w-12 float-right'>
+                <Cog8ToothIcon className='text-slate-400 hover:text-black'></Cog8ToothIcon>
+            </button>
         </div>
     );
 }

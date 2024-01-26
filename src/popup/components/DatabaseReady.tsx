@@ -1,5 +1,5 @@
 import React from 'react';
-import CheckContained from '../../../public/assets/check-contained.svg';
+import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import OptionsButton from '../../common/components/OptionsButton';
 
 function DatabaseReady() {
@@ -8,10 +8,10 @@ function DatabaseReady() {
             <div>
                 <div className='font-bold text-4xl mb-4 text-center'>Ready!</div>
                 <div className='w-4/5 mx-auto'>
-                    <CheckContained className='w-full h-full [&>path]:stroke-green-500'></CheckContained>
+                    <CheckCircleIcon className='w-24 h-24 text-green-500'></CheckCircleIcon>
                 </div>
             </div>
-            <div className='w-4/5 text-2xl font-light text-center text-slate-400 w-11/12'>Jimakun has successfully updated. You may need to refresh Netflix for changes to take effect.</div>
+            <div className='w-4/5 text-2xl font-light text-center text-slate-400'>Jimakun has successfully updated. You may need to refresh Netflix for changes to take effect.</div>
             <OptionsButton></OptionsButton>
         </div>
     )
