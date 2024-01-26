@@ -13,6 +13,7 @@ export enum RuntimeEvent {
     SeekCue = 'seek-cue',
     SeekTime = 'seek-time',
     ToggleSubs = 'toggle-subs',
+    OpenOptions = 'open-options',
 }
 
 export interface RuntimeMessage {

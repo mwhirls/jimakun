@@ -113,6 +113,15 @@ async function lookupSentences(message: LookupSentencesMessage, sendResponse: (r
     }
 }
 
+function openOptionsPage() {
+    chrome.runtime.openOptionsPage(() => {
+        const lastError = chrome.runtime.lastError;
+        if (lastError) {
+            console.error(lastError);
+        }
+    });
+}
+
 function playAudio(message: PlayAudioMessage) {
     if (!message.utterance) {
         return;
@@ -147,6 +156,9 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
         case RuntimeEvent.LookupSentences:
             lookupSentences(message as LookupSentencesMessage, sendResponse);
             break;
+        case RuntimeEvent.OpenOptions:
+            openOptionsPage();
+            return false;
         case RuntimeEvent.PlayAudio:
             playAudio(message as PlayAudioMessage);
             return false;
