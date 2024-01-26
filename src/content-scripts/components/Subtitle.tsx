@@ -2,7 +2,7 @@ import React from "react";
 import * as bunsetsu from "bunsetsu";
 import Word, { WordIndex } from "./Word";
 import { JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { Blocked, Busy, DBStatusResult, ErrorOccurred, Status, VersionChanged } from "../../database/dbstatus";
+import { Blocked, Busy, ErrorOccurred, Status, VersionChanged } from "../../database/dbstatus";
 import DatabaseBlocked from "../../common/components/DatabaseBlocked";
 import DatabaseBusy from "../../common/components/DatabaseBusy";
 import DatabaseError from "../../common/components/DatabaseError";
@@ -38,10 +38,13 @@ export function SubtitleLoading({ cueText, dbStatus, fontSize }: SubtitleLoading
     };
 
     return (
-        <div style={style} className="block relative -left-1/2 font-bold drop-shadow-[0_0_7px_#000000] pointer-events-auto select-text">
-            <span className="inline-block">{cueText}</span>
-            <span className="inline-block w-12 align-middle ml-4">
+        <div style={style} className="group block relative -left-1/2 rounded-lg pointer-events-auto hover:bg-opacity-25 hover:bg-white">
+            <span className="inline-block font-bold drop-shadow-[0_0_7px_#000000] select-text">{cueText}</span>
+            <span className="inline-block w-12 align-middle ml-4 relative">
                 <Spinner thickness={2}></Spinner>
+                <div className='absolute left-0 bottom-full w-max bg-white rounded-lg p-2 hidden group-hover:block'>
+                    {content()}
+                </div>
             </span>
         </div>
     )
