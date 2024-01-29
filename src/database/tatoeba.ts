@@ -60,7 +60,9 @@ export class TatoebaStore implements IDBObjectStoreWrapper {
         }
         const parseEntry = ((entry: TatoebaSentence) => {
             const keywords: string[] = entry.words.flatMap(word => {
-                return [word.headword, ...word.reading ?? [], ...word.surfaceForm ?? []]
+                const reading = word.reading ? [word.reading] : [];
+                const surfaceForm = word.surfaceForm ? [word.surfaceForm] : [];
+                return [word.headword, ...reading, ...surfaceForm];
             });
             return {
                 ...entry,
