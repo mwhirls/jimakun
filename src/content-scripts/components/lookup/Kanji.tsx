@@ -34,7 +34,7 @@ interface SingleLineProps {
 
 function SingleLine({ header, content }: SingleLineProps): JSX.Element {
     return (
-        <div className='text-3xl'>
+        <div className='text-2xl'>
             <span className="inline-block">
                 {header}
             </span>
@@ -54,7 +54,7 @@ function ReadingMeaning({ readingMeaning }: ReadingMeaningProps): JSX.Element {
     const nanori = readingMeaning.nanori.join(', ');
     const nanoriIcon = <SquareIcon content='名' className='text-blue-700 border-blue-700'></SquareIcon>;
     return (
-        <div className='text-4xl font-normal flex flex-col gap-4'>
+        <div className='text-3xl font-normal flex flex-col gap-4'>
             {
                 readingMeaning.groups.map((group, groupIndex) => {
                     const meanings = group.meanings.filter(m => m.lang === "en").map(m => m.value).join(', ');
@@ -102,7 +102,7 @@ function Kanji({ entry }: KanjiProps) {
                 kanji.map((kanji, index) => {
                     return (
                         <div key={index} className="py-4 flex flex-row gap-8">
-                            <h3 className='text-7xl font-light pt-2'>{kanji.literal}</h3>
+                            <h3 className='text-6xl font-light pt-2'>{kanji.literal}</h3>
                             <div>
                                 <ReadingMeaning readingMeaning={kanji.readingMeaning}></ReadingMeaning>
                             </div>

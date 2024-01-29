@@ -165,10 +165,10 @@ function Definitions({ entry }: DefinitionsProps) {
                     const glossText = sense.gloss.map((gloss) => gloss.text).join('; ');
                     const infoText = sense.info.join('; ');
                     return (
-                        <div key={senseIndex} className='mt-6 leading-tight'>
-                            <h5 className='text-3xl font-medium text-slate-400'>{posInfo}</h5>
-                            <span className='text-4xl font-normal text-black'>{glossText}</span>
-                            <span className='ml-4 text-3xl font-light text-slate-400'>{infoText}</span>
+                        <div key={senseIndex} className='mt-6 leading-none'>
+                            <h5 className='text-2xl font-medium text-slate-400'>{posInfo}</h5>
+                            <span className='text-3xl font-normal text-black'>{glossText}</span>
+                            <span className='ml-4 text-2xl font-light text-slate-400'>{infoText}</span>
                         </div>
                     );
                 })

@@ -56,17 +56,19 @@ function Examples({ word, numSentences }: ExamplesProps) {
 
     return (
         <div>
-            <h3>{`Sentences - ${numSentences} found`}</h3>
-            {
-                sentences.map((sentence, index) => {
-                    return (
-                        <div key={index} className='mt-6 leading-tight'>
-                            <p className='text-3xl font-normal text-black'>{sentence.text}</p>
-                            <p className='ml-4 text-3xl font-light text-slate-400'>{sentence.translation}</p>
-                        </div>
-                    );
-                })
-            }
+            <h5 className='text-3xl font-semibold'>{`Sentences - ${numSentences} found`}</h5>
+            <div className='flex flex-col gap-4 mt-4'>
+                {
+                    sentences.map((sentence, index) => {
+                        return (
+                            <div key={index} className='pt-4 leading-tight'>
+                                <p className='text-3xl font-normal text-black'>{sentence.text}</p>
+                                <p className='text-2xl font-normal text-slate-400'>{sentence.translation}</p>
+                            </div>
+                        );
+                    })
+                }
+            </div>
             {pagination()}
         </div >
     );
