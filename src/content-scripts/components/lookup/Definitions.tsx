@@ -157,23 +157,38 @@ export interface DefinitionsProps {
 }
 
 function Definitions({ entry }: DefinitionsProps) {
+    const sensesByPos: Map<string, JMdictSense[]> = new Map();
+    for (const sense of entry.sense) {
+        const posInfo = getPartOfSpeechInfo(sense);
+        const senses = sensesByPos.get(posInfo) || [];
+        sensesByPos.set(posInfo, [...senses, sense]);
+    }
     return (
-        <div>
+        <ul>
             {
-                entry.sense.map((sense, senseIndex) => {
-                    const posInfo = getPartOfSpeechInfo(sense);
-                    const glossText = sense.gloss.map((gloss) => gloss.text).join('; ');
-                    const infoText = sense.info.join('; ');
+                Array.from(sensesByPos).map(([posInfo, sense], posIndex) => {
                     return (
-                        <div key={senseIndex} className='mt-6 leading-none'>
+                        <li key={posIndex} className='mt-4'>
                             <h5 className='text-2xl font-medium text-slate-400'>{posInfo}</h5>
-                            <span className='text-3xl font-normal text-black'>{glossText}</span>
-                            <span className='ml-4 text-2xl font-light text-slate-400'>{infoText}</span>
-                        </div>
+                            {
+                                sense.map((sense, senseIndex) => {
+                                    const glossText = sense.gloss.map((gloss) => gloss.text).join('; ');
+                                    const infoText = sense.info.join('; ');
+                                    return (
+                                        <ul key={senseIndex} className='mt-2 leading-none list-disc list-inside marker:text-3xl marker:mr-2'>
+                                            <li>
+                                                <span className='text-3xl font-normal text-black'>{glossText}</span>
+                                                <span className='ml-4 text-2xl font-light text-slate-400'>{infoText}</span>
+                                            </li>
+                                        </ul>
+                                    );
+                                })
+                            }
+                        </li>
                     );
                 })
             }
-        </div >
+        </ul>
     );
 }
 export default Definitions;
