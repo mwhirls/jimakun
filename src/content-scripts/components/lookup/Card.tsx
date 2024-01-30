@@ -11,6 +11,7 @@ import { extractKanji, toHiragana } from '../../../common/lang';
 import { RuntimeMessage, RuntimeEvent, CountSentencesMessage, CountKanjiMessage } from '../../../common/events';
 import { ChromeExtensionContext, ExtensionContext } from '../../contexts/ExtensionContext';
 import { sendMessage } from '../../util/browser-runtime';
+import Conjugation from './Conjugation';
 
 async function countKanji(entry: JMdictWord, context: ExtensionContext): Promise<number> {
     const kanjiWords = entry.kanji.map(k => k.text);
@@ -64,6 +65,11 @@ function Card({ word, entry, onCardClosed }: CardProps) {
         {
             label: "Definitions",
             content: <Definitions entry={dictEntry}></Definitions>,
+            disabled: false,
+        },
+        {
+            label: "Conjugation",
+            content: <Conjugation word={word}></Conjugation>,
             disabled: false,
         },
         {
