@@ -5,6 +5,8 @@ module.exports = {
         variants: {
             extend: {
                 display: ["group-hover"],
+                backgroundColor: ["group-hover"],
+                opacity: ["group-hover"]
             },
         },
     },

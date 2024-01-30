@@ -14,6 +14,8 @@ enum Inflection {
 interface IntermediateForm {
     baseForm: string;
     surfaceForm: string;
+    tokenBaseForm: string;
+    tokenSurfaceForm: string;
     inflection: Inflection;
 }
 
@@ -52,6 +54,8 @@ function getDictionaryForm(word: bunsetsu.Word) {
         return {
             baseForm: curr.baseForm,
             surfaceForm: curr.surfaceForm,
+            tokenBaseForm: curr.baseForm,
+            tokenSurfaceForm: curr.surfaceForm,
             inflection,
             tokens: [curr]
         };
@@ -59,6 +63,8 @@ function getDictionaryForm(word: bunsetsu.Word) {
     return {
         baseForm: curr.surfaceForm + next.baseForm,
         surfaceForm: curr.surfaceForm + next.surfaceForm,
+        tokenBaseForm: curr.surfaceForm + next.baseForm,
+        tokenSurfaceForm: curr.surfaceForm + next.surfaceForm,
         inflection,
         tokens: [curr, next],
     };
@@ -81,6 +87,8 @@ function getIntermediateForms(word: bunsetsu.Word): IntermediateForm[] {
         const form = {
             baseForm,
             surfaceForm,
+            tokenBaseForm: curr.baseForm,
+            tokenSurfaceForm: curr.surfaceForm,
             inflection,
             tokens: [curr],
         };
@@ -102,18 +110,30 @@ function Conjugation({ word }: ConjugationProps) {
     const infoText = getInfoText(selectedForm.inflection);
     return (
         <>
-            <div className='mx-auto text-5xl my-8 text-center text-black font-normal bg-white'>{word.surfaceForm}</div>
+            <div className='mx-auto my-8 text-center w-fit'>
+                {
+                    forms.map((form, index) => {
+                        const selected = selectedIndex === index;
+                        if (selected) {
+                            return (
+                                <span key={index} className='text-5xl text-black font-normal'>{form.baseForm}</span>
+                            )
+                        }
+                        return <></>;
+                    })
+                }
+            </div>
             <div className='my-8 mx-auto text-3xl text-center text-slate-400 font-normal'>{infoText}</div>
             <ul className='p-4 flex flex-row flex-wrap gap-y-2 items-center rounded-lg bg-slate-100 w-full leading-none shadow-inner border border-solid border-gray-200'>
                 {
                     forms.map((form, index) => {
                         const selected = selectedIndex === index;
-                        const buttonColor = selected ? 'bg-red-700' : 'bg-white';
-                        const textColor = selected ? 'text-white font-bold' : 'text-slate-800 font-normal hover:text-black hover:font-bold';
+                        const buttonColor = selected ? 'bg-red-700' : 'bg-white hover:bg-gray-100 active:bg-gray-200';
+                        const textColor = selected ? 'text-white font-bold' : 'text-slate-800 font-normal';
                         return (
                             <li key={index} className='leading-[0]'>
                                 {index > 0 && <ArrowLongRightIcon className='w-12 inline-block mx-4 text-slate-500'></ArrowLongRightIcon>}
-                                <button className={`inline-block p-2 text-2xl rounded-lg drop-shadow active:bg-gray-200 ${buttonColor} ${textColor}`} onClick={() => setSelectedIndex(index)}>
+                                <button className={`inline-block p-2 text-2xl rounded-lg drop-shadow  ${buttonColor} ${textColor}`} onClick={() => setSelectedIndex(index)}>
                                     <div className={`text-2xl`}>{form.baseForm}</div>
                                 </button>
                             </li>
