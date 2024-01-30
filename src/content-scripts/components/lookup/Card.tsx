@@ -30,6 +30,14 @@ async function countSentences(word: bunsetsu.Word, context: ExtensionContext): P
     return sendMessage(message, context);
 }
 
+function hasConjugation(word: bunsetsu.Word) {
+    if (!word.tokens.length) {
+        return false;
+    }
+    const detail = word.tokens[0].detail;
+    return detail?.type === bunsetsu.DetailType.ConjugationDetail;
+}
+
 interface EntryDetails {
     entry: JMdictWord;
     numKanji: number;
@@ -70,7 +78,7 @@ function Card({ word, entry, onCardClosed }: CardProps) {
         {
             label: "Conjugation",
             content: <Conjugation word={word}></Conjugation>,
-            disabled: false,
+            disabled: !hasConjugation(word),
         },
         {
             label: "Kanji",
