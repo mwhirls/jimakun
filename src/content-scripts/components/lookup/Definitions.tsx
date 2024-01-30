@@ -169,21 +169,21 @@ function Definitions({ entry }: DefinitionsProps) {
                 Array.from(sensesByPos).map(([posInfo, sense], posIndex) => {
                     return (
                         <li key={posIndex} className='mt-4'>
-                            <h5 className='text-2xl font-medium text-slate-400'>{posInfo}</h5>
-                            {
-                                sense.map((sense, senseIndex) => {
-                                    const glossText = sense.gloss.map((gloss) => gloss.text).join('; ');
-                                    const infoText = sense.info.join('; ');
-                                    return (
-                                        <ul key={senseIndex} className='mt-2 leading-none list-disc list-inside marker:text-3xl marker:mr-2'>
-                                            <li>
-                                                <span className='text-3xl font-normal text-black'>{glossText}</span>
+                            <h5 className='mt-4 text-3xl font-medium text-slate-400'>{posInfo}</h5>
+                            <ul className='mt-2 list-disc list-outside pl-8 text-3xl font-normal text-black leading-normal marker:text-3xl marker:mr-2'>
+                                {
+                                    sense.map((sense, senseIndex) => {
+                                        const glossText = sense.gloss.map((gloss) => gloss.text).join('; ');
+                                        const infoText = sense.info.join('; ');
+                                        return (
+                                            <li key={senseIndex} className='mt-2'>
+                                                <span>{glossText}</span>
                                                 <span className='ml-4 text-2xl font-light text-slate-400'>{infoText}</span>
                                             </li>
-                                        </ul>
-                                    );
-                                })
-                            }
+                                        );
+                                    })
+                                }
+                            </ul>
                         </li>
                     );
                 })

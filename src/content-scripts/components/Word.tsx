@@ -1,5 +1,5 @@
 import Token, { TokenProps } from "./Token";
-import React, { useState } from 'react';
+import React from 'react';
 import * as bunsetsu from "bunsetsu";
 import * as Diff from "diff";
 import './Word.css'
