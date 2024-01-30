@@ -39,9 +39,19 @@ function toTokens(word: bunsetsu.Word): TokenProps[] {
     return tokens;
 }
 
-export interface WordIndex {
+export class WordIndex {
     line: number;
     word: number;
+
+    constructor(line: number, word: number) {
+        this.line = line;
+        this.word = word;
+    }
+
+    equals(other: WordIndex): boolean {
+        return this.line === other.line &&
+            this.word === other.word;
+    }
 }
 
 export interface WordProps {

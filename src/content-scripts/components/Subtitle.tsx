@@ -59,11 +59,13 @@ export interface SubtitleProps {
 
 function Subtitle({ lines, selectedWord, setSelectedWord, fontSize }: SubtitleProps) {
     const onWordClicked = (index: WordIndex) => {
-        setSelectedWord(index);
+        if (selectedWord && index.equals(selectedWord)) {
+            setSelectedWord(null);
+        } else {
+            setSelectedWord(index);
+        }
     };
-    const onWordDeselected = () => {
-        setSelectedWord(null);
-    }
+    const onWordDeselected = () => setSelectedWord(null);
 
     const style = {
         fontSize: `${fontSize}px`,
@@ -77,7 +79,7 @@ function Subtitle({ lines, selectedWord, setSelectedWord, fontSize }: SubtitlePr
                         <div key={lineIndex} className="block text-start m-0">
                             {
                                 line.map((word: WordDetails, wordIndex: number) => {
-                                    const index = { line: lineIndex, word: wordIndex };
+                                    const index = new WordIndex(lineIndex, wordIndex);
                                     const selected = index.line === selectedWord?.line && index.word === selectedWord?.word;
                                     return <Word key={wordIndex} word={word.word} entry={word.entry} index={index} selected={selected} onWordClicked={onWordClicked} onDeselected={onWordDeselected}></Word>
                                 })
