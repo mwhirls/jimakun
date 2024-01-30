@@ -59,25 +59,22 @@ function Card({ word, entry, onCardClosed }: CardProps) {
         })();
     }, []);
 
-    if (!details) {
-        return <></>; // TODO: better loading indicator
-    }
-
+    const dictEntry = details?.entry || entry;
     const tabs = [
         {
             label: "Definitions",
-            content: <Definitions entry={details.entry}></Definitions>,
+            content: <Definitions entry={dictEntry}></Definitions>,
             disabled: false,
         },
         {
             label: "Kanji",
-            content: <Kanji entry={details.entry}></Kanji>,
-            disabled: details.numKanji <= 0,
+            content: <Kanji entry={dictEntry}></Kanji>,
+            disabled: !details || details.numKanji <= 0,
         },
         {
             label: "Examples",
-            content: <Examples word={word} numSentences={details.numSentences}></Examples>,
-            disabled: details.numSentences <= 0,
+            content: <Examples word={word} numSentences={details?.numSentences}></Examples>,
+            disabled: !details || details.numSentences <= 0,
         },
     ];
 
@@ -85,7 +82,7 @@ function Card({ word, entry, onCardClosed }: CardProps) {
         <div className="bg-white rounded-lg text-black min-w-fit max-w-[40vw] min-h-fit max-h-[60vh] px-12 py-6">
             <div className='flex flex-col gap-y-6 h-full'>
                 <div className='flex-none'>
-                    <Header word={word} entry={details.entry} onCloseClicked={onCardClosed}></Header>
+                    <Header word={word} entry={dictEntry} onCloseClicked={onCardClosed}></Header>
                 </div>
                 <div className='flex-initial overflow-y-hidden'>
                     <Tabs tabs={tabs} selectedIndex={selectedTab} onSelected={(index) => setSelectedTab(index)}></Tabs>

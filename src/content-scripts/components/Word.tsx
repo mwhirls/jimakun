@@ -1,5 +1,5 @@
 import Token, { TokenProps } from "./Token";
-import React from 'react';
+import React, { useState } from 'react';
 import * as bunsetsu from "bunsetsu";
 import * as Diff from "diff";
 import './Word.css'
@@ -56,12 +56,15 @@ export interface WordProps {
 function Word({ word, entry, index, selected, onWordClicked, onDeselected }: WordProps) {
     const tokensProps = toTokens(word);
     const disabled = !entry;
-    const hover = disabled ? "hover:text-slate-200" : "hover:text-red-500";
-    const color = selected ? "text-red-500" : `text-white ${hover}`;
+    const loadedStyle = selected ? "text-red-500" : 'text-white';
+
+    const onCardClosed = () => {
+        onDeselected();
+    }
 
     return (
         <span className="relative inline-block">
-            <button className={`${color} subtitle-word disabled:cursor-not-allowed`} onClick={() => onWordClicked(index)} disabled={disabled}>
+            <button className={`subtitle-word rounded-lg hover:bg-opacity-50  hover:bg-blue-400 ${loadedStyle}  disabled:hover:bg-gray-400 disabled:hover:bg-opacity-25`} onClick={() => onWordClicked(index)} disabled={disabled}>
                 {
                     tokensProps.map((props, index) => {
                         return (
@@ -73,7 +76,7 @@ function Word({ word, entry, index, selected, onWordClicked, onDeselected }: Wor
             {
                 selected && entry &&
                 <div className='absolute left-0 bottom-full w-max'>
-                    <Card word={word} entry={entry} onCardClosed={() => onDeselected()}></Card>
+                    <Card word={word} entry={entry} onCardClosed={onCardClosed}></Card>
                 </div>
             }
         </span>

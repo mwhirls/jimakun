@@ -21,7 +21,7 @@ async function lookupSentences(word: bunsetsu.Word, page: number, context: Exten
 
 export interface ExamplesProps {
     word: bunsetsu.Word;
-    numSentences: number;
+    numSentences?: number;
 }
 
 function Examples({ word, numSentences }: ExamplesProps) {
