@@ -114,6 +114,72 @@ function getIntermediateForms(word: bunsetsu.Word): IntermediateForm[] {
     return forms;
 }
 
+interface InteractiveConjugationProps {
+    forms: IntermediateForm[];
+    selectedIndex: number;
+    setSelectedIndex: (index: number) => void;
+}
+
+function InteractiveConjugation({ forms, selectedIndex, setSelectedIndex }: InteractiveConjugationProps) {
+    return (
+        <div className='mx-auto text-center w-fit'>
+            {
+                forms.map((form, index) => {
+                    const selected = selectedIndex >= index;
+                    const color = selected ? 'text-black font-bold' : 'text-slate-400 font-bold active:bg-gray-300';
+                    return (
+                        <button key={index} className={`inline-block text-5xl rounded-lg hover:bg-blue-400 hover:bg-opacity-50 ${color}`} onClick={() => setSelectedIndex(index)}>{form.tokenSurfaceForm}</button>
+                    )
+                })
+            }
+        </div>
+    )
+}
+
+interface ConjugationVisualizerProps {
+    forms: IntermediateForm[];
+    selectedIndex: number;
+    setSelectedIndex: (index: number) => void;
+}
+
+function ConjugationVisualizer({ forms, selectedIndex, setSelectedIndex }: ConjugationVisualizerProps) {
+    return (
+        <ul className='my-4 p-4 flex flex-row flex-wrap gap-y-2 items-center rounded-lg bg-slate-100 w-full leading-none shadow-inner border border-solid border-gray-200'>
+            {
+                forms.map((form, index) => {
+                    const selected = selectedIndex === index;
+                    const buttonColor = selected ? 'bg-red-700' : 'bg-white hover:bg-gray-100 active:bg-gray-200';
+                    const textColor = selected ? 'text-white font-bold' : 'text-slate-800 font-normal';
+                    return (
+                        <li key={index} className='leading-[0]'>
+                            {index > 0 && <ArrowLongRightIcon className='w-8 inline-block mx-4 text-slate-500'></ArrowLongRightIcon>}
+                            <button className={`inline-block p-2 text-2xl rounded-lg drop-shadow  ${buttonColor} ${textColor}`} onClick={() => setSelectedIndex(index)}>
+                                <div className={`text-2xl`}>{form.baseForm}</div>
+                            </button>
+                        </li>
+                    );
+                })
+            }
+        </ul>
+    )
+}
+
+export interface InfoTextProps {
+    forms: IntermediateForm[];
+    selectedIndex: number;
+}
+
+function InfoText({ forms, selectedIndex }: InfoTextProps) {
+    const selectedForm = forms[selectedIndex];
+    const infoText = getInfoText(selectedForm.inflection);
+    return (
+        <div className='leading-none my-4'>
+            <span className='inline-block text-3xl text-black font-normal'>{selectedForm.baseForm}</span>
+            <span className='ml-4 text-2xl text-slate-400 font-normal'>{infoText}</span>
+        </div>
+    )
+}
+
 export interface ConjugationProps {
     word: bunsetsu.Word;
 }
@@ -121,41 +187,11 @@ export interface ConjugationProps {
 function Conjugation({ word }: ConjugationProps) {
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const forms = getIntermediateForms(word);
-    const selectedForm = forms[selectedIndex];
-    const infoText = getInfoText(selectedForm.inflection);
     return (
         <>
-            <div className='mx-auto my-8 text-center w-fit'>
-                {
-                    forms.map((form, index) => {
-                        const selected = selectedIndex === index;
-                        if (selected) {
-                            return (
-                                <span key={index} className='text-4xl text-black font-normal'>{form.baseForm}</span>
-                            )
-                        }
-                        return <></>;
-                    })
-                }
-            </div>
-            <div className='my-8 mx-auto text-3xl text-center text-slate-400 font-normal'>{infoText}</div>
-            <ul className='p-4 flex flex-row flex-wrap gap-y-2 items-center rounded-lg bg-slate-100 w-full leading-none shadow-inner border border-solid border-gray-200'>
-                {
-                    forms.map((form, index) => {
-                        const selected = selectedIndex === index;
-                        const buttonColor = selected ? 'bg-red-700' : 'bg-white hover:bg-gray-100 active:bg-gray-200';
-                        const textColor = selected ? 'text-white font-bold' : 'text-slate-800 font-normal';
-                        return (
-                            <li key={index} className='leading-[0]'>
-                                {index > 0 && <ArrowLongRightIcon className='w-12 inline-block mx-4 text-slate-500'></ArrowLongRightIcon>}
-                                <button className={`inline-block p-2 text-2xl rounded-lg drop-shadow  ${buttonColor} ${textColor}`} onClick={() => setSelectedIndex(index)}>
-                                    <div className={`text-2xl`}>{form.baseForm}</div>
-                                </button>
-                            </li>
-                        );
-                    })
-                }
-            </ul>
+            <InteractiveConjugation forms={forms} selectedIndex={selectedIndex} setSelectedIndex={setSelectedIndex}></InteractiveConjugation>
+            <ConjugationVisualizer forms={forms} selectedIndex={selectedIndex} setSelectedIndex={(index) => setSelectedIndex(index)}></ConjugationVisualizer>
+            <InfoText forms={forms} selectedIndex={selectedIndex}></InfoText>
         </>
     );
 }
