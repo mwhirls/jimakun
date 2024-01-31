@@ -6,10 +6,13 @@ import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import packageJSON from './package.json'
+import DotenvWebpackPlugin from 'dotenv-webpack';
 
 function updateChromeManifest(data: Buffer, production: boolean) {
+    const buildNumber = process.env.BUILD_NUMBER && process.env.BUILD_NUMBER.length ? process.env.BUILD_NUMBER : '9999';
+    const version = `${packageJSON.version}.${buildNumber}`;
     const manifest = JSON.parse(data.toString());
-    manifest.version = packageJSON.version;
+    manifest.version = version;
     manifest.content_scripts = [
         {
             "js": [
@@ -102,6 +105,9 @@ module.exports = (
             }
         },
         plugins: [
+            new DotenvWebpackPlugin({
+                systemvars: true,
+            }),
             new WebpackShellPluginNext({
                 onBuildStart: {
                     scripts: [`python fetch_latest_data.py`],

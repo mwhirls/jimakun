@@ -30,13 +30,18 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
+    - name: get-npm-version
+      id: package-version
+      uses: martinbeentjes/npm-get-version-action@v1.3.1
     - name: Run build
+      env:
+        BUILD_NUMBER: ${{ github.run_number }}
       run: npm run build --if-present
     - run: npm test --if-present
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: jimakun-percheckin-v${{env.MAJOR_VERSION}}.${{env.MINOR_VERSION}}.${{github.run_number}}
+        name: jimakun-percheckin-v${{ steps.package-version.outputs.current-version }}.${{ github.run_number }}
         path: |
           dist
   
