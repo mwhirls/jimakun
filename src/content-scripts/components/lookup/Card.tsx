@@ -7,7 +7,7 @@ import Tabs from './Tabs';
 import Examples from './Examples';
 import Kanji from './Kanji';
 import type { JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { extractKanji, toHiragana } from '../../../common/lang';
+import { extractKanji, isSuruVerb, toHiragana } from '../../../common/lang';
 import { RuntimeMessage, RuntimeEvent, CountSentencesMessage, CountKanjiMessage } from '../../../common/events';
 import { ChromeExtensionContext, ExtensionContext } from '../../contexts/ExtensionContext';
 import { sendMessage } from '../../util/browser-runtime';
@@ -35,7 +35,8 @@ function hasConjugation(word: bunsetsu.Word) {
         return false;
     }
     const detail = word.tokens[0].detail;
-    return detail?.type === bunsetsu.DetailType.ConjugationDetail;
+    return detail?.type === bunsetsu.DetailType.ConjugationDetail ||
+        isSuruVerb(word);
 }
 
 interface EntryDetails {

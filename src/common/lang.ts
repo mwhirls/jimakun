@@ -1,3 +1,5 @@
+import * as bunsetsu from "bunsetsu";
+
 export function toHiragana(text: string | undefined): string {
     if (!text) {
         return "";
@@ -27,4 +29,14 @@ export function isKanji(char: string) {
 export function extractKanji(word: string): string[] {
     const chars = word.split('');
     return chars.filter(c => isKanji(c));
+}
+
+export function isSuruVerb(word: bunsetsu.Word): boolean {
+    if (word.tokens.length < 2) {
+        return false;
+    }
+    const t0 = word.tokens[0];
+    const t1 = word.tokens[1];
+    return t0.pos === bunsetsu.PartOfSpeech.Noun &&
+        t1.baseForm === 'する';
 }

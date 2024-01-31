@@ -63,25 +63,14 @@ function getInflection(token: bunsetsu.Token) {
 
 function getDictionaryForm(word: bunsetsu.Word) {
     const curr = word.tokens[0];
-    const next = word.tokens.length >= 2 ? word.tokens[1] : undefined;
     const inflection = Inflection.Dictionary;
-    if (!next || next.surfaceForm !== 'する') {
-        return {
-            baseForm: curr.baseForm,
-            surfaceForm: curr.surfaceForm,
-            tokenBaseForm: curr.baseForm,
-            tokenSurfaceForm: curr.surfaceForm,
-            inflection,
-            tokens: [curr]
-        };
-    }
     return {
-        baseForm: curr.surfaceForm + next.baseForm,
-        surfaceForm: curr.surfaceForm + next.surfaceForm,
-        tokenBaseForm: curr.surfaceForm + next.baseForm,
-        tokenSurfaceForm: curr.surfaceForm + next.surfaceForm,
+        baseForm: curr.baseForm,
+        surfaceForm: curr.surfaceForm,
+        tokenBaseForm: curr.baseForm,
+        tokenSurfaceForm: curr.surfaceForm,
         inflection,
-        tokens: [curr, next],
+        tokens: [curr]
     };
 }
 
