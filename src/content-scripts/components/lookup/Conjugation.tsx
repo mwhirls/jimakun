@@ -7,6 +7,9 @@ enum Inflection {
     Te,
     Past,
     Kuru,
+    Kureru,
+    Ageru,
+    Morau,
     Continuative,
     Unknown,
 }
@@ -28,7 +31,13 @@ function getInfoText(inflection: Inflection) {
         case Inflection.Past:
             return 'past tense';
         case Inflection.Kuru:
-            return 'くる auxillary verb (to come to be; to become; to get; to grow; to continue)';
+            return 'くる auxillary verb - to come to be; to become; to get; to grow; to continue';
+        case Inflection.Kureru:
+            return "くれる auxiliary verb - to do for one; to take the trouble to do​; to do to someone's disadvantage";
+        case Inflection.Ageru:
+            return "あげる auxiliary verb - to do for (the sake of someone else​)";
+        case Inflection.Morau:
+            return "もらう auxillary verb - to get someone to do something​";
     }
     return 'unknown inflection'
 }
@@ -42,6 +51,12 @@ function getInflection(token: bunsetsu.Token) {
         case 'た':
         case 'かった':
             return Inflection.Past;
+        case 'くれる':
+            return Inflection.Kureru;
+        case 'あげる':
+            return Inflection.Ageru;
+        case 'もらう':
+            return Inflection.Morau;
     }
     return Inflection.Unknown;
 }
@@ -116,7 +131,7 @@ function Conjugation({ word }: ConjugationProps) {
                         const selected = selectedIndex === index;
                         if (selected) {
                             return (
-                                <span key={index} className='text-5xl text-black font-normal'>{form.baseForm}</span>
+                                <span key={index} className='text-4xl text-black font-normal'>{form.baseForm}</span>
                             )
                         }
                         return <></>;
