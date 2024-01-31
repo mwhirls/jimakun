@@ -4,10 +4,6 @@ on:
   push:
     branches: [ "main" ]
 
-env:
-  MAJOR_VERSION: 0
-  MINOR_VERSION: 0
-
 jobs:
   build:
     runs-on: ubuntu-latest
