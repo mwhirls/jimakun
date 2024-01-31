@@ -9,8 +9,6 @@ import packageJSON from './package.json'
 
 function updateChromeManifest(data: Buffer, production: boolean) {
     const manifest = JSON.parse(data.toString());
-    manifest.name = packageJSON.name;
-    manifest.description = packageJSON.description;
     manifest.version = packageJSON.version;
     manifest.content_scripts = [
         {

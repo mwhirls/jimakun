@@ -1,6 +1,6 @@
 {
   "name": "jimakun",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A Chrome Extension that enhances Japanese subtitles on Netflix for language learning",
   "main": "index.js",
   "browser": {

@@ -1,4 +1,6 @@
 {
+    "name": "Jimakun",
+    "description": "Improve your Japanese by watching your favorite shows on Netflix. Look up the meaning of unknown words in subtitles with a single click.",
     "manifest_version": 3,
     "action": {
         "default_popup": "popup.html"
