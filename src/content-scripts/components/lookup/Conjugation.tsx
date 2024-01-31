@@ -2,101 +2,132 @@ import React, { useState } from 'react';
 import * as bunsetsu from "bunsetsu";
 import { ArrowLongRightIcon } from '@heroicons/react/24/outline'
 
-enum Inflection {
-    Dictionary,
-    Te,
-    Past,
-    Kuru,
-    Kureru,
+enum TokenType {
     Ageru,
-    Morau,
+    DictionaryForm,
     Continuative,
+    Imperative,
+    Kureru,
+    Kuru,
+    Morau,
+    Passive,
+    PastTense,
+    TeForm,
+    Tsudukeru,
     Unknown,
 }
 
 interface IntermediateForm {
-    baseForm: string;
+    type: TokenType;
+    baseForm?: string;
     surfaceForm: string;
-    tokenBaseForm: string;
-    tokenSurfaceForm: string;
-    inflection: Inflection;
+    token?: bunsetsu.Token;
 }
 
-function getInfoText(inflection: Inflection) {
+function getInfoText(inflection: TokenType) {
     switch (inflection) {
-        case Inflection.Dictionary:
+        case TokenType.DictionaryForm:
             return 'dictionary form';
-        case Inflection.Te:
+        case TokenType.TeForm:
             return 'て form';
-        case Inflection.Past:
+        case TokenType.PastTense:
             return 'past tense';
-        case Inflection.Kuru:
+        case TokenType.Imperative:
+            return 'imperative form';
+        case TokenType.Kuru:
             return 'くる auxillary verb - to come to be; to become; to get; to grow; to continue';
-        case Inflection.Kureru:
+        case TokenType.Kureru:
             return "くれる auxiliary verb - to do for one; to take the trouble to do​; to do to someone's disadvantage";
-        case Inflection.Ageru:
+        case TokenType.Ageru:
             return "あげる auxiliary verb - to do for (the sake of someone else​)";
-        case Inflection.Morau:
+        case TokenType.Morau:
             return "もらう auxillary verb - to get someone to do something​";
+        case TokenType.Passive:
+            return 'indicates passive voice (incl. the "suffering passive")';
+        case TokenType.Tsudukeru:
+            return '続ける auxillary verb - to continue; to keep up; to keep on';
     }
-    return 'unknown inflection'
+    return 'unknown token'
 }
 
-function getInflection(token: bunsetsu.Token) {
+function getTokenType(token: bunsetsu.Token) {
     switch (token.baseForm) {
         case 'て':
-            return Inflection.Te;
+            return TokenType.TeForm;
         case 'くる':
-            return Inflection.Kuru;
+            return TokenType.Kuru;
         case 'た':
         case 'かった':
-            return Inflection.Past;
+            return TokenType.PastTense;
         case 'くれる':
-            return Inflection.Kureru;
+            return TokenType.Kureru;
         case 'あげる':
-            return Inflection.Ageru;
+            return TokenType.Ageru;
         case 'もらう':
-            return Inflection.Morau;
+            return TokenType.Morau;
+        case 'れる':
+            return TokenType.Passive;
     }
-    return Inflection.Unknown;
+    return TokenType.Unknown;
 }
 
-function getDictionaryForm(word: bunsetsu.Word) {
-    const curr = word.tokens[0];
-    const inflection = Inflection.Dictionary;
+function getIntermediateForm(word: bunsetsu.Word, token: bunsetsu.Token, inflected: boolean, prev?: IntermediateForm) {
+    let type = getTokenType(token);
+    if (type === TokenType.Unknown && word.baseForm === token.baseForm) {
+        type = TokenType.DictionaryForm;
+    }
+    const baseForm = prev ? prev.surfaceForm + token.baseForm : token.baseForm;
+    const surfaceForm = prev ? prev.surfaceForm + token.surfaceForm : token.surfaceForm;
     return {
-        baseForm: curr.baseForm,
-        surfaceForm: curr.surfaceForm,
-        tokenBaseForm: curr.baseForm,
-        tokenSurfaceForm: curr.surfaceForm,
-        inflection,
-        tokens: [curr]
+        type,
+        baseForm,
+        surfaceForm,
+        token: inflected ? undefined : token,
     };
+}
+
+function getInflection(token: bunsetsu.Token, prev?: IntermediateForm): IntermediateForm | undefined {
+    const detail = token.detail;
+    if (detail?.type !== bunsetsu.DetailType.ConjugationDetail) {
+        return;
+    }
+    const conjugatedForm = detail.conjugatedForm;
+    const getType = () => {
+        switch (conjugatedForm) {
+            case bunsetsu.ConjugatedForm.ImperativeE:
+                return TokenType.Imperative;
+            default:
+                return TokenType.Unknown;
+        }
+    };
+    const type = getType();
+    if (type === TokenType.Unknown) {
+        return;
+    }
+    const surfaceForm = prev ? prev.surfaceForm + token.surfaceForm : token.surfaceForm;
+    return {
+        type,
+        surfaceForm,
+        token,
+    }
 }
 
 function getIntermediateForms(word: bunsetsu.Word): IntermediateForm[] {
     if (!word.tokens.length) {
         return [];
     }
-    const dictionaryForm = getDictionaryForm(word);
-    const forms = [dictionaryForm];
-    let p0 = dictionaryForm.tokens.length - 1;
-    let p1 = p0 + 1;
+    const forms: IntermediateForm[] = [];
+    let p0 = -1;
+    let p1 = 0;
     while (p1 < word.tokens.length) {
-        const prev = forms[p0];
+        const prev = p0 >= 0 ? forms[p0] : undefined;
         const curr = word.tokens[p1];
-        const baseForm = prev.surfaceForm + curr.baseForm;
-        const surfaceForm = prev.surfaceForm + curr.surfaceForm;
-        const inflection = getInflection(curr);
-        const form = {
-            baseForm,
-            surfaceForm,
-            tokenBaseForm: curr.baseForm,
-            tokenSurfaceForm: curr.surfaceForm,
-            inflection,
-            tokens: [curr],
-        };
+        const inflection = getInflection(curr, prev);
+        const form = getIntermediateForm(word, curr, !!inflection, prev);
         forms.push(form);
+        if (inflection) {
+            forms.push(inflection);
+        }
         p0++;
         p1++;
     }
@@ -116,8 +147,9 @@ function InteractiveConjugation({ forms, selectedIndex, setSelectedIndex }: Inte
                 forms.map((form, index) => {
                     const selected = selectedIndex >= index;
                     const color = selected ? 'text-black font-bold' : 'text-slate-400 font-bold active:bg-gray-300';
+                    const text = form.token?.surfaceForm;
                     return (
-                        <button key={index} className={`inline-block text-5xl rounded-lg hover:bg-blue-400 hover:bg-opacity-50 ${color}`} onClick={() => setSelectedIndex(index)}>{form.tokenSurfaceForm}</button>
+                        <button key={index} className={`inline-block text-5xl rounded-lg hover:bg-blue-400 hover:bg-opacity-50 ${color}`} onClick={() => setSelectedIndex(index)}>{text}</button>
                     )
                 })
             }
@@ -139,11 +171,12 @@ function ConjugationVisualizer({ forms, selectedIndex, setSelectedIndex }: Conju
                     const selected = selectedIndex === index;
                     const buttonColor = selected ? 'bg-red-700' : 'bg-white hover:bg-gray-100 active:bg-gray-200';
                     const textColor = selected ? 'text-white font-bold' : 'text-slate-800 font-normal';
+                    const text = form.baseForm ?? form.surfaceForm;
                     return (
                         <li key={index} className='leading-[0]'>
                             {index > 0 && <ArrowLongRightIcon className='w-8 inline-block mx-4 text-slate-500'></ArrowLongRightIcon>}
                             <button className={`inline-block p-2 text-2xl rounded-lg drop-shadow  ${buttonColor} ${textColor}`} onClick={() => setSelectedIndex(index)}>
-                                <div className={`text-2xl`}>{form.baseForm}</div>
+                                <div className={`text-2xl`}>{text}</div>
                             </button>
                         </li>
                     );
@@ -160,10 +193,11 @@ export interface InfoTextProps {
 
 function InfoText({ forms, selectedIndex }: InfoTextProps) {
     const selectedForm = forms[selectedIndex];
-    const infoText = getInfoText(selectedForm.inflection);
+    const infoText = getInfoText(selectedForm.type);
+    const label = selectedForm.baseForm ?? selectedForm.surfaceForm;
     return (
         <div className='leading-none my-4'>
-            <span className='inline-block text-3xl text-black font-normal'>{selectedForm.baseForm}</span>
+            <span className='inline-block text-3xl text-black font-normal'>{label}</span>
             <span className='ml-4 text-2xl text-slate-400 font-normal'>{infoText}</span>
         </div>
     )
