@@ -3,6 +3,7 @@ import * as bunsetsu from "bunsetsu";
 import { ArrowLongRightIcon } from '@heroicons/react/24/outline'
 
 enum TokenType {
+    AdverbialForm,
     Ageru,
     DictionaryForm,
     Conditional,
@@ -16,6 +17,7 @@ enum TokenType {
     Passive,
     PassivePotential,
     PastTense,
+    ProgressiveForm,
     Suru,
     Tara,
     TeForm,
@@ -32,6 +34,8 @@ interface IntermediateForm {
 
 function getInfoText(inflection: TokenType) {
     switch (inflection) {
+        case TokenType.AdverbialForm:
+            return 'adverbial form';
         case TokenType.DictionaryForm:
             return 'dictionary form';
         case TokenType.Conditional:
@@ -40,6 +44,8 @@ function getInfoText(inflection: TokenType) {
             return 'て form';
         case TokenType.PastTense:
             return 'past tense';
+        case TokenType.ProgressiveForm:
+            return 'progressive form - to be ...-ing; to have been ...-ing';
         case TokenType.Imperative:
             return 'imperative form';
         case TokenType.Kuru:
@@ -91,6 +97,7 @@ function getTokenType(token: bunsetsu.Token) {
         case 'あげる':
             return TokenType.Ageru;
         case 'もらう':
+        case 'もらえる':
             return TokenType.Morau;
         case 'られる':
             return TokenType.PassivePotential;
@@ -104,15 +111,15 @@ function getTokenType(token: bunsetsu.Token) {
             return TokenType.Conditional;
         case 'する':
             return TokenType.Suru;
+        case 'てる':
+        case 'いる':
+            return TokenType.ProgressiveForm;
     }
     return TokenType.Unknown;
 }
 
 function getIntermediateForm(word: bunsetsu.Word, token: bunsetsu.Token, inflected: boolean, prev?: IntermediateForm) {
-    let type = getTokenType(token);
-    if (type === TokenType.Unknown && word.baseForm === token.baseForm) {
-        type = TokenType.DictionaryForm;
-    }
+    const type = prev ? getTokenType(token) : TokenType.DictionaryForm;
     const baseForm = prev ? prev.surfaceForm + token.baseForm : token.baseForm;
     const surfaceForm = prev ? prev.surfaceForm + token.surfaceForm : token.surfaceForm;
     return {
@@ -133,6 +140,14 @@ function getInflection(token: bunsetsu.Token, prev?: IntermediateForm): Intermed
         switch (conjugatedForm) {
             case bunsetsu.ConjugatedForm.ImperativeE:
                 return TokenType.Imperative;
+            case bunsetsu.ConjugatedForm.ImperativeRo:
+                return TokenType.Imperative;
+            case bunsetsu.ConjugatedForm.TeConjunction: {
+                if (token.pos === bunsetsu.PartOfSpeech.iAdjective) {
+                    return TokenType.AdverbialForm;
+                }
+                return TokenType.Unknown;
+            }
             default:
                 return TokenType.Unknown;
         }
