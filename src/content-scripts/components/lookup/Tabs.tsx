@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 export interface Tab {
     label: string,
@@ -12,7 +12,9 @@ export interface TabProps {
     onSelected: (index: number) => void;
 }
 
-function Tabs({ tabs, selectedIndex, onSelected }: TabProps) {
+const Tabs = React.forwardRef((props: TabProps, contentRef: React.ForwardedRef<HTMLDivElement>) => {
+    const selectedIndex = props.selectedIndex;
+    const tabs = props.tabs;
     const content = selectedIndex >= 0 && selectedIndex < tabs.length ? tabs[selectedIndex].content : <></>;
     return (
         <div className='flex flex-col max-h-full'>
@@ -21,7 +23,7 @@ function Tabs({ tabs, selectedIndex, onSelected }: TabProps) {
                     tabs.map((tab: Tab, index: number) => {
                         const selected = index === selectedIndex ? "text-black border-b-2 border-solid border-b-red-600" : "text-slate-400 hover:text-black";
                         return (
-                            <button key={index} className={`p-4 disabled:text-slate-300 disabled:cursor-not-allowed ${selected}`} disabled={tab.disabled} onClick={() => onSelected(index)}>
+                            <button key={index} className={`p-4 disabled:text-slate-300 disabled:cursor-not-allowed ${selected}`} disabled={tab.disabled} onClick={() => props.onSelected(index)}>
                                 <h4 className='text-3xl text-medium'>
                                     {tab.label}
                                 </h4>
@@ -30,10 +32,11 @@ function Tabs({ tabs, selectedIndex, onSelected }: TabProps) {
                     })
                 }
             </div>
-            <div className='my-6 pr-6 overflow-y-auto min-h-[5rem] h-[22rem] min-w-full w-[45rem] max-w-full scrollbar'>
+            <div ref={contentRef} className='my-6 pr-6 overflow-y-auto min-h-[5rem] h-[22rem] min-w-full w-[45rem] max-w-full scrollbar'>
                 {content}
             </div>
         </div>
     );
-}
+});
+Tabs.displayName = "Tabs";
 export default Tabs;

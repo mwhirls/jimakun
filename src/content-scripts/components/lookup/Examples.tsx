@@ -22,9 +22,10 @@ async function lookupSentences(word: bunsetsu.Word, page: number, context: Exten
 export interface ExamplesProps {
     word: bunsetsu.Word;
     numSentences?: number;
+    containerRef: React.RefObject<HTMLDivElement>;
 }
 
-function Examples({ word, numSentences }: ExamplesProps) {
+function Examples({ word, numSentences, containerRef }: ExamplesProps) {
     const [numPages, setNumPages] = useState<number | null>(0);
     const [sentences, setSentences] = useState<TatoebaSentence[]>([]);
     const context = useContext(ChromeExtensionContext);
@@ -38,6 +39,9 @@ function Examples({ word, numSentences }: ExamplesProps) {
             const result = await lookupSentences(word, page, context);
             setNumPages(result.pages);
             setSentences(result.sentences);
+            if (containerRef.current) {
+                containerRef.current.scrollTop = 0;
+            }
         } catch (e) {
             console.error(e);
         }

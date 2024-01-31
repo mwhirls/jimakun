@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import * as bunsetsu from "bunsetsu";
 import Footer from './Footer';
 import Definitions from './Definitions';
@@ -55,6 +55,7 @@ function Card({ word, entry, onCardClosed }: CardProps) {
     const [details, setDetails] = useState<EntryDetails | null>(null);
     const [selectedTab, setSelectedTab] = useState(0);
     const context = useContext(ChromeExtensionContext);
+    const tabContentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         (async () => {
@@ -88,7 +89,7 @@ function Card({ word, entry, onCardClosed }: CardProps) {
         },
         {
             label: "Examples",
-            content: <Examples word={word} numSentences={details?.numSentences}></Examples>,
+            content: <Examples containerRef={tabContentRef} word={word} numSentences={details?.numSentences}></Examples>,
             disabled: !details || details.numSentences <= 0,
         },
     ];
@@ -100,7 +101,7 @@ function Card({ word, entry, onCardClosed }: CardProps) {
                     <Header word={word} entry={dictEntry} onCloseClicked={onCardClosed}></Header>
                 </div>
                 <div className='flex-initial overflow-y-hidden'>
-                    <Tabs tabs={tabs} selectedIndex={selectedTab} onSelected={(index) => setSelectedTab(index)}></Tabs>
+                    <Tabs ref={tabContentRef} tabs={tabs} selectedIndex={selectedTab} onSelected={(index) => setSelectedTab(index)}></Tabs>
                 </div>
                 <div className='flex-none'>
                     <Footer></Footer>
