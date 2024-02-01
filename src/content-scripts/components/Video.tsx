@@ -136,9 +136,13 @@ function onSeekCue(direction: SeekDirection, currentTime: number, cues: TextTrac
     window.dispatchEvent(new CustomEvent(RuntimeEvent.SeekTime, { detail: { startTime: cue.startTime } }));
 }
 
+interface CueWithText {
+    text: string;
+}
+type UndocumentedCue = TextTrackCue & CueWithText;
 
 function extractCueText(cue: TextTrackCue): string {
-    const cueText = (cue as any).text; // cue.text is not documented
+    const cueText = (cue as UndocumentedCue).text; // cue.text is not documented
     const tagsRegex = '(<([^>]+>)|&lrm;|&rlm;)';
     const regex = new RegExp(tagsRegex, 'ig');
     const match = regex.exec(cueText);

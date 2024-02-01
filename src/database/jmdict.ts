@@ -56,6 +56,8 @@ function gradeReading(match: JMdictWord, lookup: WordLookup): number {
 }
 
 function gradePartOfSpeech(_match: JMdictWord, _lookup: WordLookup): number {
+    (_match);
+    (_lookup);
     return 0; // todo
 }
 
