@@ -1,22 +1,23 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Cog8ToothIcon } from '@heroicons/react/24/outline'
+import { ChromeExtensionContext, ExtensionContext } from '../../content-scripts/contexts/ExtensionContext';
+import { sendMessage } from '../../content-scripts/util/browser-runtime';
+import { RuntimeMessage, RuntimeEvent } from '../events';
 
-function openOptions() {
-    chrome.runtime.openOptionsPage(() => {
-        const lastError = chrome.runtime.lastError;
-        if (lastError) {
-            console.error(lastError);
-        }
-    });
+function openOptions(context: ExtensionContext) {
+    const message: RuntimeMessage = { event: RuntimeEvent.OpenOptions, data: undefined };
+    return sendMessage(message, context);
 }
 
-function OptionsButton() {
+export interface OptionsButtonProps {
+    className?: string;
+}
+
+function OptionsButton({ className }: OptionsButtonProps) {
+    const context = useContext(ChromeExtensionContext);
     return (
-        <button className="text-black text-2xl font-medium p-4 bg-white rounded-lg border border-solid border-gray-200 hover:border-gray-300 hover:drop-shadow-md active:bg-gray-200" onClick={() => openOptions()}>
-            <span className="w-10 inline-block align-middle mr-4">
-                <Cog8ToothIcon className="text-slate-400"></Cog8ToothIcon>
-            </span>
-            <span className="inline-block">Options</span>
+        <button className={`${className}`} onClick={() => openOptions(context)}>
+            <Cog8ToothIcon className='text-slate-400 hover:text-black'></Cog8ToothIcon>
         </button>
     )
 }

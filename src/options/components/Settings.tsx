@@ -1,12 +1,13 @@
 import React from "react";
-import Header from "./Header";
+import AppLogo from "../../common/components/AppLogo";
 import PurgeButton from "./PurgeButton";
-
 
 function Settings() {
     return (
         <>
-            <Header></Header>
+            <div className="border-b border-solid rounded-b-md bg-white p-4 drop-shadow">
+                <AppLogo className="w-4/5 max-w-[175rem] my-4 mx-auto text-3xl h-16"></AppLogo>
+            </div>
             <div className="w-4/5 max-w-[175rem] mx-auto my-8 flex flex-col gap-4">
                 <h1 className="text-5xl font-bold">Settings</h1>
                 <hr></hr>

@@ -4,15 +4,17 @@ import ReactDOM from 'react-dom/client';
 import DatabaseBlocked from "../common/components/DatabaseBlocked";
 import DatabaseBusy from "../common/components/DatabaseBusy";
 import DatabaseError from "../common/components/DatabaseError";
-import DatabaseReady from "./components/DatabaseReady";
+import Popup from "./components/Popup";
 import { DBStatusResult, Status } from '../database/dbstatus';
 import { BrowserStorage, BrowserStorageListener } from '../content-scripts/util/browser-runtime';
 import { ChromeExtensionContext } from '../content-scripts/contexts/ExtensionContext';
 import { StorageType } from '../storage/storage';
+import AppLogo from '../common/components/AppLogo';
+import OptionsButton from '../common/components/OptionsButton';
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
-function Popup() {
+function PopupContainer() {
     const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
     const context = useContext(ChromeExtensionContext);
 
@@ -42,7 +44,7 @@ function Popup() {
     const content = () => {
         switch (dbStatus.status.type) {
             case Status.Ready:
-                return <DatabaseReady></DatabaseReady>
+                return <Popup></Popup>
             case Status.Blocked:
                 return <DatabaseBlocked></DatabaseBlocked>
             case Status.Busy:
@@ -53,8 +55,14 @@ function Popup() {
     }
 
     return (
-        <div className="bg-white rounded-lg text-black min-w-fit min-h-fit p-6">
-            {content()}
+        <div className="bg-white rounded-lg text-black min-w-[24rem] min-h-fit">
+            <div className='p-4 bg-white border-b border-solid border-slate-200 flex flex-row justify-between items-center'>
+                <AppLogo className='ml-4 text-2xl h-12'></AppLogo>
+                <OptionsButton className='w-10 h-10'></OptionsButton>
+            </div>
+            <div className='px-4 pb-4'>
+                {content()}
+            </div>
         </div>
     );
 }
@@ -66,6 +74,6 @@ if (!node) {
 const root = ReactDOM.createRoot(node);
 root.render(
     <React.StrictMode>
-        <Popup></Popup>
+        <PopupContainer></PopupContainer>
     </React.StrictMode>
 );

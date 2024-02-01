@@ -1,16 +1,15 @@
 import React from "react";
-import './Toggle.css'
 
 interface ToggleProps {
     toggled: boolean;
-    onToggled: (toggled: boolean) => void;
+    onToggle: (toggled: boolean) => void;
     className?: string;
 }
 
-function Toggle({ className, toggled, onToggled }: ToggleProps) {
+function Toggle({ className, toggled, onToggle }: ToggleProps) {
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const checked = e.currentTarget.checked;
-        onToggled(checked);
+        onToggle(checked);
     };
 
     return (
