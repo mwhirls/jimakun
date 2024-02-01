@@ -341,7 +341,7 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
     return (
         <>
             <div id="jimakun-video" className="absolute pointer-events-none z-10" style={videoStyle}>
-                <div id="jimakun-subtitle-container" className="absolute text-center left-1/2" style={containerStyle}>{subtitles()}</div>
+                <div id="jimakun-subtitle-container" className="absolute text-center w-full" style={containerStyle}>{subtitles()}</div>
             </div>
             {createPortal(
                 <track ref={trackRef} label="Jimakun" kind="subtitles" default={true} src={webvttSubtitles.webvttUrl} srcLang={webvttSubtitles.bcp47} onLoadCapture={(e) => {

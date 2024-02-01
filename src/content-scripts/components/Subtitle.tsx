@@ -38,7 +38,7 @@ export function SubtitleLoading({ cueText, dbStatus, fontSize }: SubtitleLoading
     };
 
     return (
-        <div style={style} className="group block relative -left-1/2 rounded-lg pointer-events-auto hover:bg-opacity-25 hover:bg-white">
+        <div style={style} className="group inline-block relative rounded-lg pointer-events-auto hover:bg-opacity-25 hover:bg-white">
             <span className="inline-block font-bold drop-shadow-[0_0_7px_#000000] select-text">{cueText}</span>
             <span className="inline-block w-12 align-middle ml-4 relative">
                 <Spinner thickness={2}></Spinner>
@@ -72,7 +72,7 @@ function Subtitle({ lines, selectedWord, setSelectedWord, fontSize }: SubtitlePr
     };
 
     return (
-        <div style={style} className="block relative -left-1/2 font-bold drop-shadow-[0_0_7px_#000000] pointer-events-auto select-text">
+        <div style={style} className="inline-block relative font-bold drop-shadow-[0_0_7px_#000000] pointer-events-auto select-text">
             {
                 lines.map((line: Line, lineIndex: number) => {
                     return (
