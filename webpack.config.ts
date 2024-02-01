@@ -145,6 +145,8 @@ module.exports = (
                     },
                     { from: 'node_modules/kuromoji/dict', to: './dict' },
                     { from: "NOTICE.md", to: "./" },
+                    { from: "third-party/bunsetsu/NOTICE", to: "./third-party/bunsetsu/NOTICE" },
+                    { from: "third-party/bunsetsu/LICENSE", to: "./third-party/bunsetsu/LICENSE" },
                     { from: "LICENSE.txt", to: "./" },
                 ]
             }),
