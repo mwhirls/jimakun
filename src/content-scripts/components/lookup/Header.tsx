@@ -1,32 +1,55 @@
 import React, { useContext } from 'react';
 import * as bunsetsu from "bunsetsu";
 import { RuntimeMessage, RuntimeEvent, PlayAudioMessage } from '../../../common/events';
-import { JMdictKana, JMdictWord } from '@scriptin/jmdict-simplified-types';
+import { JMdictKana, JMdictKanji, JMdictWord } from '@scriptin/jmdict-simplified-types';
 import { ChromeExtensionContext, ExtensionContext } from '../../contexts/ExtensionContext';
 import { sendMessage } from '../../util/browser-runtime';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { SpeakerWaveIcon } from '@heroicons/react/24/outline';
 
-function getBestReading(word: bunsetsu.Word, entry: JMdictWord): JMdictKana | undefined {
+function getDictionaryForm(word: bunsetsu.Word, entry: JMdictWord): string {
+    const best: { kana?: JMdictKana, kanji?: JMdictKanji } = {};
+    for (const kanji of entry.kanji) {
+        if (kanji.text === word.baseForm ||
+            kanji.text === word.surfaceForm) {
+            return kanji.text;
+        }
+        if (!best.kanji?.common && kanji.common) {
+            best.kanji = kanji;
+        }
+    }
+    for (const kana of entry.kana) {
+        if (kana.text === word.baseForm ||
+            kana.text === word.surfaceForm) {
+            return kana.text;
+        }
+        if (!best.kana?.common && kana.common) {
+            best.kana = kana;
+        }
+    }
+    const dictionaryForm = best.kanji ? best.kanji.text : best.kana?.text;
+    const fallback = word.baseForm ?? word.surfaceForm;
+    return dictionaryForm ?? fallback;
+}
+
+function getBestReading(dictionaryForm: string, entry: JMdictWord): JMdictKana | undefined {
     if (!entry.kana.length) {
         return undefined;
     }
-    const baseForm = word.baseForm;
-    let best: { kana: JMdictKana, kanji: string } | null = null;
+    let best: JMdictKana | null = null;
     for (const kana of entry.kana) {
         for (const kanji of kana.appliesToKanji) {
-            if (kanji === baseForm) { // exact match
+            if (kanji === dictionaryForm) { // exact match
                 return kana;
             }
             else if (kanji === '*') { // * means "all"
-                if (!best ||
-                    !best.kana.common && kana.common) { // prioritize common readings
-                    best = { kana, kanji };
+                if (!best?.common && kana.common) { // prioritize common readings
+                    best = kana;
                 }
             }
         }
     }
-    return best ? best.kana : entry.kana[0];
+    return best ? best : entry.kana[0];
 }
 
 function onAudioClicked(word: bunsetsu.Word, context: ExtensionContext) {
@@ -46,8 +69,8 @@ export interface HeaderProps {
 }
 
 function Header({ word, entry, onCloseClicked }: HeaderProps) {
-    const dictionaryForm = word.baseForm;
-    const reading = getBestReading(word, entry);
+    const dictionaryForm = getDictionaryForm(word, entry);
+    const reading = getBestReading(dictionaryForm, entry);
     const context = useContext(ChromeExtensionContext);
     return (
         <div className='flex-none pt-6'>

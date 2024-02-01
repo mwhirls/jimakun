@@ -28,14 +28,26 @@ function forms(word: JMdictWord) {
     return [...kanjiForms, ...kanaForms];
 }
 
-function gradeBaseForm(match: JMdictWord, lookup: WordLookup): number {
-    const kanaOnly = lookup.katakana === lookup.surfaceForm ||
+function isKanaOnly(lookup: WordLookup) {
+    return lookup.katakana === lookup.surfaceForm ||
         lookup.hiragana === lookup.surfaceForm;
-    if (kanaOnly) {
+}
+
+function gradeBaseForm(match: JMdictWord, lookup: WordLookup): number {
+    if (isKanaOnly(lookup)) {
         return match.kanji.length ? -1 : 1;
     }
     const baseForm = match.kanji.find((x) => x.text === lookup.baseForm);
     return baseForm ? 1 : 0;
+}
+
+function gradeSurfaceForm(match: JMdictWord, lookup: WordLookup): number {
+    if (isKanaOnly(lookup)) {
+        const surfaceForm = match.kana.find((x) => x.text === lookup.surfaceForm);
+        return surfaceForm ? 2 : 0;
+    }
+    const surfaceForm = match.kanji.find((x) => x.text === lookup.surfaceForm);
+    return surfaceForm ? 2 : 0;
 }
 
 function gradeReading(match: JMdictWord, lookup: WordLookup): number {
@@ -49,9 +61,10 @@ function gradePartOfSpeech(_match: JMdictWord, _lookup: WordLookup): number {
 
 function gradeMatch(match: JMdictWord, lookup: WordLookup): number {
     const baseForm = gradeBaseForm(match, lookup);
+    const surfaceForm = gradeSurfaceForm(match, lookup);
     const reading = gradeReading(match, lookup);
     const partOfSpeech = gradePartOfSpeech(match, lookup);
-    const sum = baseForm + reading + partOfSpeech;
+    const sum = baseForm + surfaceForm + reading + partOfSpeech;
     return sum;
 }
 
@@ -114,7 +127,12 @@ export class JMDictStore implements IDBObjectStoreWrapper {
 
     async lookupBestMatches(lookup: LookupWordsMessage) {
         const results = lookup.words.map(async (word) => {
-            const matches = await this.db.openCursorOnIndex<JMdictWord>(OBJECT_STORE, INDEX, word.baseForm);
+            const queries = [
+                word.surfaceForm,
+                word.baseForm,
+            ];
+            const results = queries.map(query => this.db.openCursorOnIndex<JMdictWord>(OBJECT_STORE, INDEX, query));
+            const matches = (await Promise.all(results)).flat();
             return findBestMatch(matches, word);
         });
         return Promise.all(results);
