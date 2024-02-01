@@ -10,8 +10,7 @@ A Chrome Extension that enhances Japanese subtitles on Netflix for language lear
 * [Status](#status)
 * [Installation](#installation)
 * [How to Use](#how-to-use)
-* [Completed Features](#completed-features)
-* [Planned Features](#planned-features)
+* [Feature List](#feature-list)
 * [FAQ](#faq)
 * [License](#license)
 
@@ -133,13 +132,11 @@ Maybe, if there's enough support for it!
 
 ## License
 
+See `Notice.md` for a list of third-party dependencies and their corresponding licenses.  In addition to these, Jimakun makes use of the following dependencies:
+
 ### kuromoji (through `bunsetsu`)
 
 This project makes heavy use of another library I wrote, bunsetsu, for segmenting the Japanese sentences into words.  `bunsetsu` leverages the third-party morphological analyzer [kuromoji](https://github.com/takuyaa/kuromoji.js), which is licensed under the Apache 2.0 license. 
-
-### heroicons
-
-Several SVGs in the plugin are sourced from the [heroicons](https://heroicons.com/) library, which is made available under the MIT license.
 
 ### Stratis UI Icons
 
@@ -150,10 +147,6 @@ Some icons used by the plugin are sourced from the [Stratis UI Icons](https://ww
 [cc-by]: https://creativecommons.org/licenses/by/4.0/ 
 [cc-by-image]: https://i.creativecommons.org/l/by/4.0/88x31.png
 [cc-by-shield]: https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg
-
-### Other
-
-See NOTICE for a full list of third-party dependencies and their corresponding licenses.
 
 ### Source Code
 The original source code and other files in this project, excluding the files mentioned above or in NOTICE, are made available under the GPLv3 license (see [LICENSE.txt](LICENSE.txt)).   
