@@ -6,6 +6,7 @@ import { ChromeExtensionContext, ExtensionContext } from '../../contexts/Extensi
 import { sendMessage } from '../../util/browser-runtime';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { SpeakerWaveIcon } from '@heroicons/react/24/outline';
+import { toHiragana } from '../../../common/lang';
 
 function getDictionaryForm(word: bunsetsu.Word, entry: JMdictWord): string {
     const best: { kana?: JMdictKana, kanji?: JMdictKanji } = {};
@@ -32,17 +33,17 @@ function getDictionaryForm(word: bunsetsu.Word, entry: JMdictWord): string {
     return dictionaryForm ?? fallback;
 }
 
-function getBestReading(dictionaryForm: string, entry: JMdictWord): JMdictKana | undefined {
+function getBestReading(dictionaryForm: string, surfaceFormReading: string, entry: JMdictWord): JMdictKana | undefined {
     if (!entry.kana.length) {
         return undefined;
     }
     let best: JMdictKana | null = null;
     for (const kana of entry.kana) {
+        if (kana.text === surfaceFormReading) {
+            return kana; // exact match
+        }
         for (const kanji of kana.appliesToKanji) {
-            if (kanji === dictionaryForm) { // exact match
-                return kana;
-            }
-            else if (kanji === '*') { // * means "all"
+            if (kanji === dictionaryForm || kanji === '*') { // * means "all"
                 if (!best?.common && kana.common) { // prioritize common readings
                     best = kana;
                 }
@@ -70,7 +71,8 @@ export interface HeaderProps {
 
 function Header({ word, entry, onCloseClicked }: HeaderProps) {
     const dictionaryForm = getDictionaryForm(word, entry);
-    const reading = getBestReading(dictionaryForm, entry);
+    const surfaceFormReading = toHiragana(word.reading);
+    const reading = getBestReading(dictionaryForm, surfaceFormReading, entry);
     const context = useContext(ChromeExtensionContext);
     return (
         <div className='flex-none pt-6'>
