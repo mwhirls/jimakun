@@ -843,8 +843,9 @@
   "scripts": {
     "postinstall": "cd third-party/bunsetsu && npm install && npm link && cd ../../ && npm link bunsetsu",
     "lint": "eslint \"./src/**/*.{js,jsx,ts,tsx}\"",
+    "license": "npx generate-license-file --input package.json --output NOTICE.md --overwrite",
     "dev": "npm run lint && webpack --mode development",
-    "build": "npm run lint && webpack --mode production"
+    "build": "npm run lint && npm run license && webpack --mode production"
   },
   "author": "",
   "license": "GPL-3.0-only"

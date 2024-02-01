@@ -144,6 +144,8 @@ module.exports = (
                         }
                     },
                     { from: 'node_modules/kuromoji/dict', to: './dict' },
+                    { from: "NOTICE.md", to: "./" },
+                    { from: "LICENSE.txt", to: "./" },
                 ]
             }),
         ]
