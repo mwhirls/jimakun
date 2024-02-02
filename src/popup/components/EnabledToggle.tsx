@@ -15,9 +15,9 @@ function EnabledToggle({ enabled, onSetEnabled, className }: EnabledToggleProps)
         const storage = new StorageObject<boolean>(ENABLED_KEY, StorageType.Local);
         const onEnabledChanged = new StorageListener(storage, (_, newValue) => onSetEnabled(newValue));
         storage.addOnChangedListener(onEnabledChanged);
-        storage.get().then(status => {
-            if (status) {
-                onSetEnabled(status);
+        storage.get().then(value => {
+            if (value !== undefined) {
+                onSetEnabled(value);
             }
         });
 

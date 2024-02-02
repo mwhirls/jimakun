@@ -7,11 +7,13 @@ import * as DBStatusManager from './database/dbstatus'
 import * as tabs from './tabs'
 import { SessionStorageObject } from "./storage/session-storage";
 import { DataSource } from "./database/dbstatus";
+import { StorageObject, StorageType, StorageListener } from "./storage/storage";
 
 const DB_NAME = 'jimakun';
 const DB_VERSION = 3;
 
 const MOVIE_KEY = 'lastMovieId';
+const ENABLED_KEY = 'enabled';
 
 enum Command {
     NextCue = 'next-cue',
@@ -236,12 +238,41 @@ function handleDatabaseError(e: unknown) {
     }
 }
 
+async function enableDisableExtension(enabled: boolean) {
+    const icons = enabled ? {
+        16: "icons/icon16.png",
+        32: "icons/icon32.png",
+        48: "icons/icon48.png",
+        128: "icons/icon128.png",
+    } : {
+        16: "icons/icon16-inactive.png",
+        32: "icons/icon32-inactive.png",
+        48: "icons/icon48-inactive.png",
+        128: "icons/icon128-inactive.png",
+    };
+    return chrome.action.setIcon({
+        path: icons
+    });
+}
+
+function initializeStorageListeners() {
+    const storage = new StorageObject<boolean>(ENABLED_KEY, StorageType.Local);
+    const onEnabledChanged = new StorageListener(storage, (_, newValue) => enableDisableExtension(newValue));
+    storage.addOnChangedListener(onEnabledChanged);
+    storage.get().then(value => {
+        if (value !== undefined) {
+            enableDisableExtension(value);
+        }
+    });
+}
+
 async function initializeApp() {
     try {
         // session storage can't be accessed from content scripts by default
         chrome.storage.session.setAccessLevel({
             accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS'
         });
+        await initializeStorageListeners();
         await DBStatusManager.clearStatus()
         await initializeDatabase();
     } catch (e) {
