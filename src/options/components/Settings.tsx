@@ -21,7 +21,7 @@ function SettingsList({ settings }: SettingsListProps) {
                     return (
                         <>
                             {index > 0 && <div className="border-t border-slate-100 border-solid col-span-2"></div>}
-                            <div>
+                            <div key={index}>
                                 <h3 className="text-3xl font-bold">{setting.name}</h3>
                                 <p className="text-2xl text-slate-500 mt-2">{setting.infoText}</p>
                             </div>
@@ -41,7 +41,7 @@ function Settings() {
 
     const settings = [
         {
-            name: "Enable",
+            name: "Enabled",
             infoText: `Enable/disable Jimakun. Disable Jimakun to re-enable the normal Japanese subtitles on Netflix.`,
             component: <EnabledToggle enabled={enabled} onSetEnabled={(enabled) => setEnabled(enabled)} className="scale-[1.75]"></EnabledToggle>
         },
@@ -53,11 +53,11 @@ function Settings() {
     ];
     return (
         <>
-            <div className="border-b border-solid border-slate-100 rounded-b-md bg-white p-4 drop-shadow">
+            <div className="border-b border-solid border-slate-100 bg-white p-4 drop-shadow">
                 <AppLogo className="w-4/5 max-w-[175rem] my-4 mx-auto text-3xl h-16"></AppLogo>
             </div>
-            <div className="w-4/5 max-w-[175rem] mx-auto my-8 flex flex-col gap-4">
-                <h1 className="text-4xl font-bold">Settings</h1>
+            <div className="w-4/5 max-w-[175rem] mx-auto my-8 flex flex-col gap-4 bg-white drop-shadow rounded-lg p-8 border-slate-100 border border-solid">
+                <h1 className="text-4xl font-bold my-4">Settings</h1>
                 <hr></hr>
                 <SettingsList settings={settings}></SettingsList>
             </div >
