@@ -12,6 +12,7 @@ import { ChromeExtensionContext } from "../contexts/ExtensionContext";
 const NETFLIX_PLAYER_CLASS = "watch-video--player-view";
 const NETFLIX_VIDEO_CLASS = `${NETFLIX_PLAYER_CLASS} video`
 const MOVIE_KEY = 'lastMovieId';
+const ENABLED_KEY = 'enabled';
 
 type MovieId = number;
 type SubtitleTracks = Map<string, SubtitleData>;
@@ -56,6 +57,7 @@ interface VideoContainerProps {
 
 function VideoContainer({ dbStatus }: VideoContainerProps) {
     const context = useContext(ChromeExtensionContext);
+    const [enabled, setEnabled] = useState(false);
     const [subtitleData, setSubtitleData] = useState(new Map<MovieId, SubtitleTracks>);
     const [currMovie, setCurrMovie] = useState<MovieId | null>(null);
     const [currTrack, setCurrTrack] = useState("");
@@ -72,6 +74,16 @@ function VideoContainer({ dbStatus }: VideoContainerProps) {
             if (movieId) {
                 setCurrMovie(movieId);
             }
+        });
+
+        const enabledStorage = new BrowserStorage<boolean>(ENABLED_KEY, StorageType.Local, context);
+        const onEnabledChanged = BrowserStorageListener.create(enabledStorage, (_, newValue) => setEnabled(newValue), context);
+        if (onEnabledChanged) {
+            enabledStorage.addOnChangedListener(onEnabledChanged);
+        }
+        enabledStorage.get().then(enabled => {
+            const value = enabled !== undefined ? enabled : true;
+            setEnabled(value);
         });
 
         const metadataListener = async (event: Event) => {
@@ -123,6 +135,9 @@ function VideoContainer({ dbStatus }: VideoContainerProps) {
             if (onMovieIdChanged) {
                 movieIdStorage.removeOnChangedListener(onMovieIdChanged);
             }
+            if (onEnabledChanged) {
+                enabledStorage.removeOnChangedListener(onEnabledChanged);
+            }
             window.removeEventListener(RuntimeEvent.MetadataDetected, metadataListener);
             window.removeEventListener(RuntimeEvent.MetadataDetected, trackSwitchedListener);
             netflixObserver.disconnect();
@@ -131,7 +146,7 @@ function VideoContainer({ dbStatus }: VideoContainerProps) {
 
     const subtitleTracks = currMovie ? subtitleData.get(currMovie) : undefined;
     const subtitles = subtitleTracks?.get(currTrack);
-    if (!netflixPlayer || !videoElem || !subtitles) {
+    if (!netflixPlayer || !videoElem || !subtitles || !enabled) {
         return <></>;
     }
 
