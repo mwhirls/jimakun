@@ -18,18 +18,20 @@ function SettingsList({ settings }: SettingsListProps) {
         <div className="grid grid-cols-2 gap-8 mt-8 items-center">
             {
                 settings.map((setting, index) => {
-                    return (
-                        <>
+                    const row = (
+                        <React.Fragment key={index}>
                             {index > 0 && <div className="border-t border-slate-100 border-solid col-span-2"></div>}
-                            <div key={index}>
+                            <div>
                                 <h3 className="text-3xl font-bold">{setting.name}</h3>
                                 <p className="text-2xl text-slate-500 mt-2">{setting.infoText}</p>
                             </div>
                             <div className="justify-self-end">
                                 {setting.component}
                             </div>
-                        </>
+                        </React.Fragment>
                     );
+
+                    return row;
                 })
             }
         </div>
