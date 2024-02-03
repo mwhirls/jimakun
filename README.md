@@ -3,12 +3,13 @@
 
 <div align="center">
     <img alt="Jimakun" src="public/assets/app-icon.svg" width="50" height="50">
-    <h1 style="display:inline-block color:black">Jimakun</h1>
+    <h1>Jimakun</h1>
 </div>
-
 <p align="center">
   A Chrome Extension that enhances Japanese subtitles on Netflix for language learning.
 </p>
+
+![](docs/screenshot.png)
 
 ## Table of Contents
 
