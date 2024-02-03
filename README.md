@@ -6,7 +6,7 @@
     <h1>Jimakun</h1>
 </div>
 <p align="center">
-  Improve your Japanese by watching your favorite shows on Netflix. Look up the meaning of unknown words in subtitles with a single click.
+  Improve your Japanese by watching your favorite shows on Netflix.  Look up the meaning of unknown words in subtitles with a single click.
 </p>
 
 ![](docs/screenshot.png)
@@ -155,7 +155,7 @@ The modified versions of these files that are distributed are sourced from [jmdi
 
 ### Tatoeba Project
 
-Many of the example sentences are originally sourced another project I wrote, [tatoeba-simplified](https://github.com/mwhirls/tatoeba-json), which distributes the Japanese-English examples sentences from the Tatoeba Project in another format. All files downloaded through the Tatoeba Project are licensed under the CC BY 2.0 FR license.  As required by the original license, all derived files containing example sentences distributed in each release are made available under the same license.
+Many of the example sentences are originally sourced another project I wrote, [tatoeba-json](https://github.com/mwhirls/tatoeba-json), which distributes the Japanese-English examples sentences from the Tatoeba Project in another format. All files downloaded through the Tatoeba Project are licensed under the CC BY 2.0 FR license.  As required by the original license, all derived files containing example sentences distributed in each release are made available under the same license.
 
 ### Stratis UI Icons
 
