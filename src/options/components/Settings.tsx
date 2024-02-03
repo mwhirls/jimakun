@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import AppLogo from "../../common/components/AppLogo";
 import PurgeButton from "./PurgeButton";
-import EnabledToggle from "../../popup/components/EnabledToggle";
+import { useStorage } from "../../common/hooks/useStorage";
+import Toggle from "../../common/components/Toggle";
+import { StorageType } from "../../storage/storage";
+
+const ENABLED_KEY = 'enabled'; // todo: consolidate these keys somewhere
 
 interface Setting {
     name: string;
@@ -39,13 +43,13 @@ function SettingsList({ settings }: SettingsListProps) {
 }
 
 function Settings() {
-    const [enabled, setEnabled] = useState(false);
+    const [enabled, setEnabled] = useStorage<boolean>(ENABLED_KEY, StorageType.Local, false);
 
     const settings = [
         {
             name: "Enabled",
             infoText: `Enable/disable Jimakun. Disable Jimakun to re-enable the normal Japanese subtitles on Netflix.`,
-            component: <EnabledToggle enabled={enabled} onSetEnabled={(enabled) => setEnabled(enabled)} className="scale-[1.75]"></EnabledToggle>
+            component: <Toggle toggled={enabled} onToggle={(enabled) => setEnabled(enabled)} className="scale-[1.75]"></Toggle>
         },
         {
             name: "Purge Dictionaries",

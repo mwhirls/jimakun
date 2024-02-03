@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { RuntimeEvent } from "../../common/events";
 import { TimedTextTrack, NetflixMetadata, TimedTextSwitch } from "../../common/netflix-types";
 import { StorageType } from "../../storage/storage";
-import { BrowserStorage, BrowserStorageListener } from "../util/browser-runtime";
 import { WEBVTT_FORMAT, querySelectorMutation, ChildMutationType } from "../util/util";
 import Video, { WebvttSubtitles } from "./Video";
 import { DBStatusResult } from "../../database/dbstatus";
-import { ChromeExtensionContext } from "../contexts/ExtensionContext";
+import { useStorage } from "../../common/hooks/useStorage";
 
 const NETFLIX_PLAYER_CLASS = "watch-video--player-view";
 const NETFLIX_VIDEO_CLASS = `${NETFLIX_PLAYER_CLASS} video`
@@ -56,36 +55,14 @@ interface VideoContainerProps {
 }
 
 function VideoContainer({ dbStatus }: VideoContainerProps) {
-    const context = useContext(ChromeExtensionContext);
-    const [enabled, setEnabled] = useState(false);
+    const [currMovie] = useStorage<MovieId | null>(MOVIE_KEY, StorageType.Session, null);
+    const [enabled] = useStorage<boolean>(ENABLED_KEY, StorageType.Local, false);
     const [subtitleData, setSubtitleData] = useState(new Map<MovieId, SubtitleTracks>);
-    const [currMovie, setCurrMovie] = useState<MovieId | null>(null);
     const [currTrack, setCurrTrack] = useState("");
     const [netflixPlayer, setNetflixPlayer] = useState<Element | null>(document.querySelector(`.${NETFLIX_PLAYER_CLASS}`));
     const [videoElem, setVideoElem] = useState<HTMLVideoElement | null>(document.querySelector(`.${NETFLIX_VIDEO_CLASS}`) as HTMLVideoElement | null);
 
     useEffect(() => {
-        const movieIdStorage = new BrowserStorage<MovieId>(MOVIE_KEY, StorageType.Session, context);
-        const onMovieIdChanged = BrowserStorageListener.create(movieIdStorage, (_, newValue) => setCurrMovie(newValue), context);
-        if (onMovieIdChanged) {
-            movieIdStorage.addOnChangedListener(onMovieIdChanged);
-        }
-        movieIdStorage.get().then(movieId => {
-            if (movieId) {
-                setCurrMovie(movieId);
-            }
-        });
-
-        const enabledStorage = new BrowserStorage<boolean>(ENABLED_KEY, StorageType.Local, context);
-        const onEnabledChanged = BrowserStorageListener.create(enabledStorage, (_, newValue) => setEnabled(newValue), context);
-        if (onEnabledChanged) {
-            enabledStorage.addOnChangedListener(onEnabledChanged);
-        }
-        enabledStorage.get().then(enabled => {
-            const value = enabled !== undefined ? enabled : true;
-            setEnabled(value);
-        });
-
         const metadataListener = async (event: Event) => {
             const metadata = (event as CustomEvent).detail as NetflixMetadata;
             const movieId = metadata.movieId;
@@ -132,12 +109,6 @@ function VideoContainer({ dbStatus }: VideoContainerProps) {
         netflixObserver.observe(document.body, config);
 
         return () => {
-            if (onMovieIdChanged) {
-                movieIdStorage.removeOnChangedListener(onMovieIdChanged);
-            }
-            if (onEnabledChanged) {
-                enabledStorage.removeOnChangedListener(onEnabledChanged);
-            }
             window.removeEventListener(RuntimeEvent.MetadataDetected, metadataListener);
             window.removeEventListener(RuntimeEvent.MetadataDetected, trackSwitchedListener);
             netflixObserver.disconnect();

@@ -3,43 +3,26 @@ import React, { useState, useEffect } from "react";
 import { StorageType } from "../../storage/storage";
 import { ExtensionContext, ChromeExtensionContext } from "../contexts/ExtensionContext";
 import { SegmenterContext } from "../contexts/SegmenterContext";
-import { BrowserStorage, BrowserStorageListener } from "../util/browser-runtime";
 import { AlertType } from "../../common/components/modal/Alert";
 import Modal from "../../common/components/modal/Modal";
 import { DBStatusResult } from "../../database/dbstatus";
 import VideoContainer from "./VideoContainer";
+import { useStorage } from "../../common/hooks/useStorage";
 
 const DB_STATUS_KEY = 'lastDBStatusResult';
 const KUROMOJI_DICTIONARIES = 'dict/';
 
 function App() {
     const [invalidated, setInvalidated] = useState(false);
-    const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
+    const [dbStatus] = useStorage<DBStatusResult | null>(DB_STATUS_KEY, StorageType.Local, null);
     const [segmenter, setSegmenter] = useState<Segmenter | null>(null);
 
     const context = new ExtensionContext(() => setInvalidated(true));
 
     useEffect(() => {
-        const dbStatusStorage = new BrowserStorage<DBStatusResult>(DB_STATUS_KEY, StorageType.Local, context);
-        const onDBStatusChanged = BrowserStorageListener.create(dbStatusStorage, (_, newValue) => setDBStatus(newValue), context);
-        if (onDBStatusChanged) {
-            dbStatusStorage.addOnChangedListener(onDBStatusChanged);
-        }
-        dbStatusStorage.get().then(status => {
-            if (status) {
-                setDBStatus(status);
-            }
-        });
-
         build(chrome.runtime.getURL(KUROMOJI_DICTIONARIES))
             .then((segmenter) => setSegmenter(segmenter))
             .catch((err) => console.error('[JIMAKUN] error when building tokenizer', err));
-
-        return () => {
-            if (onDBStatusChanged) {
-                dbStatusStorage.removeOnChangedListener(onDBStatusChanged);
-            }
-        };
     }, []);
 
     if (invalidated) {

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { DBStatusResult, Status } from "../../database/dbstatus";
-import { LocalStorageChangedListener, LocalStorageObject } from "../../storage/local-storage";
 import Spinner from "../../common/components/Spinner";
 import { RuntimeMessage, RuntimeEvent } from "../../common/events";
 import Modal from "../../common/components/modal/Modal";
 import { AlertType } from "../../common/components/modal/Alert";
+import { useStorage } from "../../common/hooks/useStorage";
+import { StorageType } from "../../storage/storage";
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
@@ -14,20 +15,9 @@ async function purgeDictionaries(): Promise<number> {
 }
 
 function PurgeButton() {
-    const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
+    const [dbStatus] = useStorage<DBStatusResult | null>(DB_STATUS_KEY, StorageType.Local, null);
     const [showAlert, setShowAlert] = useState(false);
     const [purging, setPurging] = useState(false);
-
-    useEffect(() => {
-        const storage = new LocalStorageObject<DBStatusResult>(DB_STATUS_KEY);
-        const onStatusChanged = LocalStorageChangedListener.create(storage, (_, newValue) => setDBStatus(newValue));
-        storage.addOnChangedListener(onStatusChanged);
-        storage.get().then(result => setDBStatus(result));
-
-        return () => {
-            storage.removeOnChangedListener(onStatusChanged);
-        }
-    }, []);
 
     const onPurgeClicked = () => {
         setShowAlert(true);

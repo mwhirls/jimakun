@@ -1,41 +1,20 @@
 import './popup.css'
-import React, { useContext, useEffect, useState } from "react";
+import React from "react";
 import ReactDOM from 'react-dom/client';
 import DatabaseBlocked from "../common/components/DatabaseBlocked";
 import DatabaseBusy from "../common/components/DatabaseBusy";
 import DatabaseError from "../common/components/DatabaseError";
 import Popup from "./components/Popup";
 import { DBStatusResult, Status } from '../database/dbstatus';
-import { BrowserStorage, BrowserStorageListener } from '../content-scripts/util/browser-runtime';
-import { ChromeExtensionContext } from '../content-scripts/contexts/ExtensionContext';
 import { StorageType } from '../storage/storage';
 import AppLogo from '../common/components/AppLogo';
 import OptionsButton from '../common/components/OptionsButton';
+import { useStorage } from '../common/hooks/useStorage';
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
 function PopupContainer() {
-    const [dbStatus, setDBStatus] = useState<DBStatusResult | null>(null);
-    const context = useContext(ChromeExtensionContext);
-
-    useEffect(() => {
-        const storage = new BrowserStorage<DBStatusResult>(DB_STATUS_KEY, StorageType.Local, context);
-        const onStatusChanged = BrowserStorageListener.create(storage, (_, newValue) => setDBStatus(newValue), context);
-        if (onStatusChanged) {
-            storage.addOnChangedListener(onStatusChanged);
-        }
-        storage.get().then(status => {
-            if (status) {
-                setDBStatus(status);
-            }
-        });
-
-        return () => {
-            if (onStatusChanged) {
-                storage.removeOnChangedListener(onStatusChanged);
-            }
-        }
-    }, []);
+    const [dbStatus] = useStorage<DBStatusResult | null>(DB_STATUS_KEY, StorageType.Local, null);
 
     if (!dbStatus) {
         return <></>;
