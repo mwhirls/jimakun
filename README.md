@@ -1,8 +1,14 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![stability-wip](https://img.shields.io/badge/stability-wip-lightgrey.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#work-in-progress)
 
-# Jimakun
-A Chrome Extension that enhances Japanese subtitles on Netflix for language learning.
+<div align="center">
+    <img alt="Jimakun" src="public/assets/app-icon.svg" width="50" height="50">
+    <h1 style="display:inline-block color:black">Jimakun</h1>
+</div>
+
+<p align="center">
+  A Chrome Extension that enhances Japanese subtitles on Netflix for language learning.
+</p>
 
 ## Table of Contents
 
@@ -33,13 +39,13 @@ I'm not the first to provide this kind of web app and will likely not be the las
 
 ## Status
 
-Jimakun is currently in development.  It has not been released on the Chrome Store yet.  If you would like to experiment with a developer build, you can download the latest percheckin build from the [Actions](https://github.com/mwhirls/jimakun/actions) page. Please follow the instructions outlined in [Installation](#installation).
+Jimakun is currently in development.  It has not been released on the Chrome Store yet.  If you would like to experiment with a developer build, you can download the latest percheckin build from the [Actions](https://github.com/mwhirls/jimakun/actions) page. Please follow the installation instructions outlined in [Installation](#installation).
 
 ## Installation
 
-A build can be installed by enabling Developer Mode in the Chrome browser and loading it as an unpacked extension.  
+A build can be installed by enabling Developer Mode in the Chrome browser and loading Jimakun as an unpacked extension.  
 
-1. Download the latest percheckin zip from the latest build under [Actions](https://github.com/mwhirls/jimakun/actions) and extract it.
+1. Download the latest percheckin zip (`jimakun-percheckin-v##.##.##.###.zip`) from the latest build under [Actions](https://github.com/mwhirls/jimakun/actions) and extract it.
 
 2. Open Google Chrome.
 
@@ -62,16 +68,20 @@ Building the project locally requires a few simple steps.
 
 The following prerequisites are required to build and run the project:
 * [npm](https://www.npmjs.com/get-npm) (>=10.x recommended)
-* [python](https://www.python.org/)
+* [python 3](https://www.python.org/)
 * The latest version of [Google Chrome](https://www.google.com/chrome/).
 
 ### Building
 
-1. Grab the submodules
+1. Install Git LFS.
+```sh
+git lfs install
+```
+2. Grab the submodules.
 ```sh
 git submodule update --init --recursive
 ```
-2. Install NPM package dependencies.
+3. Install NPM package dependencies.
 ```sh
 npm install
 ```
@@ -82,17 +92,24 @@ npm run build
 
 ## How to Use
 
-Note that in order to use Jimakun, you must have a Netflix subscription.  Assuming that you do:
+⚠️ Note that you need a Netflix subscription to use Jimakun.
 
 1. Navigate to [Netflix](https://www.netflix.com/browse) in the Chrome browser.
 2. Open a show with Japanese subtitles.
-3. Turn on subtitles through the normal Netflix subtitle widget and switch to the Japanese ones.
-4. When active, Jimakun will turn these subtitles into interactive, clickable ones with a popup dictionary.
-    * If you would like to disable the Jimakun subtitles, you can either by clicking on the extension popup in the Chrome toolbox and toggling the Enabled switch, or navigating to Jimakun's settings page and doing the same, as shown below.
+3. Open the subtitle selector in the Netflix control panel in the lower-right and select "Japanese."
+4. Have fun!  You should now be able to look up words in the Japanese subtitles with a single click.
 
-(TODO: insert images)
+![](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm5qb2EybTFkMGxtcnJoNmgxb3c1dGNzb25qdmp0ejBhZXdqcjhsYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ZR1Q6pJa9M7UyUHU9q/giphy.gif)
 
-### Hotkeys
+### Turning the Extension On/Off
+If you would like to disable Jimakun's subtitles and re-enable the normal Japanese subtitles on Netflix, don't worry! You can do so either by clicking on the extension popup in the Chrome toolbar and toggling the Enabled switch, or navigating to Jimakun's settings page and doing the same.
+
+### Words of Caution ⚠️
+
+Jimakun isn't guaranteed to play nicely with other extensions that significantly alter the Netflix UI.  You may need to disable other Netflix extensions while using Jimakun for the best user experience.
+
+### Hotkeys ⌨️
+You can customize the following hotkeys by navigating to the [extension shortcuts page](chrome://extensions/shortcuts).  The default values are:
 * Ctrl/Cmd + Up: Repeat the current subtitle
 * Ctrl/Cmd + Left = Jump to the previous subtitle
 * Ctrl/Cmd + Right = Jump to the next subtitle
@@ -132,11 +149,23 @@ Maybe, if there's enough support for it!
 
 ## License
 
-See `Notice.md` for a list of third-party dependencies and their corresponding licenses.  In addition to these, Jimakun makes use of the following dependencies:
+The original source code and other files in this project, excluding the files mentioned below or in NOTICE, are made available under the GPLv3 license (see [LICENSE.txt](LICENSE.txt)).   
 
-### kuromoji (through `bunsetsu`)
+See [NOTICE.md](NOTICE.md) for a list of third-party dependencies and their corresponding licenses.  In addition to these, Jimakun uses of the following dependencies:
 
-This project makes heavy use of another library I wrote, bunsetsu, for segmenting the Japanese sentences into words.  `bunsetsu` leverages the third-party morphological analyzer [kuromoji](https://github.com/takuyaa/kuromoji.js), which is licensed under the Apache 2.0 license. 
+### kuromoji
+
+This project makes heavy use of another library I wrote, [bunsetsu](https://github.com/mwhirls/bunsetsu), for segmenting the Japanese sentences into words.  [bunsetsu](https://github.com/mwhirls/bunsetsu) leverages the third-party morphological analyzer [kuromoji](https://github.com/takuyaa/kuromoji.js), which is licensed under the Apache 2.0 license. 
+
+### JMDICT & KANJIDIC2
+
+The Japanese-English dictionary entries (JMDICT) and kanji dictionary (KANJIDIC2) entries were source from the Electronic Dictionary Research and Development Group (EDRDG). The files are made available under a Creative Commons Attribution-ShareAlike Licence (V4.0).
+
+The modified versions of these files that are distributed are sourced from [jmdict-simplified](https://github.com/scriptin/jmdict-simplified).
+
+### Tatoeba Project
+
+Many of the example sentences are originally sourced another project I wrote, [tatoeba-simplified](https://github.com/mwhirls/tatoeba-json), which distributes the Japanese-English examples sentences from the Tatoeba Project in another format. All files downloaded through the Tatoeba Project are licensed under the CC BY 2.0 FR license.  As required by the original license, all derived files containing example sentences distributed in each release are made available under the same license.
 
 ### Stratis UI Icons
 
@@ -147,6 +176,3 @@ Some icons used by the plugin are sourced from the [Stratis UI Icons](https://ww
 [cc-by]: https://creativecommons.org/licenses/by/4.0/ 
 [cc-by-image]: https://i.creativecommons.org/l/by/4.0/88x31.png
 [cc-by-shield]: https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg
-
-### Source Code
-The original source code and other files in this project, excluding the files mentioned above or in NOTICE, are made available under the GPLv3 license (see [LICENSE.txt](LICENSE.txt)).   
