@@ -6,7 +6,7 @@
     <h1>Jimakun</h1>
 </div>
 <p align="center">
-  A Chrome Extension that enhances Japanese subtitles on Netflix for language learning.
+  Improve your Japanese by watching your favorite shows on Netflix. Look up the meaning of unknown words in subtitles with a single click.
 </p>
 
 ![](docs/screenshot.png)
@@ -23,20 +23,9 @@
 
 ## About
 
-Jimakun is a Chrome Extension that enhances Japanese subtitles on Netflix for language learning.  
+Learning a Japanese through TV shows is an fun way to get exposure to authentic, native Japanese. Unfortunately, it can be difficult to find videos that have Japanese subtitles in the first place, and often if they <i>do</i> happen to be there, the subtitles are not interactable and may even be rendered as image files.  This is very problematic as a language learner because unknown words in the subtitles cannot be selected for easy copy-and-paste into a dictionary or for use with a pop-up dictionary.
 
-Learning a Japanese through TV shows is an effective way to get exposure to authentic, native Japanese in a fun context. Unfortunately, it can be difficult to find videos that have Japanese subtitles in the first place, and often if they <i>do</i> happen to be there, the subtitles are not interactable and may even be rendered as image files.  This is very problematic as a language learner because unknown words in the subtitles cannot be selected for easy copy-and-paste into a dictionary or for use with a pop-up dictionary.
-
-Additionally, normal subtitles are missing a number of features that enhance the language learning process, such as: 
-* Looking up the meaning of a word at the click of a button.
-* The ability to easily toggle a translation to check your understanding.
-* Displaying the reading of a word written in Chinese characters (kanji).
-* Replaying a single piece of dialogue.
-* Saving sentences for later study (a process known as sentence mining).
-
-The goal of this extension is to transform Netflix into a helpful resource for Japanese study by adding several features to the existing Japanese subtitles on Netflix.
-
-I'm not the first to provide this kind of web app and will likely not be the last.  This extension was inspired by those that came before it, such as [Language Reactor](https://www.languagereactor.com/) and [Subadub](https://chrome.google.com/webstore/detail/subadub/jamiekdimmhnnemaaimmdahnahfmfdfk?hl=en-US).
+Enter Jimakun.  The goal of Jimakun is to transform Netflix into a helpful resource for Japanese study by adding an integrated popup dictionary and tracking the words you're learning over time, all while staying completely free and open source.
 
 ## Status
 
