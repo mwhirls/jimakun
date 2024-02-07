@@ -132,7 +132,7 @@ function getIntermediateForm(word: bunsetsu.Word, token: bunsetsu.Token, inflect
 
 function getInflection(token: bunsetsu.Token, prev?: IntermediateForm): IntermediateForm | undefined {
     const detail = token.detail;
-    if (detail?.type !== bunsetsu.DetailType.ConjugationDetail) {
+    if (detail?.type !== "ConjugationDetail") {
         return;
     }
     const conjugatedForm = detail.conjugatedForm;

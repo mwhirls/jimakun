@@ -35,7 +35,7 @@ function hasConjugation(word: bunsetsu.Word) {
         return false;
     }
     const detail = word.tokens[0].detail;
-    return detail?.type === bunsetsu.DetailType.ConjugationDetail ||
+    return detail?.type === "ConjugationDetail" ||
         isSuruVerb(word);
 }
 
