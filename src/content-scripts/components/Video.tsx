@@ -8,7 +8,7 @@ import { toHiragana } from '../../common/lang';
 import { SegmenterContext, SegmenterContextI } from '../contexts/SegmenterContext';
 import * as bunsetsu from "bunsetsu";
 import { sendMessage } from '../util/browser-runtime';
-import { DBStatusResult, Status } from '../../database/dbstatus';
+import { DBStatusResult, Status } from '../../service-worker/database/dbstatus';
 import { WordIndex } from './Word';
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';

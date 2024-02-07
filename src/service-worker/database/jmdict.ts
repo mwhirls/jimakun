@@ -1,6 +1,6 @@
 import { JMdict, JMdictKana, JMdictKanji, JMdictSense, JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { LookupWordsMessage } from "../common/events";
-import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper, DBStoreUpgradeContext, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
+import { LookupWordsMessage } from "../../common/events";
+import { DBStoreUpgrade, IDBUpgradeContext, IDBWrapper, DBStoreUpgradeContext, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./indexeddb";
 import { JSONDataProvider } from "./data-provider";
 
 const INDEX = {

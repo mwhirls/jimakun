@@ -1,6 +1,6 @@
 import { Kanjidic2, Kanjidic2Character } from "@scriptin/jmdict-simplified-types";
-import { LookupKanjiMessage } from "../common/events";
-import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, IDBObjectStoreWrapper, ProgressUpdateCallback } from "./database";
+import { LookupKanjiMessage } from "../../common/events";
+import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, IDBObjectStoreWrapper, ProgressUpdateCallback } from "./indexeddb";
 import { JSONDataProvider } from "./data-provider";
 
 const OBJECT_STORE = {

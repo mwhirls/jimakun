@@ -1,7 +1,7 @@
-import { CountSentencesMessage, LookupSentencesMessage, LookupSentencesResult } from "../common/events";
-import { TatoebaSentence, TatoebaWord } from "../common/tatoeba-types";
+import { CountSentencesMessage, LookupSentencesMessage, LookupSentencesResult } from "../../common/events";
+import { TatoebaSentence, TatoebaWord } from "../../common/tatoeba-types";
 import { JSONDataProvider } from "./data-provider";
-import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./database";
+import { IDBWrapper, DBStoreUpgrade, IDBUpgradeContext, DBStoreUpgradeContext, ProgressUpdateCallback, IDBObjectStoreWrapper } from "./indexeddb";
 
 const INDEX = {
     name: "keywords",

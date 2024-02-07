@@ -54,7 +54,7 @@ module.exports = (
             options: "./src/options/options.tsx",
             content: "./src/content-scripts/content.tsx",
             interceptor: "./src/content-scripts/interceptor.ts",
-            "service-worker": "./src/service-worker.ts",
+            "service-worker": "./src/service-worker/service-worker.ts",
         },
         output: {
             path: outputDir,

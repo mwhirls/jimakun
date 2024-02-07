@@ -2,7 +2,7 @@ import React from "react";
 import * as bunsetsu from "bunsetsu";
 import Word, { WordIndex } from "./Word";
 import { JMdictWord } from "@scriptin/jmdict-simplified-types";
-import { Blocked, Busy, ErrorOccurred, Status, VersionChanged } from "../../database/dbstatus";
+import { Blocked, Busy, ErrorOccurred, Status, VersionChanged } from "../../service-worker/database/dbstatus";
 import DatabaseBlocked from "../../common/components/DatabaseBlocked";
 import DatabaseBusy from "../../common/components/DatabaseBusy";
 import DatabaseError from "../../common/components/DatabaseError";

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { DBStatusResult, Status } from "../../database/dbstatus";
+import { DBStatusResult, Status } from "../../service-worker/database/dbstatus";
 import Spinner from "../../common/components/Spinner";
 import { RuntimeMessage, RuntimeEvent } from "../../common/events";
 import Modal from "../../common/components/modal/Modal";

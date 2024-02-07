@@ -1,4 +1,4 @@
-import { Checkpoints } from "../common/progress";
+import { Checkpoints } from "../../common/progress";
 
 export enum DBErrorType {
     Blocked = 'BLOCKED',

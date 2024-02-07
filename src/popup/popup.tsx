@@ -5,7 +5,7 @@ import DatabaseBlocked from "../common/components/DatabaseBlocked";
 import DatabaseBusy from "../common/components/DatabaseBusy";
 import DatabaseError from "../common/components/DatabaseError";
 import Popup from "./components/Popup";
-import { DBStatusResult, Status } from '../database/dbstatus';
+import { DBStatusResult, Status } from '../service-worker/database/dbstatus';
 import { StorageType } from '../storage/storage';
 import AppLogo from '../common/components/AppLogo';
 import OptionsButton from '../common/components/OptionsButton';

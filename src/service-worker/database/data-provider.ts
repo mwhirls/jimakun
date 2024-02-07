@@ -1,5 +1,5 @@
-import { Checkpoints } from "../common/progress";
-import { ProgressUpdateCallback, DBOperation } from "./database";
+import { Checkpoints } from "../../common/progress";
+import { ProgressUpdateCallback, DBOperation } from "./indexeddb";
 
 type ReadEntriesCallback<Data, Entry> = (data: Data) => Entry[];
 type ParseEntryCallback<Original, Parsed> = (entry: Original) => Parsed;

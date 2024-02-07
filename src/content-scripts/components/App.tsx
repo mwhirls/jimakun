@@ -5,7 +5,7 @@ import { ExtensionContext, ChromeExtensionContext } from "../contexts/ExtensionC
 import { SegmenterContext } from "../contexts/SegmenterContext";
 import { AlertType } from "../../common/components/modal/Alert";
 import Modal from "../../common/components/modal/Modal";
-import { DBStatusResult } from "../../database/dbstatus";
+import { DBStatusResult } from "../../service-worker/database/dbstatus";
 import VideoContainer from "./VideoContainer";
 import { useStorage } from "../../common/hooks/useStorage";
 

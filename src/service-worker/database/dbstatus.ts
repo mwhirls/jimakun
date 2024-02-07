@@ -1,6 +1,6 @@
-import { DBOperation } from "./database";
-import { Progress, ProgressType } from "../common/progress";
-import { LocalStorageObject } from "../storage/local-storage";
+import { DBOperation } from "./indexeddb";
+import { Progress, ProgressType } from "../../common/progress";
+import { LocalStorageObject } from "../../storage/local-storage";
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
