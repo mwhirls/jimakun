@@ -2,6 +2,19 @@ import { StorageObject, StorageType, StorageListener } from "../storage/storage"
 
 const ENABLED_KEY = 'enabled';
 
+function addLocalStorageListener<T>(settingKey: string, defaultValue: T, onChanged: (oldValue: T | undefined, newValue: T) => void) {
+    const storage = new StorageObject<T>(settingKey, StorageType.Local);
+    const listener = new StorageListener(storage, onChanged);
+    storage.addOnChangedListener(listener);
+    storage.get().then(value => {
+        if (value === undefined) {
+            storage.set(defaultValue);
+        }
+        const newValue = value === undefined ? defaultValue : value;
+        onChanged(value, newValue);
+    });
+}
+
 async function toggleExtensionIcon(enabled: boolean) {
     const icons = enabled ? {
         16: "icons/icon16.png",
@@ -20,12 +33,5 @@ async function toggleExtensionIcon(enabled: boolean) {
 }
 
 export function loadAppSettings() {
-    const storage = new StorageObject<boolean>(ENABLED_KEY, StorageType.Local);
-    const onEnabledChanged = new StorageListener(storage, (_, newValue) => toggleExtensionIcon(newValue));
-    storage.addOnChangedListener(onEnabledChanged);
-    storage.get().then(value => {
-        if (value !== undefined) {
-            toggleExtensionIcon(value);
-        }
-    });
+    addLocalStorageListener<boolean>(ENABLED_KEY, true, (_, newValue) => toggleExtensionIcon(newValue));
 }
