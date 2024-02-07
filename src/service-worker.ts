@@ -7,7 +7,7 @@ import * as DBStatusManager from './database/dbstatus'
 import * as tabs from './tabs'
 import { SessionStorageObject } from "./storage/session-storage";
 import { DataSource } from "./database/dbstatus";
-import { StorageObject, StorageType, StorageListener } from "./storage/storage";
+import { StorageListener, StorageObject, StorageType } from "./storage/storage";
 
 const DB_NAME = 'jimakun';
 const DB_VERSION = 3;
@@ -238,7 +238,7 @@ function handleDatabaseError(e: unknown) {
     }
 }
 
-async function enableDisableExtension(enabled: boolean) {
+async function toggleExtensionIcon(enabled: boolean) {
     const icons = enabled ? {
         16: "icons/icon16.png",
         32: "icons/icon32.png",
@@ -255,24 +255,23 @@ async function enableDisableExtension(enabled: boolean) {
     });
 }
 
-function initializeStorageListeners() {
+function loadAppSettings() {
     const storage = new StorageObject<boolean>(ENABLED_KEY, StorageType.Local);
-    const onEnabledChanged = new StorageListener(storage, (_, newValue) => enableDisableExtension(newValue));
+    const onEnabledChanged = new StorageListener(storage, (_, newValue) => toggleExtensionIcon(newValue));
     storage.addOnChangedListener(onEnabledChanged);
     storage.get().then(value => {
         if (value !== undefined) {
-            enableDisableExtension(value);
+            toggleExtensionIcon(value);
         }
     });
 }
 
-async function initializeApp() {
+async function onInstallExtension() {
     try {
         // session storage can't be accessed from content scripts by default
         chrome.storage.session.setAccessLevel({
             accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS'
         });
-        await initializeStorageListeners();
         await DBStatusManager.clearStatus()
         await initializeDatabase();
     } catch (e) {
@@ -280,12 +279,18 @@ async function initializeApp() {
     }
 }
 
+function onActivateExtension() {
+    loadAppSettings();
+}
+
 chrome.runtime.onStartup.addListener(() => {
     console.debug('onStartup event');
-    initializeApp();
+    onInstallExtension();
 });
 
 chrome.runtime.onInstalled.addListener(() => {
     console.debug('onInstalled event');
-    initializeApp();
+    onInstallExtension();
 });
+
+onActivateExtension();

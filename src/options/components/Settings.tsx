@@ -1,11 +1,8 @@
 import React from "react";
 import AppLogo from "../../common/components/AppLogo";
 import PurgeButton from "./PurgeButton";
-import { useStorage } from "../../common/hooks/useStorage";
 import Toggle from "../../common/components/Toggle";
-import { StorageType } from "../../storage/storage";
-
-const ENABLED_KEY = 'enabled'; // todo: consolidate these keys somewhere
+import { useExtensionEnabled } from "../../common/hooks/useExtensionEnabled";
 
 interface Setting {
     name: string;
@@ -43,7 +40,7 @@ function SettingsList({ settings }: SettingsListProps) {
 }
 
 function Settings() {
-    const [enabled, setEnabled] = useStorage<boolean>(ENABLED_KEY, StorageType.Local, false);
+    const [enabled, setEnabled] = useExtensionEnabled(false);
 
     const settings = [
         {

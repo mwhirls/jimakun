@@ -7,11 +7,11 @@ import { WEBVTT_FORMAT, querySelectorMutation, ChildMutationType } from "../util
 import Video, { WebvttSubtitles } from "./Video";
 import { DBStatusResult } from "../../database/dbstatus";
 import { useStorage } from "../../common/hooks/useStorage";
+import { useExtensionEnabled } from "../../common/hooks/useExtensionEnabled";
 
 const NETFLIX_PLAYER_CLASS = "watch-video--player-view";
 const NETFLIX_VIDEO_CLASS = `${NETFLIX_PLAYER_CLASS} video`
 const MOVIE_KEY = 'lastMovieId';
-const ENABLED_KEY = 'enabled';
 
 type MovieId = number;
 type SubtitleTracks = Map<string, SubtitleData>;
@@ -56,7 +56,7 @@ interface VideoContainerProps {
 
 function VideoContainer({ dbStatus }: VideoContainerProps) {
     const [currMovie] = useStorage<MovieId | null>(MOVIE_KEY, StorageType.Session, null);
-    const [enabled] = useStorage<boolean>(ENABLED_KEY, StorageType.Local, false);
+    const [enabled] = useExtensionEnabled(false);
     const [subtitleData, setSubtitleData] = useState(new Map<MovieId, SubtitleTracks>);
     const [currTrack, setCurrTrack] = useState("");
     const [netflixPlayer, setNetflixPlayer] = useState<Element | null>(document.querySelector(`.${NETFLIX_PLAYER_CLASS}`));

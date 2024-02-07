@@ -1,12 +1,9 @@
 import React from 'react';
-import { StorageType } from '../../storage/storage';
 import Toggle from '../../common/components/Toggle';
-import { useStorage } from '../../common/hooks/useStorage';
-
-const ENABLED_KEY = 'enabled';
+import { useExtensionEnabled } from '../../common/hooks/useExtensionEnabled';
 
 function Popup() {
-    const [enabled, setEnabled] = useStorage<boolean>(ENABLED_KEY, StorageType.Local, false);
+    const [enabled, setEnabled] = useExtensionEnabled(false);
 
     const textColor = enabled ? "text-slate-800" : "text-slate-400";
     return (
