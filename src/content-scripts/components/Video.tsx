@@ -123,17 +123,17 @@ function onSeekCue(direction: SeekDirection, currentTime: number, cues: TextTrac
     if (!index) {
         return;
     }
-    if (direction === SeekDirection.Next) {
+    if (direction === SeekDirection.enum.Next) {
         index = Math.min(index + 1, cues.length - 1);
     }
-    else if (direction === SeekDirection.Previous) {
+    else if (direction === SeekDirection.enum.Previous) {
         index = Math.max(0, index - 1)
     }
 
     // videoElem.currentTime can't be set without triggering a Netflix error, 
     // so dispatch to the page script to set time directly using Netflix API
     const cue = cues[index];
-    window.dispatchEvent(new CustomEvent(RuntimeEvent.SeekTime, { detail: { startTime: cue.startTime } }));
+    window.dispatchEvent(new CustomEvent(RuntimeEvent.enum.SeekTime, { detail: { startTime: cue.startTime } }));
 }
 
 interface CueWithText {
@@ -169,7 +169,7 @@ async function lookupWords(words: bunsetsu.Word[], context: ExtensionContext): P
             };
         })
     };
-    const message: RuntimeMessage = { event: RuntimeEvent.LookupWords, data: data };
+    const message: RuntimeMessage = { event: RuntimeEvent.enum.LookupWords, data: data };
     const entries = await sendMessage(message, context);
     return words.map((word, index) => {
         return {
@@ -209,10 +209,10 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
 
     useEffect(() => {
         const runtimeListener = (message: RuntimeMessage) => {
-            if (message.event === RuntimeEvent.SeekCue) {
+            if (message.event === RuntimeEvent.enum.SeekCue) {
                 const data = message.data as SeekCueMessage;
                 onSeekCue(data.direction, videoElem.currentTime, cuesRef.current);
-            } else if (message.event === RuntimeEvent.ToggleSubs) {
+            } else if (message.event === RuntimeEvent.enum.ToggleSubs) {
                 setShow(prev => !prev);
             }
         };

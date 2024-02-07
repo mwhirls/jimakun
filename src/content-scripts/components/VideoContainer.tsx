@@ -86,8 +86,8 @@ function VideoContainer({ dbStatus }: VideoContainerProps) {
             const data = (event as CustomEvent).detail as TimedTextSwitch;
             setCurrTrack(data.track.trackId);
         };
-        window.addEventListener(RuntimeEvent.MetadataDetected, metadataListener);
-        window.addEventListener(RuntimeEvent.SubtitleTrackSwitched, trackSwitchedListener);
+        window.addEventListener(RuntimeEvent.enum.MetadataDetected, metadataListener);
+        window.addEventListener(RuntimeEvent.enum.SubtitleTrackSwitched, trackSwitchedListener);
 
         // We insert our components into the Netflix DOM, but they constantly
         // mutate it.  Watch for changes so we know when to re-render.
@@ -109,8 +109,8 @@ function VideoContainer({ dbStatus }: VideoContainerProps) {
         netflixObserver.observe(document.body, config);
 
         return () => {
-            window.removeEventListener(RuntimeEvent.MetadataDetected, metadataListener);
-            window.removeEventListener(RuntimeEvent.MetadataDetected, trackSwitchedListener);
+            window.removeEventListener(RuntimeEvent.enum.MetadataDetected, metadataListener);
+            window.removeEventListener(RuntimeEvent.enum.SubtitleTrackSwitched, trackSwitchedListener);
             netflixObserver.disconnect();
         };
     }, []);

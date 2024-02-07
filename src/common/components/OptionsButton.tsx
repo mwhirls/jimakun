@@ -5,7 +5,7 @@ import { sendMessage } from '../../content-scripts/util/browser-runtime';
 import { RuntimeMessage, RuntimeEvent } from '../events';
 
 function openOptions(context: ExtensionContext) {
-    const message: RuntimeMessage = { event: RuntimeEvent.OpenOptions, data: undefined };
+    const message: RuntimeMessage = { event: RuntimeEvent.enum.OpenOptions, data: undefined };
     return sendMessage(message, context);
 }
 

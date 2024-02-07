@@ -10,7 +10,7 @@ import { StorageType } from "../../storage/storage";
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
 async function purgeDictionaries(): Promise<number> {
-    const message: RuntimeMessage = { event: RuntimeEvent.PurgeDictionaries, data: undefined };
+    const message: RuntimeMessage = { event: RuntimeEvent.enum.PurgeDictionaries, data: undefined };
     return chrome.runtime.sendMessage(message);
 }
 

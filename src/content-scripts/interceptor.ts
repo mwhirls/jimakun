@@ -67,18 +67,18 @@ JSON.parse = (text) => {
         if (parsed.result) {
             const metadata = NetflixMetadata.safeParse(parsed.result);
             if (metadata.success) {
-                window.dispatchEvent(new CustomEvent(RuntimeEvent.MetadataDetected, { detail: metadata.data }));
+                window.dispatchEvent(new CustomEvent(RuntimeEvent.enum.MetadataDetected, { detail: metadata.data }));
             }
         }
         const tts = TimedTextSwitch.safeParse(parsed);
         if (tts.success) {
-            window.dispatchEvent(new CustomEvent(RuntimeEvent.SubtitleTrackSwitched, { detail: tts.data }));
+            window.dispatchEvent(new CustomEvent(RuntimeEvent.enum.SubtitleTrackSwitched, { detail: tts.data }));
         }
     }
     return parsed;
 }
 
-window.addEventListener(RuntimeEvent.SeekTime, (event) => {
+window.addEventListener(RuntimeEvent.enum.SeekTime, (event) => {
     const data = (event as CustomEvent).detail as SeekTimeMessage;
     const time = data.startTime;
 

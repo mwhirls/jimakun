@@ -59,7 +59,7 @@ function onAudioClicked(word: bunsetsu.Word, context: ExtensionContext) {
         return;
     }
     const data: PlayAudioMessage = { utterance };
-    const message: RuntimeMessage = { event: RuntimeEvent.PlayAudio, data };
+    const message: RuntimeMessage = { event: RuntimeEvent.enum.PlayAudio, data };
     sendMessage(message, context);
 }
 

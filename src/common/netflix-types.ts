@@ -6,14 +6,14 @@ export const CdnUrl = z.object({
 });
 
 export const TTDownloadable = z.object({
-    urls: z.array(z.object(CdnUrl.shape)),
+    urls: z.array(CdnUrl),
 });
 
 export const TimedTextTrack = z.object({
     language: z.nullable(z.string()),
     languageDescription: z.string(),
     new_track_id: z.string(),
-    ttDownloadables: z.record(z.object(TTDownloadable.shape)),
+    ttDownloadables: z.record(TTDownloadable),
 });
 
 export const RecommendedMedia = z.object({
@@ -22,8 +22,8 @@ export const RecommendedMedia = z.object({
 
 export const NetflixMetadata = z.object({
     movieId: z.number(),
-    recommendedMedia: z.object(RecommendedMedia.shape),
-    timedtexttracks: z.array(z.object(TimedTextTrack.shape)),
+    recommendedMedia: RecommendedMedia,
+    timedtexttracks: z.array(TimedTextTrack),
 });
 
 export const TimedTextSwitch = z.object({
@@ -36,27 +36,27 @@ export const NetflixSessionPlayer = z.object({
 
 export const NetflixVideoPlayer = z.object({
     getAllPlayerSessionIds: z.function().returns(z.array(z.string())),
-    getVideoPlayerBySessionId: z.function().args(z.string()).returns(z.object(NetflixSessionPlayer.shape)),
+    getVideoPlayerBySessionId: z.function().args(z.string()).returns(NetflixSessionPlayer),
 })
 
 export const NetflixAPI = z.object({
-    videoPlayer: z.object(NetflixVideoPlayer.shape)
+    videoPlayer: NetflixVideoPlayer
 });
 
 export const NetflixPlayerApp = z.object({
-    getAPI: z.function().returns(z.object(NetflixAPI.shape))
+    getAPI: z.function().returns(NetflixAPI)
 });
 
 export const NetflixState = z.object({
-    playerApp: z.object(NetflixPlayerApp.shape)
+    playerApp: NetflixPlayerApp
 });
 
 export const NetflixAppContext = z.object({
-    state: z.object(NetflixState.shape)
+    state: NetflixState
 });
 
 export const Netflix = z.object({
-    appContext: z.object(NetflixAppContext.shape)
+    appContext: NetflixAppContext
 });
 
 export type CdnUrl = z.infer<typeof CdnUrl>;

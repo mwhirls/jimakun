@@ -69,25 +69,25 @@ async function purgeDictionaries(sendResponse: (response?: unknown) => void) {
 function onMessage(request: RuntimeMessage, _sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) {
     const message = request.data; // todo: validate
     switch (request.event) {
-        case RuntimeEvent.LookupWords:
+        case RuntimeEvent.enum.LookupWords:
             lookupWords(message as LookupWordsMessage, sendResponse);
             break;
-        case RuntimeEvent.LookupKanji:
+        case RuntimeEvent.enum.LookupKanji:
             lookupKanji(message as LookupKanjiMessage, sendResponse);
             break;
-        case RuntimeEvent.CountSentences:
+        case RuntimeEvent.enum.CountSentences:
             countSentences(message as CountSentencesMessage, sendResponse);
             break;
-        case RuntimeEvent.LookupSentences:
+        case RuntimeEvent.enum.LookupSentences:
             lookupSentences(message as LookupSentencesMessage, sendResponse);
             break;
-        case RuntimeEvent.OpenOptions:
+        case RuntimeEvent.enum.OpenOptions:
             openOptionsPage();
             return false;
-        case RuntimeEvent.PlayAudio:
+        case RuntimeEvent.enum.PlayAudio:
             playAudio(message as PlayAudioMessage);
             return false;
-        case RuntimeEvent.PurgeDictionaries:
+        case RuntimeEvent.enum.PurgeDictionaries:
             purgeDictionaries(sendResponse);
             break;
         default:

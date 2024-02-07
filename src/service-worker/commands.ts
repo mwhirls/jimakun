@@ -11,25 +11,25 @@ enum Command {
 function onCommand(command: string) {
     switch (command) {
         case Command.NextCue: {
-            const data: SeekCueMessage = { direction: SeekDirection.Next };
-            const message: RuntimeMessage = { event: RuntimeEvent.SeekCue, data: data };
+            const data: SeekCueMessage = { direction: SeekDirection.enum.Next };
+            const message: RuntimeMessage = { event: RuntimeEvent.enum.SeekCue, data: data };
             tabs.sendMessageToActive(message);
             break;
         }
         case Command.RepeatCue: {
-            const data: SeekCueMessage = { direction: SeekDirection.Repeat };
-            const message: RuntimeMessage = { event: RuntimeEvent.SeekCue, data: data };
+            const data: SeekCueMessage = { direction: SeekDirection.enum.Repeat };
+            const message: RuntimeMessage = { event: RuntimeEvent.enum.SeekCue, data: data };
             tabs.sendMessageToActive(message);
             break;
         }
         case Command.PrevCue: {
-            const data: SeekCueMessage = { direction: SeekDirection.Previous };
-            const message: RuntimeMessage = { event: RuntimeEvent.SeekCue, data: data };
+            const data: SeekCueMessage = { direction: SeekDirection.enum.Previous };
+            const message: RuntimeMessage = { event: RuntimeEvent.enum.SeekCue, data: data };
             tabs.sendMessageToActive(message);
             break;
         }
         case Command.ToggleSubs: {
-            const message: RuntimeMessage = { event: RuntimeEvent.ToggleSubs, data: null };
+            const message: RuntimeMessage = { event: RuntimeEvent.enum.ToggleSubs, data: null };
             tabs.sendMessageToActive(message);
             break;
         }

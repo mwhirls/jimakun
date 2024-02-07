@@ -10,7 +10,7 @@ async function lookupKanji(entry: JMdictWord, context: ExtensionContext): Promis
     const kanji = kanjiWords.flatMap(word => extractKanji(word));
     const unique = kanji.filter((c, index, arr) => arr.indexOf(c) === index);
     const data: LookupKanjiMessage = { kanji: unique };
-    const message: RuntimeMessage = { event: RuntimeEvent.LookupKanji, data: data };
+    const message: RuntimeMessage = { event: RuntimeEvent.enum.LookupKanji, data: data };
     return sendMessage(message, context);
 }
 

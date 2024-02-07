@@ -18,7 +18,7 @@ async function countKanji(entry: JMdictWord, context: ExtensionContext): Promise
     const kanji = kanjiWords.flatMap(word => extractKanji(word));
     const unique = kanji.filter((c, index, arr) => arr.indexOf(c) === index);
     const data: CountKanjiMessage = { kanji: unique };
-    const message: RuntimeMessage = { event: RuntimeEvent.LookupKanji, data: data };
+    const message: RuntimeMessage = { event: RuntimeEvent.enum.LookupKanji, data: data };
     return sendMessage(message, context);
 }
 
@@ -26,7 +26,7 @@ async function countSentences(word: bunsetsu.Word, context: ExtensionContext): P
     const data: CountSentencesMessage = {
         searchTerm: word.baseForm ?? toHiragana(word.reading),
     };
-    const message: RuntimeMessage = { event: RuntimeEvent.CountSentences, data: data };
+    const message: RuntimeMessage = { event: RuntimeEvent.enum.CountSentences, data: data };
     return sendMessage(message, context);
 }
 

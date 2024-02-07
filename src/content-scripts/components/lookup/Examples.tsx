@@ -15,7 +15,7 @@ async function lookupSentences(word: bunsetsu.Word, page: number, context: Exten
         page,
         perPage: SENTENCES_PER_PAGE,
     };
-    const message: RuntimeMessage = { event: RuntimeEvent.LookupSentences, data: data };
+    const message: RuntimeMessage = { event: RuntimeEvent.enum.LookupSentences, data: data };
     return sendMessage(message, context);
 }
 
