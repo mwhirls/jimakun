@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { StorageType } from "../../storage/storage";
 import { ExtensionContext, ChromeExtensionContext } from "../contexts/ExtensionContext";
 import { SegmenterContext } from "../contexts/SegmenterContext";
-import { AlertType } from "../../common/components/modal/Alert";
 import Modal from "../../common/components/modal/Modal";
 import { DBStatusResult } from "../../service-worker/database/dbstatus";
 import VideoContainer from "./VideoContainer";
@@ -27,7 +26,7 @@ function App() {
 
     if (invalidated) {
         return (
-            <Modal open={invalidated} headerText={"Extension Updated"} bodyText={"It looks like Jimakun was updated or reinstalled from another tab. Please reload the page for changes to take effect."} buttons={{ type: AlertType.AlertReload }} scale={2.0}></Modal>
+            <Modal open={invalidated} headerText={"Extension Updated"} bodyText={"It looks like Jimakun was updated or reinstalled from another tab. Please reload the page for changes to take effect."} buttons={{ type: "Reload" }} scale={2.0}></Modal>
         )
     }
 

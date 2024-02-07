@@ -1,6 +1,6 @@
 import React from 'react';
 import './ProgressBar.css'
-import { Determinate, Progress, ProgressType } from '../progress';
+import { Determinate, Progress } from '../progress';
 
 function IndeterminateProgress() {
     return <>
@@ -44,7 +44,7 @@ function ProgressBar({ progress, units }: ProgressBarProps) {
     return (
         <div className='w-full'>
             {
-                progress.type === ProgressType.Determinate ?
+                progress.type === "determinate" ?
                     <DeterminateProgress progress={progress} units={units}></DeterminateProgress> :
                     <IndeterminateProgress></IndeterminateProgress>
             }

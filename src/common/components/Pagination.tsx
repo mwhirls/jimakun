@@ -4,16 +4,6 @@ import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 const NUM_LEADING_PAGES = 1;
 const NUM_FOLLOWING_PAGES = 1;
 
-enum Selected {
-    Yes,
-    No,
-}
-
-enum Mirrored {
-    Yes,
-    No,
-}
-
 class Icon {
     content: JSX.Element;
 
@@ -59,11 +49,11 @@ class PageItem {
 
 class PageNavigation extends PageItem {
     onClick: () => void;
-    selected: Selected;
-    mirrored: Mirrored;
+    selected: boolean;
+    mirrored: boolean;
     disabled: boolean;
 
-    constructor(content: Icon | Text, onClick: () => void, selected: Selected, mirrored: Mirrored, disabled: boolean) {
+    constructor(content: Icon | Text, onClick: () => void, selected: boolean, mirrored: boolean, disabled: boolean) {
         super(content);
         this.onClick = onClick;
         this.selected = selected;
@@ -72,8 +62,8 @@ class PageNavigation extends PageItem {
     }
 
     render(): JSX.Element {
-        const mirror = this.mirrored === Mirrored.Yes ? "-scale-x-100" : "scale-x-100";
-        const selected = this.selected === Selected.Yes ? "text-black font-semibold border-b-2 border-solid border-red-600" : "text-slate-400 font-normal hover:text-black hover:font-semibold";
+        const mirror = this.mirrored ? "-scale-x-100" : "scale-x-100";
+        const selected = this.selected ? "text-black font-semibold border-b-2 border-solid border-red-600" : "text-slate-400 font-normal hover:text-black hover:font-semibold";
         return (
             <button onClick={() => this.onClick()} className={`w-full h-full p-2 align-top bg-white ${mirror} ${selected} disabled:text-slate-300 disabled:font-normal disabled:cursor-not-allowed disabled:pointer-events-none`} disabled={this.disabled}>
                 {this.content.render()}
@@ -83,10 +73,10 @@ class PageNavigation extends PageItem {
 }
 
 function numberedPage(page: number, selectedPage: number, onPageClicked: (page: number) => void) {
-    const selected = page === selectedPage ? Selected.Yes : Selected.No;
+    const selected = page === selectedPage;
     const onClickNumbered = () => onPageClicked(page);
     const number = new Text((page + 1).toString());
-    return new PageNavigation(number, onClickNumbered, selected, Mirrored.No, false);
+    return new PageNavigation(number, onClickNumbered, selected, false, false);
 }
 
 function leadingPages(pages: number[]) {
@@ -133,13 +123,13 @@ function Pagination({ numPages, onPageClicked }: PaginationProps) {
     const collapseLeading = leading.length && (current[0] - leading[leading.length - 1]) > 1;
     const collapseFollowing = following.length && (following[0] - current[current.length - 1]) > 1;
     const items = [
-        new PageNavigation(prevIcon, onClickPrev, Selected.No, Mirrored.No, selectedPage <= 0),
+        new PageNavigation(prevIcon, onClickPrev, false, false, selectedPage <= 0),
         ...(leading.map(page => numberedPage(page, selectedPage, onClick))),
         collapseLeading ? new PageItem(new Text("...")) : [],
         ...(current.map(page => numberedPage(page, selectedPage, onClick))),
         collapseFollowing ? new PageItem(new Text("...")) : [],
         ...(following.map(page => numberedPage(page, selectedPage, onClick))),
-        new PageNavigation(prevIcon, onClickNext, Selected.No, Mirrored.Yes, selectedPage >= pages.length - 1),
+        new PageNavigation(prevIcon, onClickNext, false, true, selectedPage >= pages.length - 1),
     ].flat();
 
     return (

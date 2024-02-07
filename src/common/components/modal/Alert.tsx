@@ -6,20 +6,15 @@ import ReloadButton from './ReloadButton';
 
 // https://tailwindui.com/components/application-ui/overlays/dialogs
 
-export enum AlertType {
-    AlertConfirmCancel,
-    AlertReload,
-}
-
 export interface ConfirmCancelButtons {
-    type: AlertType.AlertConfirmCancel;
+    type: "ConfirmCancel";
     buttonText: string;
     onConfirm: () => void;
     onCancel: () => void;
 }
 
 export interface ReloadButton {
-    type: AlertType.AlertReload;
+    type: "Reload";
 }
 
 export type AlertButtons = ConfirmCancelButtons | ReloadButton;
@@ -39,9 +34,9 @@ const Alert = React.forwardRef((props: AlertProps, ref: React.ForwardedRef<HTMLB
 
     const buttons = () => {
         switch (props.buttons.type) {
-            case AlertType.AlertConfirmCancel:
+            case "ConfirmCancel":
                 return <ConfirmCancel ref={ref} buttonText={props.buttons.buttonText} onConfirm={props.buttons.onConfirm} onCancel={props.buttons.onCancel}></ConfirmCancel>
-            case AlertType.AlertReload:
+            case "Reload":
                 return (
                     <div className='w-full pb-4'><ReloadButton ref={ref} className='block w-48 mx-auto'></ReloadButton></div>
                 )

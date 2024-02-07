@@ -3,9 +3,9 @@ import { DBStatusResult, Status } from "../../service-worker/database/dbstatus";
 import Spinner from "../../common/components/Spinner";
 import { RuntimeMessage, RuntimeEvent } from "../../common/events";
 import Modal from "../../common/components/modal/Modal";
-import { AlertType } from "../../common/components/modal/Alert";
 import { useStorage } from "../../common/hooks/useStorage";
 import { StorageType } from "../../storage/storage";
+import { AlertButtons } from "../../common/components/modal/Alert";
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
 
@@ -49,8 +49,8 @@ function PurgeButton() {
         }
     }
 
-    const alertButtons = {
-        type: AlertType.AlertConfirmCancel,
+    const alertButtons: AlertButtons = {
+        type: "ConfirmCancel",
         buttonText: "Purge",
         onCancel: () => setShowAlert(false),
         onConfirm: () => onPurgeConfirmed(),

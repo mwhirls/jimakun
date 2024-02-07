@@ -2,19 +2,14 @@ const MIN_CHECKPOINTS = 1;
 const MAX_CHECKPOINTS = 100;
 const CHECKPOINT_RATE = 1 / 10000;
 
-export enum ProgressType {
-    Determinate = 'determinate',
-    Indeterminate = 'indeterminate',
-}
-
 export interface Determinate {
-    type: ProgressType.Determinate;
+    type: "determinate";
     value: number;
     max: number;
 }
 
 export interface Indeterminate {
-    type: ProgressType.Indeterminate;
+    type: "indeterminate";
 }
 
 export type Progress = Determinate | Indeterminate;

@@ -1,5 +1,5 @@
 import { DBOperation } from "./indexeddb";
-import { Progress, ProgressType } from "../../common/progress";
+import { Progress } from "../../common/progress";
 import { LocalStorageObject } from "../../storage/local-storage";
 
 const DB_STATUS_KEY = 'lastDBStatusResult'
@@ -71,7 +71,7 @@ export async function setDBStatusBusyDeterminate(operation: DBOperation, value: 
             type: Status.Busy,
             operation,
             progress: {
-                type: ProgressType.Determinate,
+                type: "determinate",
                 value,
                 max
             },
@@ -87,7 +87,7 @@ export async function setDBStatusBusyIndeterminate(operation: DBOperation, sourc
             type: Status.Busy,
             operation,
             progress: {
-                type: ProgressType.Indeterminate
+                type: "indeterminate"
             },
             source
         }
