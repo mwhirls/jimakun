@@ -23,7 +23,7 @@
 
 ## About
 
-Learning a Japanese through TV shows is an fun way to get exposure to authentic, native Japanese. Unfortunately, it can be difficult to find videos that have Japanese subtitles in the first place, and often if they <i>do</i> happen to be there, the subtitles are not interactable and may even be rendered as image files.  This is very problematic as a language learner because unknown words in the subtitles cannot be selected for easy copy-and-paste into a dictionary or for use with a pop-up dictionary.
+Learning a Japanese through TV shows is a fun way to get exposure to authentic, native Japanese. Unfortunately, it can be difficult to find videos that have Japanese subtitles in the first place, and often if they <i>do</i> happen to be there, the subtitles are not interactable and may even be rendered as image files.  This is very problematic as a language learner because unknown words in the subtitles cannot be selected for easy copy-and-paste into a dictionary or for use with a pop-up dictionary.
 
 Enter Jimakun.  The goal of Jimakun is to transform Netflix into a helpful resource for Japanese study by adding an integrated popup dictionary and tracking the words you're learning over time, all while staying completely free and open source.
 
