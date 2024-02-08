@@ -8,12 +8,11 @@
   Improve your Japanese by watching your favorite shows on Netflix.  Look up the meaning of unknown words in subtitles with a single click.
 </p>
 <div align="center">
-
-  ![percheckin](https://github.com/mwhirls/jimakun/actions/workflows/build.yml/badge.svg?branch=main)
-  [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-  [![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#experimental)
-
+    <a href="https://github.com/mwhirls/jimakun/actions"><img src="https://img.shields.io/github/actions/workflow/status/mwhirls/jimakun/build.yml?branch=main" alt="Build Status"></a>
+    <a href="https://github.com/mwhirls/jimakun/blob/main/LICENSE.txt"><img alt="GitHub License" src="https://img.shields.io/github/license/mwhirls/jimakun"></a>
+    <img alt="Static Badge" src="https://img.shields.io/badge/stability-experimental-yellow?style=flat">
 </div>
+
 
 ## Table of Contents
 
