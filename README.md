@@ -1,5 +1,4 @@
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![stability-wip](https://img.shields.io/badge/stability-wip-lightgrey.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#work-in-progress)
+
 
 <div align="center">
     <img alt="Jimakun" src="public/assets/app-icon.svg" width="50" height="50">
@@ -8,8 +7,13 @@
 <p align="center">
   Improve your Japanese by watching your favorite shows on Netflix.  Look up the meaning of unknown words in subtitles with a single click.
 </p>
+<div align="center">
 
-![](docs/screenshot.png)
+  ![percheckin](https://github.com/mwhirls/jimakun/actions/workflows/build.yml/badge.svg)
+  [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+  [![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#experimental)
+
+</div>
 
 ## Table of Contents
 
