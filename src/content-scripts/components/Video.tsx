@@ -10,6 +10,7 @@ import * as bunsetsu from "bunsetsu";
 import { sendMessage } from '../util/browser-runtime';
 import { DBStatusResult, Status } from '../../service-worker/database/dbstatus';
 import { WordIndex } from './Word';
+import { useResizeObserver } from '../../common/hooks/useResizeObserver';
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';
 const NETFLIX_TEXT_SUBTITLE_CLASS = "player-timedtext";
@@ -30,33 +31,6 @@ function toList(cueList: TextTrackCueList | null): TextTrackCue[] {
 export interface WebvttSubtitles {
     webvttUrl: string,
     bcp47: string,
-}
-
-// https://stackoverflow.com/questions/17056654/getting-the-real-html5-video-width-and-height
-function calculateViewRect(video: HTMLVideoElement): DOMRect {
-    const videoRatio = video.videoWidth / video.videoHeight;
-    let width = video.offsetWidth;
-    let height = video.offsetHeight;
-    const elementRatio = width / height;
-
-    if (elementRatio > videoRatio) {
-        width = height * videoRatio;
-    } else {
-        height = width / videoRatio;
-    }
-
-    const rect = video.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const left = centerX - width / 2;
-    const top = centerY - height / 2;
-
-    return new DOMRect(
-        left,
-        top,
-        width,
-        height,
-    );
 }
 
 function calculateSubtitleOffset(videoRect: DOMRect, controlsElem: Element | null): number {
@@ -199,7 +173,7 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
     const cuesRef = useRef<TextTrackCue[]>([]);
     const [activeCues, setActiveCues] = useState<TextTrackCue[]>([]);
     const [parsedCues, setParsedCues] = useState<ParsedCue[]>([]);
-    const [rect, setRect] = useState(calculateViewRect(videoElem));
+    const rect = useResizeObserver(videoElem);
     const [controlsElem, setControlsElem] = useState(document.querySelector(`.${NETFLIX_BOTTOM_CONTROLS_CLASS}`));
     const [timedTextElem, setTimedTextElem] = useState<StyledNode | null>(queryStyledNode(NETFLIX_TEXT_SUBTITLE_CLASS));
     const [imageTimedTextElem, setImageTimedTextElem] = useState<StyledNode | null>(queryStyledNode(NETFLIX_TEXT_SUBTITLE_CLASS));
@@ -217,18 +191,6 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
             }
         };
         chrome.runtime.onMessage.addListener(runtimeListener);
-
-        const resizeObserver = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-                if (entry.target.tagName === 'VIDEO') {
-                    const newRect = calculateViewRect(entry.target as HTMLVideoElement);
-                    setRect(newRect);
-                } else {
-                    console.warn(`[JIMAKUN] resize event handled for unknown element ${entry}`);
-                }
-            }
-        });
-        resizeObserver.observe(videoElem);
 
         // Get handles to relevant Netflix DOM elements
         const netflixObserver = new MutationObserver((mutationsList: MutationRecord[]) => {
@@ -287,7 +249,6 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
 
         return () => {
             chrome.runtime.onMessage.removeListener(runtimeListener);
-            resizeObserver.disconnect();
             netflixObserver.disconnect();
             if (trackRef.current) {
                 trackRef.current.track.removeEventListener('cuechange', onCueChange);
