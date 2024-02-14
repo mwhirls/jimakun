@@ -6,7 +6,7 @@ import { DBStatusResult, Status } from '../../service-worker/database/dbstatus';
 import { WordIndex } from './Word';
 import { useResizeObserver } from '../../common/hooks/useResizeObserver';
 import Track, { ParsedCue, extractCueText } from './Track';
-import { useNetflixSubtitleSuppressor } from '../../common/hooks/useNetflixSubtitles';
+import { useNetflixSubtitleSuppressor } from '../../common/hooks/useNetflixSubtitleSuppressor';
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';
 
