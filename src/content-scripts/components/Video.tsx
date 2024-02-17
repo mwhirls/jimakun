@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react'
-import { ChildMutationType, querySelectorMutation } from '../util/util';
+import React, { useState } from 'react'
 import { DBStatusResult } from '../../service-worker/database/dbstatus';
 import { WordIndex } from './Word';
 import { useResizeObserver } from '../../common/hooks/useResizeObserver';
@@ -7,8 +6,7 @@ import Track, { ParsedCue } from './Track';
 import { useNetflixSubtitleSuppressor } from '../../common/hooks/useNetflixSubtitleSuppressor';
 import AbsoluteBox from '../../common/components/AbsoluteBox';
 import SubtitleContainer from './SubtitleContainer';
-
-const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';
+import { useNetflixControls } from '../hooks/useNetflixControls';
 
 export interface WebvttSubtitles {
     webvttUrl: string,
@@ -39,29 +37,9 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
     const [activeCues, setActiveCues] = useState<TextTrackCue[]>([]);
     const [parsedCues, setParsedCues] = useState<ParsedCue[]>([]);
     const rect = useResizeObserver(videoElem);
-    const [controlsElem, setControlsElem] = useState(document.querySelector(`.${NETFLIX_BOTTOM_CONTROLS_CLASS}`));
     const [selectedWord, setSelectedWord] = useState<WordIndex | null>(null);
+    const controlsElem = useNetflixControls();
     useNetflixSubtitleSuppressor();
-
-    useEffect(() => {
-        // Get handles to relevant Netflix DOM elements
-        const netflixObserver = new MutationObserver((mutationsList: MutationRecord[]) => {
-            for (const mutation of mutationsList) {
-                if (mutation.type === 'childList') {
-                    const controls = querySelectorMutation(mutation, `.${NETFLIX_BOTTOM_CONTROLS_CLASS}`);
-                    if (controls) {
-                        setControlsElem(controls.type === ChildMutationType.Added ? controls.elem : null);
-                    }
-                }
-            }
-        });
-        const config = { attributes: true, attibuteFilter: ['style'], childList: true, subtree: true };
-        netflixObserver.observe(document.body, config);
-
-        return () => {
-            netflixObserver.disconnect();
-        };
-    }, []);
 
     const onCuesParsed = (cues: ParsedCue[]) => {
         setSelectedWord(null);
@@ -86,7 +64,12 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
                     setSelectedWord={setSelectedWord}>
                 </SubtitleContainer>
             </AbsoluteBox>
-            <Track webvttSubtitles={webvttSubtitles} videoElem={videoElem} onCuesAvailable={cues => setActiveCues(cues)} onCuesParsed={onCuesParsed}></Track>
+            <Track
+                webvttSubtitles={webvttSubtitles}
+                videoElem={videoElem}
+                onCuesAvailable={cues => setActiveCues(cues)}
+                onCuesParsed={onCuesParsed}>
+            </Track>
         </>
     )
 }
