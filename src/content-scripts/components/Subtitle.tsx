@@ -18,10 +18,9 @@ export type Line = WordDetails[];
 export interface SubtitleLoadingProps {
     cueText: string;
     dbStatus: Blocked | Busy | ErrorOccurred | VersionChanged;
-    fontSize: number;
 }
 
-export function SubtitleLoading({ cueText, dbStatus, fontSize }: SubtitleLoadingProps) {
+export function SubtitleLoading({ cueText, dbStatus }: SubtitleLoadingProps) {
     const content = () => {
         switch (dbStatus.type) {
             case Status.Blocked:
@@ -33,12 +32,8 @@ export function SubtitleLoading({ cueText, dbStatus, fontSize }: SubtitleLoading
         }
     }
 
-    const style = {
-        fontSize: `${fontSize}px`,
-    };
-
     return (
-        <div style={style} className="group inline-block relative rounded-lg pointer-events-auto hover:bg-opacity-25 hover:bg-white">
+        <div className="group inline-block relative rounded-lg pointer-events-auto hover:bg-opacity-25 hover:bg-white">
             <span className="inline-block font-bold drop-shadow-[0_0_7px_#000000] select-text">{cueText}</span>
             <span className="inline-block w-12 align-middle ml-4 relative">
                 <Spinner thickness={2}></Spinner>
@@ -54,10 +49,9 @@ export interface SubtitleProps {
     lines: Line[];
     selectedWord: WordIndex | null;
     setSelectedWord: (index: WordIndex | null) => void;
-    fontSize: number;
 }
 
-function Subtitle({ lines, selectedWord, setSelectedWord, fontSize }: SubtitleProps) {
+function Subtitle({ lines, selectedWord, setSelectedWord }: SubtitleProps) {
     const onWordClicked = (index: WordIndex) => {
         if (selectedWord && index.equals(selectedWord)) {
             setSelectedWord(null);
@@ -67,12 +61,8 @@ function Subtitle({ lines, selectedWord, setSelectedWord, fontSize }: SubtitlePr
     };
     const onWordDeselected = () => setSelectedWord(null);
 
-    const style = {
-        fontSize: `${fontSize}px`,
-    };
-
     return (
-        <div style={style} className="inline-block relative font-bold drop-shadow-[0_0_7px_#000000] pointer-events-auto select-text">
+        <div className="inline-block relative font-bold drop-shadow-[0_0_7px_#000000] pointer-events-auto select-text">
             {
                 lines.map((line: Line, lineIndex: number) => {
                     return (

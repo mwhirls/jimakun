@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import Subtitle, { SubtitleLoading } from "./Subtitle";
-import { RuntimeEvent, RuntimeMessage } from '../../common/events';
 import { ChildMutationType, querySelectorMutation } from '../util/util';
-import { DBStatusResult, Status } from '../../service-worker/database/dbstatus';
+import { DBStatusResult } from '../../service-worker/database/dbstatus';
 import { WordIndex } from './Word';
 import { useResizeObserver } from '../../common/hooks/useResizeObserver';
-import Track, { ParsedCue, extractCueText } from './Track';
+import Track, { ParsedCue } from './Track';
 import { useNetflixSubtitleSuppressor } from '../../common/hooks/useNetflixSubtitleSuppressor';
 import AbsoluteBox from '../../common/components/AbsoluteBox';
+import SubtitleContainer from './SubtitleContainer';
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';
 
@@ -41,18 +40,10 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
     const [parsedCues, setParsedCues] = useState<ParsedCue[]>([]);
     const rect = useResizeObserver(videoElem);
     const [controlsElem, setControlsElem] = useState(document.querySelector(`.${NETFLIX_BOTTOM_CONTROLS_CLASS}`));
-    const [show, setShow] = useState(true);
     const [selectedWord, setSelectedWord] = useState<WordIndex | null>(null);
     useNetflixSubtitleSuppressor();
 
     useEffect(() => {
-        const runtimeListener = (message: RuntimeMessage) => {
-            if (message.event === RuntimeEvent.enum.ToggleSubs) {
-                setShow(prev => !prev);
-            }
-        };
-        chrome.runtime.onMessage.addListener(runtimeListener);
-
         // Get handles to relevant Netflix DOM elements
         const netflixObserver = new MutationObserver((mutationsList: MutationRecord[]) => {
             for (const mutation of mutationsList) {
@@ -68,7 +59,6 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
         netflixObserver.observe(document.body, config);
 
         return () => {
-            chrome.runtime.onMessage.removeListener(runtimeListener);
             netflixObserver.disconnect();
         };
     }, []);
@@ -80,42 +70,21 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
 
     const fontSize = rect.height * 0.035;
     const bottomOffset = calculateSubtitleOffset(rect, controlsElem);
-    const containerStyle = {
-        bottom: `${bottomOffset}px`,
-    };
-    const subtitles = () => {
-        if (!show) {
-            return <></>;
-        }
-        const status = dbStatus?.status;
-        switch (status?.type) {
-            case Status.Ready:
-                return parsedCues.map((cue, index) => {
-                    return (
-                        <Subtitle key={index} lines={cue} selectedWord={selectedWord} setSelectedWord={(index) => setSelectedWord(index)} fontSize={fontSize}></Subtitle>
-                    )
-                });
-            case Status.Blocked:
-            case Status.Busy:
-            case Status.ErrorOccurred:
-            case Status.VersionChanged: {
-                return activeCues.map((cue, index) => {
-                    return (
-                        <SubtitleLoading key={index} dbStatus={status} cueText={extractCueText(cue)} fontSize={fontSize}></SubtitleLoading>
-                    )
-                })
-            }
-            default:
-                return <></>;
-        }
-    }
 
     // Add a container that acts as a proxy for the Netflix video screen
     // to help layout the child components.
     return (
         <>
             <AbsoluteBox rect={rect} pointerEvents='pointer-events-none' zIndex='z-10'>
-                <div id="jimakun-subtitle-container" className="absolute text-center w-full" style={containerStyle}>{subtitles()}</div>
+                <SubtitleContainer
+                    fontSize={fontSize}
+                    bottomOffset={bottomOffset}
+                    dbStatus={dbStatus}
+                    parsedCues={parsedCues}
+                    activeCues={activeCues}
+                    selectedWord={selectedWord}
+                    setSelectedWord={setSelectedWord}>
+                </SubtitleContainer>
             </AbsoluteBox>
             <Track webvttSubtitles={webvttSubtitles} videoElem={videoElem} onCuesAvailable={cues => setActiveCues(cues)} onCuesParsed={onCuesParsed}></Track>
         </>
