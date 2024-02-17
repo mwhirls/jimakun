@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { DBStatusResult } from '../../service-worker/database/dbstatus';
 import { WordIndex } from './Word';
-import { useResizeObserver } from '../../common/hooks/useResizeObserver';
+import { useResizeObserver } from '../hooks/useResizeObserver';
 import Track, { ParsedCue } from './Track';
-import { useNetflixSubtitleSuppressor } from '../../common/hooks/useNetflixSubtitleSuppressor';
+import { useNetflixSubtitleSuppressor } from '../hooks/useNetflixSubtitleSuppressor';
 import AbsoluteBox from '../../common/components/AbsoluteBox';
 import SubtitleContainer from './SubtitleContainer';
 import { useNetflixControls } from '../hooks/useNetflixControls';

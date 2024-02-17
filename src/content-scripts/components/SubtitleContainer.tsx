@@ -4,7 +4,7 @@ import { RuntimeEvent, RuntimeMessage } from '../../common/events';
 import { DBStatusResult, Status } from '../../service-worker/database/dbstatus';
 import { WordIndex } from './Word';
 import { ParsedCue, extractCueText } from './Track';
-import { useNetflixSubtitleSuppressor } from '../../common/hooks/useNetflixSubtitleSuppressor';
+import { useNetflixSubtitleSuppressor } from '../hooks/useNetflixSubtitleSuppressor';
 
 interface ContentProps {
     dbStatus: DBStatusResult | null;
