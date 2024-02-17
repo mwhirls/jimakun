@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 
+// todo: investigate performance of these kinds of hooks.  currently using more than 
+// one MutationObserver just to keep things modular, which is probably not efficient.  maybe combine them and broadcast out state changes in a better way
+
 const NETFLIX_TEXT_SUBTITLE_CLASS = "player-timedtext";
 const NETFLIX_IMAGE_SUBTITLE_CLASS = "image-based-timed-text";
 

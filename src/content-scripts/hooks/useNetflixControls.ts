@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { querySelectorMutation, ChildMutationType } from "../util/util";
 
+// todo: investigate performance of these kinds of hooks.  currently using more than 
+// one MutationObserver just to keep things modular, which is probably not efficient.  maybe combine them and broadcast out state changes in a better way
+
 const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';
 
 export function useNetflixControls(): Element | null {
