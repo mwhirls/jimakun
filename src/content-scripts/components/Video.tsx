@@ -7,6 +7,7 @@ import { WordIndex } from './Word';
 import { useResizeObserver } from '../../common/hooks/useResizeObserver';
 import Track, { ParsedCue, extractCueText } from './Track';
 import { useNetflixSubtitleSuppressor } from '../../common/hooks/useNetflixSubtitleSuppressor';
+import AbsoluteBox from '../../common/components/AbsoluteBox';
 
 const NETFLIX_BOTTOM_CONTROLS_CLASS = 'watch-video--bottom-controls-container';
 
@@ -77,12 +78,6 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
         setParsedCues(cues);
     }
 
-    const videoStyle = {
-        left: `${rect.left}px`,
-        top: `${rect.top}px`,
-        width: `${rect.width}px`,
-        height: `${rect.height}px`,
-    };
     const fontSize = rect.height * 0.035;
     const bottomOffset = calculateSubtitleOffset(rect, controlsElem);
     const containerStyle = {
@@ -115,13 +110,13 @@ function Video({ dbStatus, webvttSubtitles, videoElem }: VideoProps) {
         }
     }
 
-    // Add a dummy <div> container that acts as a proxy for the Netflix video screen
+    // Add a container that acts as a proxy for the Netflix video screen
     // to help layout the child components.
     return (
         <>
-            <div id="jimakun-video" className="absolute pointer-events-none z-10" style={videoStyle}>
+            <AbsoluteBox rect={rect} pointerEvents='pointer-events-none' zIndex='z-10'>
                 <div id="jimakun-subtitle-container" className="absolute text-center w-full" style={containerStyle}>{subtitles()}</div>
-            </div>
+            </AbsoluteBox>
             <Track webvttSubtitles={webvttSubtitles} videoElem={videoElem} onCuesAvailable={cues => setActiveCues(cues)} onCuesParsed={onCuesParsed}></Track>
         </>
     )
