@@ -11,7 +11,7 @@ import { extractKanji, isSuruVerb, toHiragana } from '../../../common/lang';
 import { RuntimeMessage, RuntimeEvent, CountSentencesMessage, CountKanjiMessage } from '../../../common/events';
 import { ChromeExtensionContext, ExtensionContext } from '../../contexts/ExtensionContext';
 import { sendMessage } from '../../util/browser-runtime';
-import Conjugation from './Conjugation';
+import Conjugation from './conjugation/Conjugation';
 
 async function countKanji(entry: JMdictWord, context: ExtensionContext): Promise<number> {
     const kanjiWords = entry.kanji.map(k => k.text);
