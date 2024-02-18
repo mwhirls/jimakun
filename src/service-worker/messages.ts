@@ -1,8 +1,11 @@
 import { LookupWordsMessage, LookupKanjiMessage, CountSentencesMessage, LookupSentencesMessage, PlayAudioMessage, RuntimeEvent, RuntimeMessage } from "../common/events";
 import { openJMDict, openKanjiDic2, openTatoeba, purgeReimport } from "./database";
 
-async function lookupWords(message: LookupWordsMessage, sendResponse: (response?: unknown) => void) {
+type ResponseHandler = (response?: unknown) => void;
+
+async function lookupWords(data: unknown, sendResponse: ResponseHandler) {
     try {
+        const message = LookupWordsMessage.parse(data);
         const dict = await openJMDict();
         const words = await dict.lookupBestMatches(message);
         sendResponse(words);
@@ -11,8 +14,9 @@ async function lookupWords(message: LookupWordsMessage, sendResponse: (response?
     }
 }
 
-async function lookupKanji(message: LookupKanjiMessage, sendResponse: (response?: unknown) => void) {
+async function lookupKanji(data: unknown, sendResponse: ResponseHandler) {
     try {
+        const message = LookupKanjiMessage.parse(data);
         const dict = await openKanjiDic2();
         const kanji = await dict.lookup(message);
         sendResponse(kanji);
@@ -21,8 +25,9 @@ async function lookupKanji(message: LookupKanjiMessage, sendResponse: (response?
     }
 }
 
-async function countSentences(message: CountSentencesMessage, sendResponse: (response?: unknown) => void) {
+async function countSentences(data: unknown, sendResponse: ResponseHandler) {
     try {
+        const message = CountSentencesMessage.parse(data);
         const store = await openTatoeba();
         const count = await store.count(message);
         sendResponse(count);
@@ -31,8 +36,9 @@ async function countSentences(message: CountSentencesMessage, sendResponse: (res
     }
 }
 
-async function lookupSentences(message: LookupSentencesMessage, sendResponse: (response?: unknown) => void) {
+async function lookupSentences(data: unknown, sendResponse: ResponseHandler) {
     try {
+        const message = LookupSentencesMessage.parse(data);
         const store = await openTatoeba();
         const sentences = await store.lookup(message);
         sendResponse(sentences);
@@ -50,11 +56,16 @@ function openOptionsPage() {
     });
 }
 
-function playAudio(message: PlayAudioMessage) {
-    if (!message.utterance) {
-        return;
+function playAudio(data: unknown) {
+    try {
+        const message = PlayAudioMessage.parse(data);
+        if (!message.utterance) {
+            return;
+        }
+        chrome.tts.speak(message.utterance, { lang: 'ja' });
+    } catch (e) {
+        console.error(e);
     }
-    chrome.tts.speak(message.utterance, { lang: 'ja' });
 }
 
 async function purgeDictionaries(sendResponse: (response?: unknown) => void) {
@@ -66,26 +77,40 @@ async function purgeDictionaries(sendResponse: (response?: unknown) => void) {
     }
 }
 
-function onMessage(request: RuntimeMessage, _sender: chrome.runtime.MessageSender, sendResponse: (response?: unknown) => void) {
-    const message = request.data; // todo: validate
-    switch (request.event) {
+function validate(request: unknown) {
+    try {
+        const message = RuntimeMessage.parse(request);
+        return message;
+    } catch (e) {
+        console.error('ill-formed message sent to service worker: ', e)
+        return null;
+    }
+}
+
+function onMessage(request: unknown, _sender: chrome.runtime.MessageSender, sendResponse: ResponseHandler) {
+    const message = validate(request);
+    if (!message) {
+        sendResponse(undefined); // todo: better error reporting sent to user?
+        return false;
+    }
+    switch (message.event) {
         case RuntimeEvent.enum.LookupWords:
-            lookupWords(message as LookupWordsMessage, sendResponse);
+            lookupWords(message.data, sendResponse);
             break;
         case RuntimeEvent.enum.LookupKanji:
-            lookupKanji(message as LookupKanjiMessage, sendResponse);
+            lookupKanji(message.data, sendResponse);
             break;
         case RuntimeEvent.enum.CountSentences:
-            countSentences(message as CountSentencesMessage, sendResponse);
+            countSentences(message.data, sendResponse);
             break;
         case RuntimeEvent.enum.LookupSentences:
-            lookupSentences(message as LookupSentencesMessage, sendResponse);
+            lookupSentences(message.data, sendResponse);
             break;
         case RuntimeEvent.enum.OpenOptions:
             openOptionsPage();
             return false;
         case RuntimeEvent.enum.PlayAudio:
-            playAudio(message as PlayAudioMessage);
+            playAudio(message.data);
             return false;
         case RuntimeEvent.enum.PurgeDictionaries:
             purgeDictionaries(sendResponse);
