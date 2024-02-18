@@ -1,11 +1,12 @@
 import { Checkpoints } from "../../common/progress";
 
-export enum DBErrorType {
-    Blocked = 'BLOCKED',
-    UpgradeFailed = 'UPGRADE_FAILED',
-    TransactionError = 'TRANSACTION_ERROR',
-    Unknown = 'UNKNOWN',
-}
+export const DBErrorType = {
+    Blocked: 'BLOCKED',
+    UpgradeFailed: 'UPGRADE_FAILED',
+    TransactionError: 'TRANSACTION_ERROR',
+    Unknown: 'UNKNOWN',
+} as const;
+export type DBErrorType = typeof DBErrorType[keyof typeof DBErrorType];
 
 export class DatabaseError extends Error {
     type: DBErrorType;

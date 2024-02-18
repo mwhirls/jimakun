@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { querySelectorMutation, ChildMutationType } from "../util/util";
+import { querySelectorMutation } from "../util/util";
 
 // todo: investigate performance of these kinds of hooks.  currently using more than 
 // one MutationObserver just to keep things modular, which is probably not efficient.  maybe combine them and broadcast out state changes in a better way
@@ -16,7 +16,7 @@ export function useNetflixControls(): Element | null {
                 if (mutation.type === 'childList') {
                     const controls = querySelectorMutation(mutation, `.${NETFLIX_BOTTOM_CONTROLS_CLASS}`);
                     if (controls) {
-                        setControlsElem(controls.type === ChildMutationType.Added ? controls.elem : null);
+                        setControlsElem(controls.type === 'added' ? controls.elem : null);
                     }
                 }
             }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { querySelectorMutation, ChildMutationType } from "../util/util";
+import { querySelectorMutation } from "../util/util";
 
 // todo: investigate performance of these kinds of hooks.  currently using more than 
 // one MutationObserver just to keep things modular, which is probably not efficient.  maybe combine them and broadcast out state changes in a better way
@@ -22,7 +22,7 @@ export function useNetflixPlayer(): [Element | null, HTMLVideoElement | null] {
                 }
                 const video = querySelectorMutation(mutation, `.${NETFLIX_VIDEO_CLASS}`);
                 if (video) {
-                    setVideoElem(video.type === ChildMutationType.Added ? video.elem as HTMLVideoElement : null);
+                    setVideoElem(video.type === 'added' ? video.elem as HTMLVideoElement : null);
                     const player = document.querySelector(`.${NETFLIX_PLAYER_CLASS}`);
                     setNetflixPlayer(player);
                 }

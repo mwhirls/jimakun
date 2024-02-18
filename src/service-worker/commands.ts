@@ -1,12 +1,13 @@
 import { SeekCueMessage, SeekDirection, RuntimeMessage, RuntimeEvent } from '../common/events';
 import * as tabs from './tabs'
 
-enum Command {
-    NextCue = 'next-cue',
-    PrevCue = 'prev-cue',
-    RepeatCue = 'repeat-cue',
-    ToggleSubs = 'toggle-subs',
-}
+export const Command = {
+    NextCue: 'next-cue',
+    PrevCue: 'prev-cue',
+    RepeatCue: 'repeat-cue',
+    ToggleSubs: 'toggle-subs',
+} as const;
+export type Command = typeof Command[keyof typeof Command];
 
 function onCommand(command: string) {
     switch (command) {

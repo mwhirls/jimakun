@@ -13,10 +13,7 @@ function querySelector(nodeList: NodeList, selector: string) {
     return null;
 }
 
-export enum ChildMutationType {
-    Added,
-    Removed
-}
+export type ChildMutationType = 'added' | 'removed';
 
 export interface ChildMutation {
     elem: Element;
@@ -26,10 +23,10 @@ export interface ChildMutation {
 export function querySelectorMutation(mutation: MutationRecord, selector: string): ChildMutation | null {
     if (mutation.addedNodes.length) {
         const elem = querySelector(mutation.addedNodes, selector);
-        return elem ? { elem: elem, type: ChildMutationType.Added } : null;
+        return elem ? { elem: elem, type: 'added' } : null;
     } else if (mutation.removedNodes.length) {
         const elem = querySelector(mutation.removedNodes, selector);
-        return elem ? { elem: elem, type: ChildMutationType.Removed } : null;
+        return elem ? { elem: elem, type: 'removed' } : null;
     }
     return null;
 }
